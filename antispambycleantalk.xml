@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension version="1.5" type="plugin" group="system" method="upgrade">
+    <name>Antispam by CleanTalk</name>
+    <author>CleanTalk team</author>
+    <creationDate>19.02.2014</creationDate>
+    <copyright>(C) 2014 CleanTalk</copyright>
+    <license>GNU/GPLv2</license>
+    <authorEmail>welcome@cleantalk.ru</authorEmail>
+    <authorUrl>cleantalk.org</authorUrl>
+    <version>1.71</version>
+    <description>PLG_CLEANTALK_DESCRIPTION</description>
+    <files>
+	<filename plugin="antispambycleantalk">antispambycleantalk.php</filename>
+	<filename plugin="antispambycleantalk">cleantalk.class.php</filename>
+	<filename plugin="antispambycleantalk">JSON.php</filename>
+    </files>
+    <languages folder="languages">
+	<language tag="en-GB">en-GB.plg_system_antispambycleantalk.ini</language>
+	<language tag="en-GB">en-GB.plg_system_antispambycleantalk.sys.ini</language>
+	<language tag="ru-RU">ru-RU.plg_system_antispambycleantalk.ini</language>
+	<language tag="ru-RU">ru-RU.plg_system_antispambycleantalk.sys.ini</language>
+    </languages>
+ 
+    <!-- Joomla 1.7+ config -->
+    <config>
+	<fields name="params">
+		<fieldset name="basic">
+			<field name="groups" type="usergroup" 
+				label="PLG_SYSTEM_CLEANTALK_PARAM_GROUPS_LABEL" 
+				description="PLG_SYSTEM_CLEANTALK_PARAM_GROUPS_DESC" 
+				size="10"
+				multiple="true" 
+				default="1"
+			/>
+			<field name="apikey" type="text" 
+				label="PLG_SYSTEM_CLEANTALK_PARAM_APIKEY" 
+				description="PLG_SYSTEM_CLEANTALK_PARAM_APIKEY_DESC" 
+				size="16" 
+				default="enter key"
+			/>
+			<field name="myspacer" type="spacer" 
+				label="PLG_SYSTEM_CLEANTALK_PARAM_GETAPIKEY" 
+				description="" 
+			/>
+			<field name="pluginhomepage" type="spacer" 
+				label="PLG_SYSTEM_CLEANTALK_PARAM_HOMEPAGE" 
+				description="" 
+			/>
+			<field name="server" type="hidden" 
+				label="PLG_SYSTEM_CLEANTALK_PARAM_SERVER" 
+				description="PLG_SYSTEM_CLEANTALK_PARAM_SERVER_DESC" 
+				size="50" 
+				default="http://moderate.cleantalk.ru" 
+			/>
+			
+		</fieldset>
+	</fields>
+    </config>
+</extension>
