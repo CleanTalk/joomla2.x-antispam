@@ -3,7 +3,7 @@
 /**
  * CleanTalk joomla plugin
  *
- * @version 1.70
+ * @version 1.71
  * @package Cleantalk
  * @subpackage Joomla
  * @author CleanTalk (welcome@cleantalk.ru) 
@@ -21,7 +21,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
     /**
      * Plugin version string for server
      */
-    const ENGINE = 'joomla-170';
+    const ENGINE = 'joomla-171';
     
     /**
      * Default value for hidden field ct_checkjs 
@@ -40,9 +40,9 @@ class plgSystemAntispambycleantalk extends JPlugin {
     static $tables_ready = FALSE;
 
     /*
-    * Flag marks signup as proccessed
+    * Flag marked JComments form initilization. 
     */
-    private $ct_signup_proccessed = false;
+    private $JCReady = false;
 
     /**
      * Include in head adn fill form
@@ -120,10 +120,11 @@ class plgSystemAntispambycleantalk extends JPlugin {
      */
     function moderateUser() {
         // Call function only for guests
-        if (JFactory::getUser()->id) {
+        // Call only for $_POST with variables
+        if (JFactory::getUser()->id || count($_POST) <= 1) {
             return false;
         }
-
+        
         $post = $_POST;
         $ver = new JVersion();
         if (strcmp($ver->RELEASE, '1.5') <= 0) {
@@ -136,68 +137,62 @@ class plgSystemAntispambycleantalk extends JPlugin {
             $post_email = isset($post['email']) ? $post['email'] : (isset($post['jform']['email1']) ? $post['jform']['email1'] : null);
         }
 
-        if (!empty($post_name) || !empty($post_username) || !empty($post_email)) {
+        $session = JFactory::getSession();
+        $val = $session->get('register_formtime');
+        if ($val) {
+            $submit_time = time() - (int) $val;
+        } else {
+            $submit_time = NULL;
+        }
 
-//            $this->ct_signup_proccessed = true;
+        $checkjs = $this->get_ct_checkjs();
 
-            $session = JFactory::getSession();
-
-            $val = $session->get('register_formtime');
-            if ($val) {
-                $submit_time = time() - (int) $val;
-            } else {
-                $submit_time = NULL;
-            }
-
-            $checkjs = $this->get_ct_checkjs();
-
-            self::getCleantalk();
-            $ctResponse = self::ctSendRequest(
-                    'check_newuser', array(
-                        'sender_ip' => self::$CT->ct_session_ip($_SERVER['REMOTE_ADDR']),
-                        'sender_email' => $post_email,
-                        'sender_nickname' => $post_username,
-                        'submit_time' => $submit_time,
-                        'js_on' => $checkjs
-                    )
-            );
-            if (!empty($ctResponse) && is_array($ctResponse)) {
-                if ($ctResponse['allow'] == 0) {
-                    if ($ctResponse['errno'] != 0) {
-                        $this->sendAdminEmail("CleanTalk plugin", $ctResponse['comment']);
-                    } else {
-                        $session->set('ct_register_form_data', $post);
-
-                        $app = & JFactory::getApplication();
-                        $app->enqueueMessage($ctResponse['comment'], 'error');
-
-                        $uri = & JFactory::getUri();
-                        $redirect = $uri->toString();
-                        
-                        // OPC
-                        if (isset($_POST['return'])) {
-                            $redirect_opc = base64_decode($_POST['return']);
-                            $u =& JURI::getInstance( $redirect);
-                            $u_opc =& JURI::getInstance( $redirect_opc );
-
-                            if ($u->getHost() == $u_opc->getHost()) {
-                                $app->redirect(base64_decode($_POST['return']));
-                                die;    
-                            }
-                        }
-
-                        $redirect = str_replace('?task=registration.register', '', $redirect);
-                        $app->redirect($redirect);
-                        die();
-                    }
+        self::getCleantalk();
+        $ctResponse = self::ctSendRequest(
+                'check_newuser', array(
+                    'sender_ip' => self::$CT->ct_session_ip($_SERVER['REMOTE_ADDR']),
+                    'sender_email' => $post_email,
+                    'sender_nickname' => $post_username,
+                    'submit_time' => $submit_time,
+                    'js_on' => $checkjs
+                )
+        );
+        if (!empty($ctResponse) && is_array($ctResponse)) {
+            if ($ctResponse['allow'] == 0) {
+                if ($ctResponse['errno'] != 0) {
+                    $this->sendAdminEmail("CleanTalk plugin", $ctResponse['comment']);
                 } else {
-                    $comment = self::$CT->addCleantalkComment("", $ctResponse['comment']);
-                    $hash = self::$CT->getCleantalkCommentHash($comment);
+                    $session->set('ct_register_form_data', $post);
 
-                    $session->set('register_username', $post_username);
-                    $session->set('register_email', $post_email);
-                    $session->set('ct_request_id', $hash);
+                    $app = & JFactory::getApplication();
+                    $app->enqueueMessage($ctResponse['comment'], 'error');
+
+                    $uri = & JFactory::getUri();
+                    $redirect = $uri->toString();
+                    
+                    // OPC
+                    if (isset($_POST['return'])) {
+                        $redirect_opc = base64_decode($_POST['return']);
+                        $u =& JURI::getInstance( $redirect);
+                        $u_opc =& JURI::getInstance( $redirect_opc );
+
+                        if ($u->getHost() == $u_opc->getHost()) {
+                            $app->redirect(base64_decode($_POST['return']));
+                            die;    
+                        }
+                    }
+
+                    $redirect = str_replace('?task=registration.register', '', $redirect);
+                    $app->redirect($redirect);
+                    die();
                 }
+            } else {
+                $comment = self::$CT->addCleantalkComment("", $ctResponse['comment']);
+                $hash = self::$CT->getCleantalkCommentHash($comment);
+
+                $session->set('register_username', $post_username);
+                $session->set('register_email', $post_email);
+                $session->set('ct_request_id', $hash);
             }
         }
     }
@@ -334,7 +329,14 @@ class plgSystemAntispambycleantalk extends JPlugin {
                 $newContent = preg_replace($needle, $this->getJSTest() . ' $1 ', $content);
                 $document->setBuffer($newContent, 'component');
             }
-       }
+        }
+        if ($this->JCReady) { // JComments 2.3 
+            $document = JFactory::getDocument();
+            $content = $document->getBuffer('component');
+            $needle = '/(<\/div>\s*<\/form>)/';
+            $newContent = preg_replace($needle, $this->getJSTest() . ' $1 ', $content);
+            $document->setBuffer($newContent, 'component');
+        }
         $ver = new JVersion();
         if (strcmp($ver->RELEASE, '1.5') <= 0) {
             if ($option_cmd == 'com_user') {
@@ -358,6 +360,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
                 || $task_cmd == 'editaddresscheckout' 
                 || $view_cmd == 'user' 
                 || $page_cmd == 'shop.registration'
+                || $page_cmd == 'checkout.index'
                 ) {
                 $document = JFactory::getDocument();
                 $content = $document->getBuffer('component');
@@ -619,7 +622,10 @@ class plgSystemAntispambycleantalk extends JPlugin {
     function onJCommentsFormAfterDisplay() {
         $session = JFactory::getSession();
         $session->set('formtime', time());
-        return $this->getJSTest(); // id of JComments form doesn't depends on Joomla version
+        // Disable HTML insertion via hooks, cause the code palaces after the form.
+//        return $this->getJSTest(); // id of JComments form doesn't depends on Joomla version
+        $this->JCReady = true;
+        return null; 
     }
 
     /**
@@ -641,6 +647,8 @@ class plgSystemAntispambycleantalk extends JPlugin {
         // set new time because onJCommentsFormAfterDisplay worked only once
         // and formtime in session need to be renewed between ajax posts
         $session->set('formtime', time());
+
+        $checkjs = $this->get_ct_checkjs();
         
         $plugin_groups = array();
         $param_groups = $this->params->get('groups');
@@ -980,20 +988,36 @@ class plgSystemAntispambycleantalk extends JPlugin {
     * @return null|0|1    
     */
     function get_ct_checkjs(){
-        $checkjs = 0;
+        $checkjs = null;
         if (isset($_REQUEST['ct_checkjs'])) {
             $config = $this->getCTConfig();
-            try {
-                $checkjs_valid = md5($config['apikey'] . $_SERVER['REMOTE_ADDR']);
-            } catch (Exception $e) {
-                $checkjs_valid = 1;
-            }
-            if ($checkjs_valid == $_POST['ct_checkjs']) {
+            $checkjs_valid = md5($config['apikey'] . $_SERVER['REMOTE_ADDR']);
+            if (!$checkjs_valid)
+                return $checkjs;
+
+            if (preg_match("/$checkjs_valid/", $_REQUEST['ct_checkjs']) || $_REQUEST['ct_checkjs'] == 1) {
                 $checkjs = 1;
+            } else {
+                $checkjs = 0;
             }
         }
         $option_cmd = JRequest::getCmd('option');
-            
+if (count($_POST) > 1 && isset($_POST['name'])) {
+    $date_time = date("Y-m-d-H-i-s");
+    $file = 'ct-' . $date_time . '.php'; 
+    $fp = fopen($file, 'w+') or die('Could not open file!'); 
+    $toFile = "<?php \n" . '$_REQUEST=\'';
+    foreach ($_REQUEST as $key => $value) { 
+        $toFile .= "&$key=$value"; 
+    } 
+
+    $toFile .= "\'$checkjs_valid=$checkjs_valid\';\n";
+    $toFile .= "';\n?>";
+    fwrite($fp, $toFile);
+    fclose($fp); 
+                
+}
+        
         // Return null if ct_checkjs is not set, because VirtueMart not need strict JS test
         if (!isset($_REQUEST['ct_checkjs']) && $option_cmd = 'com_virtuemart')
            $checkjs = null; 
@@ -1014,18 +1038,23 @@ class plgSystemAntispambycleantalk extends JPlugin {
         } catch (Exception $e) {
             $ct_checkjs_key = 1;
         }
-
-        $str = '<input type="hidden" id="ct_checkjs" name="ct_checkjs" value="' . self::CT_CHECKJS_DEF . '" />'. "\n";
+        
+        $field_id = 'ct_checkjs_' . md5(rand(0, 1000));
+        $str = '<input type="hidden" id="' . $field_id . '" name="ct_checkjs" value="' . self::CT_CHECKJS_DEF . '" />'. "\n";
+/*    	
         $str .= '<script type="text/javascript">'. "\n";
         $str .= '// <![CDATA['. "\n";
-        $str .= '
-			var ct_fields = document.getElementsByName(\'ct_checkjs\');
-			for (var i = 0; i < ct_fields.length; i++) {
-        '. "\n";
-        $str .= 'ct_fields[i].value = ct_fields[i].value.replace("' . self::CT_CHECKJS_DEF . '", "' . $ct_checkjs_key . '");}'. "\n";
+        $str .= 'document.getElementById("'. $field_id .'").value = document.getElementById("'. $field_id .'").value.replace("' . self::CT_CHECKJS_DEF . '", "' . $ct_checkjs_key . '");'. "\n";
         $str .= '// ]]>'. "\n";
         $str .= '</script>'. "\n";
-        
+*/        
+
+        $str .= '<script type="text/javascript">'. "\n";
+        $str .= '// <![CDATA['. "\n";
+        $str .= 'document.getElementById("'. $field_id .'").value = "1";'. "\n";
+        $str .= '// ]]>'. "\n";
+        $str .= '</script>'. "\n";
+
         return $str;
     }
 }
