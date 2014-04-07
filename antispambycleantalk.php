@@ -361,6 +361,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
                 || $view_cmd == 'user' 
                 || $page_cmd == 'shop.registration'
                 || $page_cmd == 'checkout.index'
+                || $page_cmd == 'shop.ask'
                 ) {
                 $document = JFactory::getDocument();
                 $content = $document->getBuffer('component');
@@ -472,6 +473,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
                     || $task_cmd == 'saveUser' 
                     || $page_cmd == 'shop.registration'
                     || $page_cmd == 'checkout.index'
+                    || $page_cmd == 'shop.ask'
                     ) {
                     $this->moderateUser();
                 } else {
