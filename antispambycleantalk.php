@@ -3,7 +3,7 @@
 /**
  * CleanTalk joomla plugin
  *
- * @version 1.73
+ * @version 1.74
  * @package Cleantalk
  * @subpackage Joomla
  * @author CleanTalk (welcome@cleantalk.ru) 
@@ -21,7 +21,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
     /**
      * Plugin version string for server
      */
-    const ENGINE = 'joomla-173';
+    const ENGINE = 'joomla-174';
     
     /**
      * Default value for hidden field ct_checkjs 
@@ -43,6 +43,28 @@ class plgSystemAntispambycleantalk extends JPlugin {
     * Flag marked JComments form initilization. 
     */
     private $JCReady = false;
+    
+    /**
+    * This event is triggered before an update of a user record.
+    */
+    function onUserBeforeSave($user, $isnew, $new) {
+        if ($isnew) {
+            $this->moderateUser();
+        }
+
+        return null;
+    }
+    /**
+    * This event is triggered before an update of a user record.
+    * Joomla 1.5
+    */
+    function onBeforeStoreUser($user, $isnew) {
+        if ($isnew) {
+            $this->moderateUser();
+        }
+
+        return null;
+    }
 
     /**
      * Include in head adn fill form
@@ -333,7 +355,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
         if ($this->JCReady) { // JComments 2.3 
             $document = JFactory::getDocument();
             $content = $document->getBuffer('component');
-            $needle = '/(<\/div>\s*<\/form>)/';
+            $needle = '/(<\/form>)/';
             $newContent = preg_replace($needle, $this->getJSTest() . ' $1 ', $content);
             $document->setBuffer($newContent, 'component');
         }
@@ -450,83 +472,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
             }
         }
 
-        $ver = new JVersion();
-        // constants can be found in  components/com_contact/views/contact/tmpl/default_form.php
-        // 'option' and 'view' constants are the same in all versions
-        if (strcmp($ver->RELEASE, '1.5') <= 0) {
-            if ($option_cmd == 'com_user') {
-                if ($task_cmd == 'register_save') {
-                    $this->moderateUser();
-                } else {
-                    $session = JFactory::getSession();
-                    $document = & JFactory::getDocument();
-
-                    $session->set('register_formtime', time());
-                    $ct_form_data = $session->get('ct_register_form_data');
-                    $session->set('ct_register_form_data', null);
-                    $document->addScriptDeclaration($this->fillRegisterFormScriptHTML('josForm', $ct_form_data));
-                }
-            }
-            if ($option_cmd == 'com_virtuemart') {
-                if ($task_cmd == 'registercartuser' 
-                    || $task_cmd == 'registercheckoutuser'
-                    || $task_cmd == 'saveUser' 
-                    || $page_cmd == 'shop.registration'
-                    || $page_cmd == 'checkout.index'
-                    || $page_cmd == 'shop.ask'
-                    ) {
-                    $this->moderateUser();
-                } else {
-                    $session = JFactory::getSession();
-                    $document = & JFactory::getDocument();
-
-                    $session->set('register_formtime', time());
-                    $ct_form_data = $session->get('ct_register_form_data');
-                    $session->set('ct_register_form_data', null);
-                    $document->addScriptDeclaration($this->fillRegisterFormScriptHTML('userForm', $ct_form_data));
-                }
-            }
-
-        } else {
-            //com_users - registration - registration.register
-            if ($option_cmd == 'com_users') {
-                if ($task_cmd == 'registration.register') {
-                    $this->moderateUser();
-                } else {
-                    $session = JFactory::getSession();
-                    $document = & JFactory::getDocument();
-
-                    $session->set('register_formtime', time());
-                    $ct_form_data = $session->get('ct_register_form_data');
-                    $session->set('ct_register_form_data', null);
-                    $document->addScriptDeclaration($this->fillRegisterFormScriptHTML('member-registration', $ct_form_data));
-                }
-            }
-            if ($option_cmd == 'com_virtuemart') {
-                if ($task_cmd == 'editaddresscart') {
-                    $session = JFactory::getSession();
-                    $document = & JFactory::getDocument();
-
-                    $session->set('register_formtime', time());
-                    $ct_form_data = $session->get('ct_register_form_data');
-                    $session->set('ct_register_form_data', null);
-                    $document->addScriptDeclaration($this->fillRegisterFormScriptHTML('userForm', $ct_form_data));
-                } elseif ($task_cmd == 'registercartuser' 
-                    || $task_cmd == 'registercheckoutuser' 
-                    || $task_cmd == 'checkout' // OPC
-                    || $task_cmd == 'saveAddressST' // http://audiomonde.hu 
-                    ) {
-                    $this->moderateUser();
-                } else {
-                    /*
-                        Experimental code to fix fake VM signups
-                    */
-                    if (isset($_POST['email']) || isset($_POST['username'])) {
-                        $this->moderateUser();
-                    }
-                }
-            }
-        }
         
         /*
             Contact forms anti-spam code
