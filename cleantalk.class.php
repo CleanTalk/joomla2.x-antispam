@@ -2,7 +2,7 @@
 /**
  * Cleantalk base class
  *
- * @version 1.21.15
+ * @version 1.21.16
  * @package Cleantalk
  * @subpackage Base
  * @author Сleantalk team (welcome@cleantalk.ru)
@@ -174,7 +174,7 @@ class CleantalkResponse {
             $this->account_status = (isset($obj->account_status)) ? $obj->account_status : -1;
 
             if ($this->errno !== 0 && $this->errstr !== null && $this->comment === null)
-                $this->comment = '*** ' . $this->errstr . ' Antispam cleantalk.org ***'; 
+                $this->comment = '*** ' . $this->errstr . ' Antispam service cleantalk.org ***'; 
         }
     }
 
@@ -343,7 +343,7 @@ class Cleantalk {
 	* Server connection timeout in seconds 
 	* @var int
 	*/
-	private $server_timeout = 9;
+	private $server_timeout = 15;
 
     /**
      * Cleantalk server url
@@ -613,11 +613,13 @@ class Cleantalk {
             curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
             // receive server response ...
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            // resolve 'Expect: 100-continue' issue
+            curl_setopt($ch, CURLOPT_HTTPHEADER, array('Expect:'));
 
             $result = curl_exec($ch);
             curl_close($ch); 
         }
-        if ($result === false) {
+        if (!$result) {
             $allow_url_fopen = ini_get('allow_url_fopen');
             if (function_exists('file_get_contents') && isset($allow_url_fopen) && $allow_url_fopen == '1') {
                 $opts = array('http' =>
@@ -631,32 +633,31 @@ class Cleantalk {
 
                 $context  = stream_context_create($opts);
                 $result = @file_get_contents($url, false, $context);
-            } else {
-                $response = null;
-                $response['errno'] = 1;
-                $response['errstr'] = 'No CURL support compiled in. Disabled allow_url_fopen in php.ini.'; 
-                $response = json_decode(json_encode($response));
-                
-                return $response;
             }
         }
-
+        if (!$result) {
+            $response = null;
+            $response['errno'] = 1;
+            $response['errstr'] = 'No CURL support compiled in. Disabled allow_url_fopen in php.ini.'; 
+            $response = json_decode(json_encode($response));
+            
+            return $response;
+        }
+  
         $errstr = null;
         $response = json_decode($result);
         if ($result !== false && is_object($response)) {
             $response->errno = 0;
             $response->errstr = $errstr;
         } else {
-            if ($result === false)
-                $errstr = 'Failed connect to ' . $url . '.';
-            else
-                $errstr = $result;
+            $errstr = 'Failed connect to ' . $url . '.' . ' ' . $result;
             
             $response = null;
             $response['errno'] = 1;
             $response['errstr'] = $errstr;
             $response = json_decode(json_encode($response));
         } 
+        
         
         return $response;
     }
@@ -675,6 +676,8 @@ class Cleantalk {
 					
             $result = $this->sendRequest($msg, $url, $this->server_timeout);
         }
+        $result = false;
+                    var_dump($result);
         
         if (($result === false || $result->errno != 0) && $this->stay_on_server == false) {
             
@@ -698,7 +701,6 @@ class Cleantalk {
             if (empty($pool)) {
                 return false;
             } else {
-
                 // Loop until find work server
                 foreach ($this->get_servers_ip($pool) as $server) {
                     if ($server['host'] === 'localhost' || $server['ip'] === null) {
@@ -715,6 +717,7 @@ class Cleantalk {
                     $this->server_ttl = $server['ttl'];
                     
                     $result = $this->sendRequest($msg, $this->work_url, $this->server_timeout);
+                    var_dump($work_url, $result);
 
                     if ($result !== false && $result->errno === 0) {
                         $this->server_change = true;
@@ -723,17 +726,17 @@ class Cleantalk {
                 }
             }
         }
-        
+       exit; 
         $response = new CleantalkResponse(null, $result);
 
-	if (!empty($this->data_codepage) && $this->data_codepage !== 'UTF-8') {
-	    if (!empty($response->comment))
-		$response->comment = $this->stringFromUTF8($response->comment, $this->data_codepage);
-	    if (!empty($response->errstr))
-		$response->errstr = $this->stringFromUTF8($response->errstr, $this->data_codepage);
-	    if (!empty($response->sms_error_text))
-		$response->sms_error_text = $this->stringFromUTF8($response->sms_error_text, $this->data_codepage);
-	}
+        if (!empty($this->data_codepage) && $this->data_codepage !== 'UTF-8') {
+            if (!empty($response->comment))
+            $response->comment = $this->stringFromUTF8($response->comment, $this->data_codepage);
+            if (!empty($response->errstr))
+            $response->errstr = $this->stringFromUTF8($response->errstr, $this->data_codepage);
+            if (!empty($response->sms_error_text))
+            $response->sms_error_text = $this->stringFromUTF8($response->sms_error_text, $this->data_codepage);
+        }
 
         return $response;
     }
