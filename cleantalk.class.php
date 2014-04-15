@@ -676,8 +676,6 @@ class Cleantalk {
 					
             $result = $this->sendRequest($msg, $url, $this->server_timeout);
         }
-        $result = false;
-                    var_dump($result);
         
         if (($result === false || $result->errno != 0) && $this->stay_on_server == false) {
             
@@ -717,7 +715,6 @@ class Cleantalk {
                     $this->server_ttl = $server['ttl'];
                     
                     $result = $this->sendRequest($msg, $this->work_url, $this->server_timeout);
-                    var_dump($work_url, $result);
 
                     if ($result !== false && $result->errno === 0) {
                         $this->server_change = true;
@@ -726,7 +723,7 @@ class Cleantalk {
                 }
             }
         }
-       exit; 
+
         $response = new CleantalkResponse(null, $result);
 
         if (!empty($this->data_codepage) && $this->data_codepage !== 'UTF-8') {
