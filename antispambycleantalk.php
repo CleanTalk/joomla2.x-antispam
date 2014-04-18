@@ -459,7 +459,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
                 if ($task_cmd == 'register_save') {
                 } else {
                     $document = & JFactory::getDocument();
-                    $document->addScriptDeclaration($this->fillRegisterFormScriptHTML('josForm', $ct_form_data));
+                    $document->addScriptDeclaration($this->fillRegisterFormScriptHTML('josForm'));
                 }
             }
             if ($option_cmd == 'com_virtuemart') {
@@ -471,7 +471,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
                     ) {
                 } else {
                     $document = & JFactory::getDocument();
-                    $document->addScriptDeclaration($this->fillRegisterFormScriptHTML('userForm', $ct_form_data));
+                    $document->addScriptDeclaration($this->fillRegisterFormScriptHTML('userForm'));
                 }
             }
 
