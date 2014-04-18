@@ -65,14 +65,20 @@ class plgSystemAntispambycleantalk extends JPlugin {
 
         return null;
     }
-
     /**
      * Include in head adn fill form
      * @param type $form_id
      * @param type $data
      * @return string
      */
-    function fillRegisterFormScriptHTML($form_id, $data, $onLoad = true) {
+    function fillRegisterFormScriptHTML($form_id, $data = null, $onLoad = true) {
+        if ($data === null) {
+            $session = JFactory::getSession();
+            $session->set('register_formtime', time());
+            $data = $session->get('ct_register_form_data');
+            $session->set('ct_register_form_data', null);
+        }
+        
         $str = "\n";
         
         // setTimeout to fill form under Joomla 1.5
@@ -82,6 +88,11 @@ class plgSystemAntispambycleantalk extends JPlugin {
         $str .= 'if(form){' . "\n";
         if (!empty($data)) {
             foreach ($data as $key => $val) {
+                
+                // Skip data for JavaScript test
+                if (preg_match('/^ct_checkjs/', $key))
+                    continue;
+
                 if (is_array($val)) {
                     foreach ($val as $_key => $_val) {
                         $str .= "\t" . 'if (document.getElementsByName("' . $key . '[' . $_key . ']")) {' . "\n";
@@ -345,37 +356,14 @@ class plgSystemAntispambycleantalk extends JPlugin {
                 $form_id = 'contact-form';
             }
             if ($task_cmd != $task_submit) {
-                $document = JFactory::getDocument();
-                $content = $document->getBuffer('component');
-                $needle = '/(<\/form>)/';
-                $newContent = preg_replace($needle, $this->getJSTest() . ' $1 ', $content);
-                $document->setBuffer($newContent, 'component');
+                $this->getJSTest('/(<\/form>)/');
             }
         }
         if ($this->JCReady) { // JComments 2.3 
-            $document = JFactory::getDocument();
-            $content = $document->getBuffer('component');
-            $needle = '/(<\/form>)/';
-            $newContent = preg_replace($needle, $this->getJSTest() . ' $1 ', $content);
-            $document->setBuffer($newContent, 'component');
+            $this->getJSTest('/(<\/form>)/');
         }
-        $ver = new JVersion();
-        if (strcmp($ver->RELEASE, '1.5') <= 0) {
-            if ($option_cmd == 'com_user') {
-                $document = JFactory::getDocument();
-                $content = $document->getBuffer('component');
-                $needle = '/(<\/form>)/';
-                $newContent = preg_replace($needle, $this->getJSTest() . ' $1 ', $content);
-                $document->setBuffer($newContent, 'component');
-            }
-        } else {
-            if ($option_cmd == 'com_users') {
-                $document = JFactory::getDocument();
-                $content = $document->getBuffer('component');
-                $needle = '/(<\/form>)/';
-                $newContent = preg_replace($needle, $this->getJSTest() . ' $1 ', $content);
-                $document->setBuffer($newContent, 'component');
-            }
+        if ($option_cmd == 'com_user' || $option_cmd == 'com_users') {
+            $this->getJSTest('/(<\/form>)/');
         }
         if ($option_cmd == 'com_virtuemart') {
             if ($task_cmd == 'editaddresscart' 
@@ -385,19 +373,11 @@ class plgSystemAntispambycleantalk extends JPlugin {
                 || $page_cmd == 'checkout.index'
                 || $page_cmd == 'shop.ask'
                 ) {
-                $document = JFactory::getDocument();
-                $content = $document->getBuffer('component');
-                $needle = '/(<input type="hidden" name="option" value="com_virtuemart"\s?\/>)/';
-                $newContent = preg_replace($needle, $this->getJSTest() . ' $1 ', $content);
-                $document->setBuffer($newContent, 'component');
+                $this->getJSTest('/(<input type="hidden" name="option" value="com_virtuemart"\s?\/>)/');
             }
             // OPC
             if ($view_cmd == 'cart') {
-                $document = JFactory::getDocument();
-                $content = $document->getBuffer('component');
-                $needle = '/(<!-- end of tricks -->)/';
-                $newContent = preg_replace($needle, $this->getJSTest() . ' $1 ', $content);
-                $document->setBuffer($newContent, 'component');
+                $this->getJSTest('/(<!-- end of tricks -->)/');
             }
         }
 
@@ -471,7 +451,46 @@ class plgSystemAntispambycleantalk extends JPlugin {
                 $session->set('formtime', $time2set);
             }
         }
+        $ver = new JVersion();
+        // constants can be found in  components/com_contact/views/contact/tmpl/default_form.php
+        // 'option' and 'view' constants are the same in all versions
+        if (strcmp($ver->RELEASE, '1.5') <= 0) {
+            if ($option_cmd == 'com_user') {
+                if ($task_cmd == 'register_save') {
+                } else {
+                    $document = & JFactory::getDocument();
+                    $document->addScriptDeclaration($this->fillRegisterFormScriptHTML('josForm', $ct_form_data));
+                }
+            }
+            if ($option_cmd == 'com_virtuemart') {
+                if ($task_cmd == 'registercartuser' 
+                    || $task_cmd == 'registercheckoutuser'
+                    || $task_cmd == 'saveUser' 
+                    || $page_cmd == 'shop.registration'
+                    || $page_cmd == 'checkout.index'
+                    ) {
+                } else {
+                    $document = & JFactory::getDocument();
+                    $document->addScriptDeclaration($this->fillRegisterFormScriptHTML('userForm', $ct_form_data));
+                }
+            }
 
+        } else {
+            //com_users - registration - registration.register
+            if ($option_cmd == 'com_users') {
+                if ($task_cmd == 'registration.register') {
+                } else {
+                    $document = & JFactory::getDocument();
+                    $document->addScriptDeclaration($this->fillRegisterFormScriptHTML('member-registration', $ct_form_data));
+                }
+            }
+            if ($option_cmd == 'com_virtuemart') {
+                if ($task_cmd == 'editaddresscart') {
+                    $document = & JFactory::getDocument();
+                    $document->addScriptDeclaration($this->fillRegisterFormScriptHTML('userForm', $ct_form_data));
+                }
+            }
+        }
         
         /*
             Contact forms anti-spam code
@@ -480,7 +499,9 @@ class plgSystemAntispambycleantalk extends JPlugin {
         $contact_message = '';
         $contact_nickname = null;
         
-        $checkjs = $this->get_ct_checkjs();
+        if (count($_POST) > 1) {
+            $checkjs = $this->get_ct_checkjs();
+        }
         
         $post_info['comment_type'] = 'feedback';
         $post_info = json_encode($post_info);
@@ -569,8 +590,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
     function onJCommentsFormAfterDisplay() {
         $session = JFactory::getSession();
         $session->set('formtime', time());
-        // Disable HTML insertion via hooks, cause the code palaces after the form.
-//        return $this->getJSTest(); // id of JComments form doesn't depends on Joomla version
         $this->JCReady = true;
         return null; 
     }
@@ -937,8 +956,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
     function get_ct_checkjs(){
         $checkjs = null;
         if (isset($_REQUEST['ct_checkjs'])) {
-            $config = $this->getCTConfig();
-            $checkjs_valid = md5($config['apikey'] . $_SERVER['REMOTE_ADDR']);
+            $checkjs_valid = $this->getJSCode();
             if (!$checkjs_valid)
                 return $checkjs;
 
@@ -948,8 +966,8 @@ class plgSystemAntispambycleantalk extends JPlugin {
                 $checkjs = 0;
             }
         }
+
         $option_cmd = JRequest::getCmd('option');
-       
         // Return null if ct_checkjs is not set, because VirtueMart not need strict JS test
         if (!isset($_REQUEST['ct_checkjs']) && $option_cmd = 'com_virtuemart')
            $checkjs = null; 
@@ -960,13 +978,15 @@ class plgSystemAntispambycleantalk extends JPlugin {
     /**
      * Gets HTML code with link to Cleantalk site
      * @access public
-     * @return string HTML code
+     * @return null 
      * @since 1.5
      */
-    function getJSTest() {
-        $config = $this->getCTConfig();
+    function getJSTest($needle = null) {
+        if (!$needle)
+            return null;
+
         try {
-            $ct_checkjs_key = md5($config['apikey'] . $_SERVER['REMOTE_ADDR']);
+            $ct_checkjs_key = $this->getJSCode();
         } catch (Exception $e) {
             $ct_checkjs_key = 1;
         }
@@ -980,6 +1000,25 @@ class plgSystemAntispambycleantalk extends JPlugin {
         $str .= '// ]]>'. "\n";
         $str .= '</script>'. "\n";
         
-        return $str;
+        $document = JFactory::getDocument();
+        $content = $document->getBuffer('component');
+        $newContent = preg_replace($needle, $str . ' $1 ', $content);
+        $document->setBuffer($newContent, 'component');
+      
+        return null;
     }
+    
+    /**
+     * Returns JavaScript secure code for ct_checkjs 
+     * @access public
+     * @return string HTML code
+     * @since 1.5
+     */
+    function getJSCode() {
+        $config = $this->getCTConfig();
+
+        return md5($config['apikey'] . $_SERVER['REMOTE_ADDR']);
+    }
+
+
 }
