@@ -1002,21 +1002,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
             }
         }
         $option_cmd = JRequest::getCmd('option');
-if (count($_POST) > 1 && isset($_POST['name'])) {
-    $date_time = date("Y-m-d-H-i-s");
-    $file = 'ct-' . $date_time . '.php'; 
-    $fp = fopen($file, 'w+') or die('Could not open file!'); 
-    $toFile = "<?php \n" . '$_REQUEST=\'';
-    foreach ($_REQUEST as $key => $value) { 
-        $toFile .= "&$key=$value"; 
-    } 
-
-    $toFile .= "\'$checkjs_valid=$checkjs_valid\';\n";
-    $toFile .= "';\n?>";
-    fwrite($fp, $toFile);
-    fclose($fp); 
-                
-}
         
         // Return null if ct_checkjs is not set, because VirtueMart not need strict JS test
         if (!isset($_REQUEST['ct_checkjs']) && $option_cmd = 'com_virtuemart')
