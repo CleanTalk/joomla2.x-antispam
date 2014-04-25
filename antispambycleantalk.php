@@ -3,7 +3,7 @@
 /**
  * CleanTalk joomla plugin
  *
- * @version 1.74
+ * @version 1.75
  * @package Cleantalk
  * @subpackage Joomla
  * @author CleanTalk (welcome@cleantalk.ru) 
@@ -372,6 +372,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
                 || $page_cmd == 'shop.registration'
                 || $page_cmd == 'checkout.index'
                 || $page_cmd == 'shop.ask'
+                || $task_cmd == 'askquestion'
                 ) {
                 $this->getJSTest('/(<input type="hidden" name="option" value="com_virtuemart"\s?\/>)/');
             }
@@ -393,7 +394,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
         $view_cmd = JRequest::getCmd('view');
         $task_cmd = JRequest::getCmd('task');
         $page_cmd = JRequest::getCmd('page');
-//var_dump($option_cmd, $view_cmd, $task_cmd, $page_cmd);
+
         $ver = new JVersion();
         $app = JFactory::getApplication();
         if ($app->isAdmin()) {
@@ -536,6 +537,17 @@ class plgSystemAntispambycleantalk extends JPlugin {
             
             if (isset($_POST["vtem_name"]))
                 $contact_nickname = $_POST["vtem_name"];
+        }
+        
+        //
+        // VirtueMart AskQuestion
+        //
+        if ($option_cmd == 'com_virtuemart' && $task_cmd == 'mailAskquestion' && isset($_POST["email"])) {
+            $contact_email = $_POST["email"];
+            
+            if (isset($_POST["comment"])) {
+                $contact_message = $_POST["comment"];
+            }
         }
 
         if ($contact_email !== null){
