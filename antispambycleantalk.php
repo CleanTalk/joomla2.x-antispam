@@ -21,7 +21,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
     /**
      * Plugin version string for server
      */
-    const ENGINE = 'joomla-174';
+    const ENGINE = 'joomla-175';
     
     /**
      * Default value for hidden field ct_checkjs 
