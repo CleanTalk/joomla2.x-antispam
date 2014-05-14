@@ -563,7 +563,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
                 )
             );
             if (isset($ctResponse) && is_array($ctResponse)) {
-                if ($ctResponse['allow'] === 0 && $ctResponse['stop_queue'] === 1) {
+                if ($ctResponse['allow'] == 0) {
                     JError::raiseError(503, $ctResponse['comment']);
                 }
             }
