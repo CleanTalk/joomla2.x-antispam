@@ -343,7 +343,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
         $view_cmd = JRequest::getCmd('view');
         $task_cmd = JRequest::getCmd('task');
         $page_cmd = JRequest::getCmd('page');
-
         if ($option_cmd === 'com_contact' && $view_cmd === 'contact') { // com_contact only
             $ver = new JVersion();
             // constants can be found in  components/com_contact/views/contact/tmpl/default_form.php
@@ -380,6 +379,10 @@ class plgSystemAntispambycleantalk extends JPlugin {
             if ($view_cmd == 'cart') {
                 $this->getJSTest('/(<!-- end of tricks -->)/');
             }
+        }
+        // BreezingForms
+        if ($option_cmd == 'com_breezingforms') {
+            $this->getJSTest('/(<input type="hidden" name="option" value="com_breezingforms"\s?\/>)/');
         }
 
      }
@@ -429,29 +432,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
             }
         }
 
-        if ($option_cmd == 'com_contact') {    // com_contact only
-            $ver = new JVersion();
-            // constants can be found in  components/com_contact/views/contact/tmpl/default_form.php
-            // 'option' and 'view' constants are the same in all versions
-            if (strcmp($ver->RELEASE, '1.5') <= 0) {  // 1.5 and lower
-                $task_submit = 'submit';
-            } else {      // current hiest version by default ('2.5' now)
-                $task_submit = 'contact.submit';
-            }
-
-            $session = JFactory::getSession();
-            if ($task_cmd == $task_submit) {   // contact from submit
-                $val = $session->get('formtime');
-                if ($val) {
-                    $submit_time = time() - (int) $val;
-                } else {
-                    $submit_time = NULL;
-                }
-            } else if ($view_cmd == 'contact') {  // contact from show
-                $time2set = time();
-                $session->set('formtime', $time2set);
-            }
-        }
         $ver = new JVersion();
         // constants can be found in  components/com_contact/views/contact/tmpl/default_form.php
         // 'option' and 'view' constants are the same in all versions
@@ -500,8 +480,16 @@ class plgSystemAntispambycleantalk extends JPlugin {
         $contact_message = '';
         $contact_nickname = null;
         
+        $session = JFactory::getSession();
+        $submit_time = NULL;
         if (count($_POST) > 1) {
             $checkjs = $this->get_ct_checkjs();
+            $val = $session->get('formtime');
+            if ($val) {
+                $submit_time = time() - (int) $val;
+            }
+        } else {
+            $session->set('formtime', time());
         }
         
         $post_info['comment_type'] = 'feedback';
@@ -549,6 +537,26 @@ class plgSystemAntispambycleantalk extends JPlugin {
                 $contact_message = $_POST["comment"];
             }
         }
+        //
+        // BreezingForms 
+        // http://crosstec.de/en/extensions/joomla-forms-download.html
+        //
+        if (isset($_POST['ff_task']) && $_POST['ff_task'] == 'submit' && $option_cmd == 'com_breezingforms') {
+            $contact_email = '';
+            foreach ($_POST as $v) {
+                if (is_array($v)) {
+                    foreach ($v as $v2) {
+                        if ($this->validEmail($v2)) {
+                            $contact_email = $v2;
+                        }
+                    }
+                } else {
+                    if ($this->validEmail($v)) {
+                        $contact_email = $v;
+                    }
+                }
+            }
+        }
 
         if ($contact_email !== null){
             self::getCleantalk();
@@ -560,6 +568,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
                     'sender_nickname' => $contact_nickname, 
                     'js_on' => $checkjs,
                     'post_info' => $post_info,
+                    'submit_time' => $submit_time,
                 )
             );
             if (isset($ctResponse) && is_array($ctResponse)) {
@@ -568,6 +577,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
                 }
             }
         }
+
     }
 
     ////////////////////////////
@@ -1030,6 +1040,16 @@ class plgSystemAntispambycleantalk extends JPlugin {
         $config = $this->getCTConfig();
 
         return md5($config['apikey'] . $_SERVER['REMOTE_ADDR']);
+    }
+    
+    /**
+     * Valids email 
+     * @access public
+     * @return bool 
+     * @since 1.5
+     */
+    function validEmail($string) {
+        return preg_match("/^\S+@\S+$/i", $string); 
     }
 
 
