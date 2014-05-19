@@ -2,12 +2,12 @@
 <extension version="1.5" type="plugin" group="system" method="upgrade">
     <name>Antispam by CleanTalk</name>
     <author>CleanTalk team</author>
-    <creationDate>13.05.2014</creationDate>
+    <creationDate>19.05.2014</creationDate>
     <copyright>(C) CleanTalk</copyright>
     <license>GNU/GPLv2</license>
     <authorEmail>welcome@cleantalk.org</authorEmail>
     <authorUrl>cleantalk.org</authorUrl>
-    <version>1.75</version>
+    <version>1.76</version>
     <description>PLG_CLEANTALK_DESCRIPTION</description>
     <files>
 	<filename plugin="antispambycleantalk">antispambycleantalk.php</filename>
