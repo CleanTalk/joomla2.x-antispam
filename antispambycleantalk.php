@@ -3,7 +3,7 @@
 /**
  * CleanTalk joomla plugin
  *
- * @version 1.75
+ * @version 1.76
  * @package Cleantalk
  * @subpackage Joomla
  * @author CleanTalk (welcome@cleantalk.ru) 
@@ -21,7 +21,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
     /**
      * Plugin version string for server
      */
-    const ENGINE = 'joomla-175';
+    const ENGINE = 'joomla-176';
     
     /**
      * Default value for hidden field ct_checkjs 
@@ -462,13 +462,13 @@ class plgSystemAntispambycleantalk extends JPlugin {
                 if ($task_cmd == 'registration.register') {
                 } else {
                     $document = & JFactory::getDocument();
-                    $document->addScriptDeclaration($this->fillRegisterFormScriptHTML('member-registration', $ct_form_data));
+                    $document->addScriptDeclaration($this->fillRegisterFormScriptHTML('member-registration'));
                 }
             }
             if ($option_cmd == 'com_virtuemart') {
                 if ($task_cmd == 'editaddresscart') {
                     $document = & JFactory::getDocument();
-                    $document->addScriptDeclaration($this->fillRegisterFormScriptHTML('userForm', $ct_form_data));
+                    $document->addScriptDeclaration($this->fillRegisterFormScriptHTML('userForm'));
                 }
             }
         }
@@ -530,7 +530,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
         //
         // VirtueMart AskQuestion
         //
-        if ($option_cmd == 'com_virtuemart' && $task_cmd == 'mailAskquestion' && isset($_POST["email"])) {
+        if ($option_cmd == 'com_virtuemart' && ($task_cmd == 'mailAskquestion' || $page_cmd == 'shop.ask') && isset($_POST["email"])) {
             $contact_email = $_POST["email"];
             
             if (isset($_POST["comment"])) {
