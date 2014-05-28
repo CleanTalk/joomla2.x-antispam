@@ -61,7 +61,7 @@
 				default="http://moderate.cleantalk.ru" 
 			/>
             
-            <field name="jcomments_unpublished_nofications" type="checkbox" label="PLG_SYSTEM_CLEANTALK_PARAM_APIKEY_DESC" default="1" value="0" />
+            <field name="jcomments_unpublished_nofications" type="checkbox" label="PLG_SYSTEM_CLEANTALK_PARAM_APIKEY_DESC" value="0" />
 			
 		</fieldset>
 	</fields>
