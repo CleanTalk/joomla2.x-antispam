@@ -8,7 +8,6 @@
     <authorEmail>welcome@cleantalk.org</authorEmail>
     <authorUrl>cleantalk.org</authorUrl>
     <version>1.76</version>
-    <description>PLG_CLEANTALK_DESCRIPTION</description>
     <files>
 	<filename plugin="antispambycleantalk">antispambycleantalk.php</filename>
 	<filename plugin="antispambycleantalk">cleantalk.class.php</filename>
@@ -20,29 +19,23 @@
 	<language tag="ru-RU">ru-RU.plg_system_antispambycleantalk.ini</language>
 	<language tag="ru-RU">ru-RU.plg_system_antispambycleantalk.sys.ini</language>
     </languages>
+    <description>PLG_CLEANTALK_DESCRIPTION</description>
  
     <!-- Joomla 1.7+ config -->
     <config>
 	<fields name="params">
 		<fieldset name="basic">
-			<field name="groups" type="usergroup" 
-				label="PLG_SYSTEM_CLEANTALK_PARAM_GROUPS_LABEL" 
-				description="PLG_SYSTEM_CLEANTALK_PARAM_GROUPS_DESC" 
-				size="10"
-				multiple="true" 
-				default="1"
-			/>
 			<field name="apikey" type="text" 
 				label="PLG_SYSTEM_CLEANTALK_PARAM_APIKEY" 
 				description="PLG_SYSTEM_CLEANTALK_PARAM_APIKEY_DESC" 
-				size="16" 
+				size="20" 
 				default="enter key"
 			/>
 			<field name="myspacer" type="spacer" 
 				label="PLG_SYSTEM_CLEANTALK_PARAM_GETAPIKEY" 
 				description="" 
 			/>
-			<field name="pluginhomepage" type="spacer" 
+            <field name="pluginhomepage" type="spacer" 
 				label="PLG_SYSTEM_CLEANTALK_PARAM_HOMEPAGE" 
 				description="" 
 			/>
@@ -52,6 +45,24 @@
 				size="50" 
 				default="http://moderate.cleantalk.ru" 
 			/>
+            
+		</fieldset>
+		<fieldset name="jcomments">
+			<field name="groups" type="usergroup" 
+				label="PLG_SYSTEM_CLEANTALK_PARAM_GROUPS_LABEL" 
+				description="PLG_SYSTEM_CLEANTALK_PARAM_GROUPS_DESC" 
+				size="10"
+				multiple="true" 
+				default="1"
+			/>
+			<field name="server" type="hidden" 
+				label="PLG_SYSTEM_CLEANTALK_PARAM_SERVER" 
+				description="PLG_SYSTEM_CLEANTALK_PARAM_SERVER_DESC" 
+				size="50" 
+				default="http://moderate.cleantalk.ru" 
+			/>
+            
+            <field name="jcomments_unpublished_nofications" type="checkbox" label="PLG_SYSTEM_CLEANTALK_PARAM_APIKEY_DESC" default="1" value="0" />
 			
 		</fieldset>
 	</fields>

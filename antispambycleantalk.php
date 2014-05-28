@@ -41,6 +41,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 
     /*
     * Flag marked JComments form initilization. 
+
     */
     private $JCReady = false;
     
@@ -318,7 +319,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
         $session->clear('formtime'); // clear session 'formtime'
     }
 
-    function sendAdminEmail($subject, $message) {
+    function sendAdminEmail($subject, $message, $is_html = false) {
         $app = JFactory::getApplication();
         
         $mail = JFactory::getMailer();
@@ -326,6 +327,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
         $mail->setSender(array($app->getCfg('mailfrom'), $app->getCfg('fromname')));
         $mail->setSubject($subject);
         $mail->setBody($message);
+        $mail->isHTML($is_html);
         $sent = $mail->Send();
     }
 
@@ -705,6 +707,12 @@ class plgSystemAntispambycleantalk extends JPlugin {
                     } else if ($ctResponse['allow'] == 0) {
                         $comment->published = false;
                         $comment->comment = self::$CT->addCleantalkComment($comment->comment, $ctResponse['comment']);
+                        
+                        $config = $this->getCTConfig();
+                        // Send notification to administrator
+                        if ($config['jcomments_unpublished_nofications'] != '') {
+                            JComments::sendNotification($comment, true);
+                        }
                     }
                 }
                 return true;
@@ -869,14 +877,17 @@ class plgSystemAntispambycleantalk extends JPlugin {
             
         $config['apikey'] = ''; 
         $config['server'] = '';
+        $config['jcomments_unpublished_nofications'] = '';
         if (class_exists('JParameter')) {   //1.5
             $jparam = new JParameter($plugin->params);
             $config['apikey'] = $jparam->def('apikey', '');
             $config['server'] = $jparam->def('server', '');
+            $config['jcomments_unpublished_nofications'] = $jparam->def('jcomments_unpublished_nofications', '');
         } else {      //1.6+
             $jreg = new JRegistry($plugin->params);
             $config['apikey'] = $jreg->get('apikey', '');
             $config['server'] = $jreg->get('server', '');
+            $config['jcomments_unpublished_nofications'] = $jreg->get('jcomments_unpublished_nofications', '');
         }
 
         return $config;
