@@ -42,7 +42,7 @@
 				label="PLG_SYSTEM_CLEANTALK_PARAM_SERVER" 
 				description="PLG_SYSTEM_CLEANTALK_PARAM_SERVER_DESC" 
 				size="50" 
-				default="http://moderate.cleantalk.ru" 
+				default="http://moderate.cleantalk.org" 
 			/>
             
 		</fieldset>
@@ -54,14 +54,8 @@
 				multiple="true" 
 				default="1"
 			/>
-			<field name="server" type="hidden" 
-				label="PLG_SYSTEM_CLEANTALK_PARAM_SERVER" 
-				description="PLG_SYSTEM_CLEANTALK_PARAM_SERVER_DESC" 
-				size="50" 
-				default="http://moderate.cleantalk.org" 
-			/>
-            
-            <field name="jcomments_unpublished_nofications" type="checkbox" label="PLG_SYSTEM_CLEANTALK_PARAM_APIKEY_DESC" value="0" />
+        
+            <field name="jcomments_unpublished_nofications" type="checkbox" label="COM_PLUGINS_JCOMMENTS_NOTIFY_NEW_UNPUBLISHED" value="0" />
 			
 		</fieldset>
 	</fields>
