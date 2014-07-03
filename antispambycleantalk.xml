@@ -2,12 +2,12 @@
 <extension version="2.5" type="plugin" group="system">
     <name>Antispam by CleanTalk</name>
     <author>CleanTalk team</author>
-    <creationDate>19.05.2014</creationDate>
+    <creationDate>03.07.2014</creationDate>
     <copyright>(C) CleanTalk</copyright>
     <license>GNU/GPLv2</license>
     <authorEmail>welcome@cleantalk.org</authorEmail>
     <authorUrl>cleantalk.org</authorUrl>
-    <version>1.76</version>
+    <version>1.77</version>
     <description>PLG_CLEANTALK_DESCRIPTION</description>
     <files>
 	<filename plugin="antispambycleantalk">antispambycleantalk.php</filename>
@@ -58,7 +58,7 @@
 				label="PLG_SYSTEM_CLEANTALK_PARAM_SERVER" 
 				description="PLG_SYSTEM_CLEANTALK_PARAM_SERVER_DESC" 
 				size="50" 
-				default="http://moderate.cleantalk.ru" 
+				default="http://moderate.cleantalk.org" 
 			/>
             
             <field name="jcomments_unpublished_nofications" type="checkbox" label="PLG_SYSTEM_CLEANTALK_PARAM_APIKEY_DESC" value="0" />
