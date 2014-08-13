@@ -3,7 +3,7 @@
 /**
  * CleanTalk joomla plugin
  *
- * @version 1.77
+ * @version 1.78
  * @package Cleantalk
  * @subpackage Joomla
  * @author CleanTalk (welcome@cleantalk.ru) 
@@ -21,7 +21,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
     /**
      * Plugin version string for server
      */
-    const ENGINE = 'joomla-177';
+    const ENGINE = 'joomla-178';
     
     /**
      * Default value for hidden field ct_checkjs 
@@ -360,8 +360,12 @@ class plgSystemAntispambycleantalk extends JPlugin {
                 $this->getJSTest('/(<\/form>)/');
             }
         }
-        if ($this->JCReady) { // JComments 2.3 
-            $this->getJSTest('/(<form id="comments-form" name="comments-form" action="javascript:void\(null\)\;">)/', true);
+        
+        if ($this->JCReady || defined('JCOMMENTS_SHOW')) { // JComments 2.3 
+            $document = JFactory::getDocument();
+ 
+            // Add Javascript
+            $document->addScriptDeclaration($this->getJSTest(null, null, true));
         }
         if ($option_cmd == 'com_user' || $option_cmd == 'com_users') {
             $this->getJSTest('/(<\/form>)/');
@@ -463,13 +467,13 @@ class plgSystemAntispambycleantalk extends JPlugin {
             if ($option_cmd == 'com_users') {
                 if ($task_cmd == 'registration.register') {
                 } else {
-                    $document = & JFactory::getDocument();
+                    $document = JFactory::getDocument();
                     $document->addScriptDeclaration($this->fillRegisterFormScriptHTML('member-registration'));
                 }
             }
             if ($option_cmd == 'com_virtuemart') {
                 if ($task_cmd == 'editaddresscart') {
-                    $document = & JFactory::getDocument();
+                    $document = JFactory::getDocument();
                     $document->addScriptDeclaration($this->fillRegisterFormScriptHTML('userForm'));
                 }
             }
@@ -638,7 +642,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
         // and formtime in session need to be renewed between ajax posts
         $session->set('formtime', time());
 
-        $checkjs = $this->get_ct_checkjs();
+        $checkjs = $this->get_ct_checkjs(true);
         
         $plugin_groups = array();
         $param_groups = $this->params->get('groups');
@@ -986,14 +990,21 @@ class plgSystemAntispambycleantalk extends JPlugin {
     * JavaScript avaibility test.
     * @return null|0|1    
     */
-    function get_ct_checkjs(){
+    function get_ct_checkjs($cookie_check = false){
+
+        if ($cookie_check) {
+            $data = $_COOKIE; 
+        } else {
+            $data = $_REQUEST; 
+        }
+        
         $checkjs = null;
-        if (isset($_REQUEST['ct_checkjs'])) {
+        if (isset($data['ct_checkjs'])) {
             $checkjs_valid = $this->getJSCode();
             if (!$checkjs_valid)
                 return $checkjs;
 
-            if (preg_match("/$checkjs_valid/", $_REQUEST['ct_checkjs'])) {
+            if (preg_match("/$checkjs_valid/", $data['ct_checkjs'])) {
                 $checkjs = 1;
             } else {
                 $checkjs = 0;
@@ -1002,7 +1013,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 
         $option_cmd = JRequest::getCmd('option');
         // Return null if ct_checkjs is not set, because VirtueMart not need strict JS test
-        if (!isset($_REQUEST['ct_checkjs']) && $option_cmd = 'com_virtuemart')
+        if (!isset($data['ct_checkjs']) && $option_cmd = 'com_virtuemart')
            $checkjs = null; 
         
         return $checkjs;
@@ -1014,16 +1025,28 @@ class plgSystemAntispambycleantalk extends JPlugin {
      * @return null 
      * @since 1.5
      */
-    function getJSTest($needle = null, $after = false) {
-        if (!$needle)
-            return null;
-
+    function getJSTest($needle = null, $after = false, $cookie_check = false) {
         try {
             $ct_checkjs_key = $this->getJSCode();
         } catch (Exception $e) {
             $ct_checkjs_key = 1;
         }
         
+        /*
+            JavaScript validation via Cookies
+        */
+        if ($cookie_check) {
+            $field_name = 'ct_checkjs';
+            $html = '
+function ctSetCookie(c_name, value) {
+    document.cookie = c_name + "=" + escape(value) + "; path=/";
+}
+ctSetCookie("%s", "%s");
+    ';
+		    $html = sprintf($html, $field_name, $ct_checkjs_key);
+            return $html;
+        }
+
         $field_id = 'ct_checkjs_' . md5(rand(0, 1000));
 
         $str = '<input type="hidden" id="' . $field_id . '" name="ct_checkjs" value="' . self::CT_CHECKJS_DEF . '" />'. "\n";
