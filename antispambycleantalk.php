@@ -49,6 +49,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
     * This event is triggered before an update of a user record.
     */
     function onUserBeforeSave($user, $isnew, $new) {
+
         if ($isnew) {
             $this->moderateUser();
         }
@@ -471,11 +472,17 @@ class plgSystemAntispambycleantalk extends JPlugin {
                     $document->addScriptDeclaration($this->fillRegisterFormScriptHTML('member-registration'));
                 }
             }
-            if ($option_cmd == 'com_virtuemart') {
+           if ($option_cmd == 'com_virtuemart') {
                 if ($task_cmd == 'editaddresscart') {
                     $document = JFactory::getDocument();
                     $document->addScriptDeclaration($this->fillRegisterFormScriptHTML('userForm'));
-                }
+                } elseif ($task_cmd == 'registercartuser' 
+                    || $task_cmd == 'registercheckoutuser' 
+                    || $task_cmd == 'checkout' // OPC
+                    ) {
+                     $this->moderateUser();
+                } 
+
             }
         }
         
