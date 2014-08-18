@@ -44,7 +44,24 @@ class plgSystemAntispambycleantalk extends JPlugin {
 
     */
     private $JCReady = false;
+
+    /*
+    * Page load label
+    *
+    */
+    private $form_load_label = 'formtime';
     
+    /*
+    * Page load label
+    *
+    */
+    private $current_page = null;
+    
+    /**
+    * Form submited without page load
+    */
+    private $ct_direct_post = 0;
+
     /**
     * This event is triggered before an update of a user record.
     */
@@ -76,11 +93,9 @@ class plgSystemAntispambycleantalk extends JPlugin {
     function fillRegisterFormScriptHTML($form_id, $data = null, $onLoad = true) {
         if ($data === null) {
             $session = JFactory::getSession();
-            $session->set('register_formtime', time());
             $data = $session->get('ct_register_form_data');
-            $session->set('ct_register_form_data', null);
         }
-        
+       
         $str = "\n";
         
         // setTimeout to fill form under Joomla 1.5
@@ -156,10 +171,10 @@ class plgSystemAntispambycleantalk extends JPlugin {
     function moderateUser() {
         // Call function only for guests
         // Call only for $_POST with variables
-        if (JFactory::getUser()->id || count($_POST) <= 1) {
+        if (JFactory::getUser()->id || $_SERVER['REQUEST_METHOD'] != 'POST') {
             return false;
         }
-        
+
         $post = $_POST;
         $ver = new JVersion();
         if (strcmp($ver->RELEASE, '1.5') <= 0) {
@@ -173,14 +188,15 @@ class plgSystemAntispambycleantalk extends JPlugin {
         }
 
         $session = JFactory::getSession();
-        $val = $session->get('register_formtime');
-        if ($val) {
-            $submit_time = time() - (int) $val;
-        } else {
-            $submit_time = NULL;
-        }
+        $submit_time = $this->submit_time_test();
 
         $checkjs = $this->get_ct_checkjs();
+
+        $sender_info = $this->get_sender_info();
+        $sender_info = json_encode($sender_info);
+        if ($sender_info === false) {
+            $sender_info = '';
+        }
 
         self::getCleantalk();
         $ctResponse = self::ctSendRequest(
@@ -189,9 +205,11 @@ class plgSystemAntispambycleantalk extends JPlugin {
                     'sender_email' => $post_email,
                     'sender_nickname' => $post_username,
                     'submit_time' => $submit_time,
-                    'js_on' => $checkjs
+                    'js_on' => $checkjs,
+                    'sender_info' => $sender_info 
                 )
         );
+
         if (!empty($ctResponse) && is_array($ctResponse)) {
             if ($ctResponse['allow'] == 0) {
                 if ($ctResponse['errno'] != 0) {
@@ -255,15 +273,15 @@ class plgSystemAntispambycleantalk extends JPlugin {
      */
     function onValidateContact(&$contact, &$data) {
         $session = JFactory::getSession();
-
-        $val = $session->get('formtime');
-        if ($val) {
-            $submit_time = time() - (int) $val;
-        } else {
-            $submit_time = NULL;
-        }
+        $submit_time = $this->submit_time_test();
 
         $checkjs = $this->get_ct_checkjs();
+
+        $sender_info = $this->get_sender_info();
+        $sender_info = json_encode($sender_info);
+        if ($sender_info === false) {
+            $sender_info = '';
+        }
 
         $ver = new JVersion();
         // constants can be found in components/com_contact/views/contact/tmpl/default_form.php
@@ -296,6 +314,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
                 'js_on' => $checkjs,
                 'submit_time' => $submit_time,
                 'post_info' => $post_info,
+                'sender_info' => $sender_info,
             )
         );
         
@@ -305,7 +324,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
                 $this->sendAdminEmail("CleanTalk. Can't verify feedback message!", $ctResponse['comment']);
             } else {
                 if ($ctResponse['allow'] == 0) {
-                    $session->set('formtime', time()); // update session 'formtime'
+                    $session->set($this->form_load_label, time()); // update session 'formtime'
                     $res_str = $ctResponse['comment'];
                     $app->setUserState('com_contact.contact.data', $data);  // not used in 1.5 :(
                     $stub = JRequest::getString('id');
@@ -404,7 +423,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
         $view_cmd = JRequest::getCmd('view');
         $task_cmd = JRequest::getCmd('task');
         $page_cmd = JRequest::getCmd('page');
-
+        
         $ver = new JVersion();
         $app = JFactory::getApplication();
         if ($app->isAdmin()) {
@@ -486,24 +505,29 @@ class plgSystemAntispambycleantalk extends JPlugin {
             }
         }
         
+        $session = JFactory::getSession();
+        $submit_time = NULL;
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $checkjs = $this->get_ct_checkjs();
+            $val = $session->get($this->form_load_label);
+            if ($val) {
+                $submit_time = time() - (int) $val;
+            }
+
+            if (!$val && session_id() != '') {
+                $this->ct_direct_post = 1;
+            }
+        } else {
+            $session->set($this->form_load_label, time());
+            $session->set($this->current_page, JURI::current());
+        }
+        
         /*
             Contact forms anti-spam code
         */
         $contact_email = null;
         $contact_message = '';
         $contact_nickname = null;
-        
-        $session = JFactory::getSession();
-        $submit_time = NULL;
-        if (count($_POST) > 1) {
-            $checkjs = $this->get_ct_checkjs();
-            $val = $session->get('formtime');
-            if ($val) {
-                $submit_time = time() - (int) $val;
-            }
-        } else {
-            $session->set('formtime', time());
-        }
         
         $post_info['comment_type'] = 'feedback';
         $post_info = json_encode($post_info);
@@ -623,8 +647,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
      * @since 1.5
      */
     function onJCommentsFormAfterDisplay() {
-        $session = JFactory::getSession();
-        $session->set('formtime', time());
         $this->JCReady = true;
         return null; 
     }
@@ -637,19 +659,28 @@ class plgSystemAntispambycleantalk extends JPlugin {
      * @since 1.5
      */
     function onJCommentsCommentBeforeAdd(&$comment) {
+        
         $session = JFactory::getSession();
-        $val = $session->get('formtime');
-        if ($val) {
-            $submit_time = time() - (int) $val;
-        } else {
-            $submit_time = NULL;
-        }
+        $submit_time = $this->submit_time_test();
 
         // set new time because onJCommentsFormAfterDisplay worked only once
         // and formtime in session need to be renewed between ajax posts
         $session->set('formtime', time());
 
         $checkjs = $this->get_ct_checkjs(true);
+
+        $sender_info = $this->get_sender_info();
+        $sender_info = json_encode($sender_info);
+        if ($sender_info === false) {
+            $sender_info = '';
+        }
+        
+        $post_info['comment_type'] = 'jcomments_comment'; 
+        $post_info['post_url'] = $session->get($this->current_page); 
+        $post_info = json_encode($post_info);
+        if ($post_info === false) {
+            $post_info = '';
+        }
         
         $plugin_groups = array();
         $param_groups = $this->params->get('groups');
@@ -706,9 +737,10 @@ class plgSystemAntispambycleantalk extends JPlugin {
                         'sender_nickname' => $comment->name,
                         'sender_email' => $comment->email,
                         'sender_ip' => self::$CT->ct_session_ip($_SERVER['REMOTE_ADDR']),
-                        'url' => '',
                         'js_on' => $checkjs,
-                        'submit_time' => $submit_time
+                        'submit_time' => $submit_time,
+                        'sender_info' => $sender_info,
+                        'post_info' => $post_info,
                     )
                 );
                 if (!empty($ctResponse) && is_array($ctResponse)) {
@@ -1102,6 +1134,35 @@ ctSetCookie("%s", "%s");
      */
     function validEmail($string) {
         return preg_match("/^\S+@\S+$/i", $string); 
+    }
+    
+    /**
+     * Validate form submit time 
+     *
+     */
+    function submit_time_test() {
+        $session = JFactory::getSession();
+        $val = $session->get($this->form_load_label);
+        if ($val) {
+            $submit_time = time() - (int) $val;
+        } else {
+            $submit_time = NULL;
+        }
+
+        return $submit_time;
+    }
+    
+    /**
+     * Inner function - Default data array for senders 
+     * @return array 
+     */
+    function get_sender_info() {
+        
+        return $sender_info = array(
+            'REFFERRER' => @$_SERVER['HTTP_REFERER'],
+            'USER_AGENT' => @$_SERVER['HTTP_USER_AGENT'],
+            'direct_post' => $this->ct_direct_post,
+        );
     }
 
 
