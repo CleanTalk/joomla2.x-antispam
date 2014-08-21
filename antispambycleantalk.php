@@ -3,7 +3,7 @@
 /**
  * CleanTalk joomla plugin
  *
- * @version 1.78
+ * @version 2.1
  * @package Cleantalk
  * @subpackage Joomla
  * @author CleanTalk (welcome@cleantalk.ru) 
@@ -21,7 +21,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
     /**
      * Plugin version string for server
      */
-    const ENGINE = 'joomla-178';
+    const ENGINE = 'joomla-21';
     
     /**
      * Default value for hidden field ct_checkjs 
@@ -61,7 +61,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
     * Form submited without page load
     */
     private $ct_direct_post = 0;
-
+    
     /**
     * This event is triggered before an update of a user record.
     */
@@ -336,7 +336,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
                 }
             }
         }
-        $session->clear('formtime'); // clear session 'formtime'
+        $session->clear($this->form_load_label); // clear session 'formtime'
     }
 
     function sendAdminEmail($subject, $message, $is_html = false) {
@@ -360,57 +360,12 @@ class plgSystemAntispambycleantalk extends JPlugin {
         $app = JFactory::getApplication();
         if ($app->isAdmin())
             return;
-
-        $option_cmd = JRequest::getCmd('option');
-        $view_cmd = JRequest::getCmd('view');
-        $task_cmd = JRequest::getCmd('task');
-        $page_cmd = JRequest::getCmd('page');
-        if ($option_cmd === 'com_contact' && $view_cmd === 'contact') { // com_contact only
-            $ver = new JVersion();
-            // constants can be found in  components/com_contact/views/contact/tmpl/default_form.php
-            // 'option' and 'view' constants are the same in all versions
-            if (strcmp($ver->RELEASE, '1.5') <= 0) {  // 1.5 and lower
-                $task_submit = 'submit';
-                $form_id = 'emailForm';
-            } else {      // current hiest version by default ('2.5' now)
-                $task_submit = 'contact.submit';
-                $form_id = 'contact-form';
-            }
-            if ($task_cmd != $task_submit) {
-                $this->getJSTest('/(<\/form>)/');
-            }
-        }
         
-        if ($this->JCReady || defined('JCOMMENTS_SHOW')) { // JComments 2.3 
-            $document = JFactory::getDocument();
- 
-            // Add Javascript
-            $document->addScriptDeclaration($this->getJSTest(null, null, true));
-        }
-        if ($option_cmd == 'com_user' || $option_cmd == 'com_users') {
-            $this->getJSTest('/(<\/form>)/');
-        }
-        if ($option_cmd == 'com_virtuemart') {
-            if ($task_cmd == 'editaddresscart' 
-                || $task_cmd == 'editaddresscheckout' 
-                || $view_cmd == 'user' 
-                || $page_cmd == 'shop.registration'
-                || $page_cmd == 'checkout.index'
-                || $page_cmd == 'shop.ask'
-                || $task_cmd == 'askquestion'
-                ) {
-                $this->getJSTest('/(<input type="hidden" name="option" value="com_virtuemart"\s?\/>)/');
-            }
-            // OPC
-            if ($view_cmd == 'cart') {
-                $this->getJSTest('/(<!-- end of tricks -->)/');
-            }
-        }
-        // BreezingForms
-        if ($option_cmd == 'com_breezingforms') {
-            $this->getJSTest('/(<input type="hidden" name="option" value="com_breezingforms"\s?\/>)/');
-        }
+        $document = JFactory::getDocument();
+        // Add Javascript
+        $document->addScriptDeclaration($this->getJSTest(null, null, true));
 
+        $this->ct_cookies_test();
      }
 
     /**
@@ -660,12 +615,14 @@ class plgSystemAntispambycleantalk extends JPlugin {
      */
     function onJCommentsCommentBeforeAdd(&$comment) {
         
+        $config = $this->getCTConfig();
+        
         $session = JFactory::getSession();
         $submit_time = $this->submit_time_test();
 
         // set new time because onJCommentsFormAfterDisplay worked only once
         // and formtime in session need to be renewed between ajax posts
-        $session->set('formtime', time());
+        $session->set($this->form_load_label, time());
 
         $checkjs = $this->get_ct_checkjs(true);
 
@@ -703,36 +660,43 @@ class plgSystemAntispambycleantalk extends JPlugin {
                 array_push($user_groups, $user->gid);
             }
         }
+        error_log(print_r($config['relevance_test'], true)); 
         foreach ($user_groups as $group) {
             if (in_array($group, $plugin_groups)) {
-                switch ($comment->object_group) {
-                    case 'com_content':
-                        $article = JTable::getInstance('content');
-                        $article->load($comment->object_id);
-                        $baseText = $article->introtext . '<br>' . $article->fulltext;
-                        break;
-                    default:
-                        $baseText = '';
-                }
+                
+                $example = null;
+                if ($config['relevance_test'] !== '') {
+                    switch ($comment->object_group) {
+                        case 'com_content':
+                            $article = JTable::getInstance('content');
+                            $article->load($comment->object_id);
+                            $baseText = $article->introtext . '<br>' . $article->fulltext;
+                            break;
+                        default:
+                            $baseText = '';
+                    }
 
-                $db = JCommentsFactory::getDBO();
-                $query = "SELECT comment "
-                        . "\nFROM #__jcomments "
-                        . "\nWHERE published = 1 "
-                        . "\n  AND object_group = '" . $db->getEscaped($comment->object_group) . "'"
-                        . "\n  AND object_id = " . $comment->object_id
-                        . (JCommentsMultilingual::isEnabled() ? "\nAND lang = '" . JCommentsMultilingual::getLanguage() . "'" : "")
-                        . " ORDER BY id DESC "
-                        . " LIMIT 10 "
-                ;
-                $db->setQuery($query);
-                $prevComments = $db->loadResultArray();
-                $prevComments = $prevComments == NULL ? '' : implode("\n\n", $prevComments);
+                    $db = JCommentsFactory::getDBO();
+                    $query = "SELECT comment "
+                            . "\nFROM #__jcomments "
+                            . "\nWHERE published = 1 "
+                            . "\n  AND object_group = '" . $db->getEscaped($comment->object_group) . "'"
+                            . "\n  AND object_id = " . $comment->object_id
+                            . (JCommentsMultilingual::isEnabled() ? "\nAND lang = '" . JCommentsMultilingual::getLanguage() . "'" : "")
+                            . " ORDER BY id DESC "
+                            . " LIMIT 10 "
+                    ;
+                    $db->setQuery($query);
+                    $prevComments = $db->loadResultArray();
+                    $prevComments = $prevComments == NULL ? '' : implode("\n\n", $prevComments);
+                    
+                    $example = $baseText . "\n\n\n\n" . $prevComments;
+                }
 
                 self::getCleantalk();
                 $ctResponse = self::ctSendRequest(
                     'check_message', array(
-                        'example' => ($baseText . "\n\n\n\n" . $prevComments),
+                        'example' => $example,
                         'message' => $comment->comment,
                         'sender_nickname' => $comment->name,
                         'sender_email' => $comment->email,
@@ -751,7 +715,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
                         $comment->published = false;
                         $comment->comment = self::$CT->addCleantalkComment($comment->comment, $ctResponse['comment']);
                         
-                        $config = $this->getCTConfig();
                         // Send notification to administrator
                         if ($config['jcomments_unpublished_nofications'] != '') {
                             JComments::sendNotification($comment, true);
@@ -921,16 +884,19 @@ class plgSystemAntispambycleantalk extends JPlugin {
         $config['apikey'] = ''; 
         $config['server'] = '';
         $config['jcomments_unpublished_nofications'] = '';
+        $config['relevance_test'] = '';
         if (class_exists('JParameter')) {   //1.5
             $jparam = new JParameter($plugin->params);
             $config['apikey'] = $jparam->def('apikey', '');
             $config['server'] = $jparam->def('server', '');
             $config['jcomments_unpublished_nofications'] = $jparam->def('jcomments_unpublished_nofications', '');
+            $config['relevance_test'] = $jparam->def('relevance_test', '');
         } else {      //1.6+
             $jreg = new JRegistry($plugin->params);
             $config['apikey'] = $jreg->get('apikey', '');
             $config['server'] = $jreg->get('server', '');
             $config['jcomments_unpublished_nofications'] = $jreg->get('jcomments_unpublished_nofications', '');
+            $config['relevance_test'] = $jreg->get('relevance_test', '');
         }
 
         return $config;
@@ -1029,14 +995,14 @@ class plgSystemAntispambycleantalk extends JPlugin {
     * JavaScript avaibility test.
     * @return null|0|1    
     */
-    function get_ct_checkjs($cookie_check = false){
+    function get_ct_checkjs($cookie_check = true){
 
         if ($cookie_check) {
             $data = $_COOKIE; 
         } else {
-            $data = $_REQUEST; 
+            $data = $_POST;
         }
-        
+
         $checkjs = null;
         if (isset($data['ct_checkjs'])) {
             $checkjs_valid = $this->getJSCode();
@@ -1071,6 +1037,8 @@ class plgSystemAntispambycleantalk extends JPlugin {
             $ct_checkjs_key = 1;
         }
         
+        $session = JFactory::getSession();
+        
         /*
             JavaScript validation via Cookies
         */
@@ -1083,6 +1051,7 @@ function ctSetCookie(c_name, value) {
 ctSetCookie("%s", "%s");
     ';
 		    $html = sprintf($html, $field_name, $ct_checkjs_key);
+            
             return $html;
         }
 
@@ -1110,7 +1079,7 @@ ctSetCookie("%s", "%s");
         
         $newContent = preg_replace($needle, $str, $content);
         $document->setBuffer($newContent, 'component');
-      
+        
         return null;
     }
     
@@ -1157,13 +1126,40 @@ ctSetCookie("%s", "%s");
      * @return array 
      */
     function get_sender_info() {
+        $session = JFactory::getSession();
         
         return $sender_info = array(
             'REFFERRER' => @$_SERVER['HTTP_REFERER'],
             'USER_AGENT' => @$_SERVER['HTTP_USER_AGENT'],
             'direct_post' => $this->ct_direct_post,
+            'cookies_enabled' => $this->ct_cookies_test(true), 
         );
     }
 
+    /**
+     * Cookies test for sender 
+     * @return null|0|1;
+     */
+    function ct_cookies_test ($test = false) {
+        $cookie_label = 'ct_cookies_test';
+        $secret_hash = $this->getJSCode();
+
+        $result = null;
+        if (isset($_COOKIE[$cookie_label])) {
+            if ($_COOKIE[$cookie_label] == $secret_hash) {
+                $result = 1;
+            } else {
+                $result = 0;
+            }
+        } else {
+            setcookie($cookie_label, $secret_hash, 0, '/');
+
+            if ($test) {
+                $result = 0;
+            }
+        }
+        
+        return $result;
+}
 
 }

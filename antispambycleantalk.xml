@@ -2,12 +2,12 @@
 <extension version="2.5" type="plugin" group="system">
     <name>Antispam by CleanTalk</name>
     <author>CleanTalk team</author>
-    <creationDate>13.08.2014</creationDate>
+    <creationDate>21.08.2014</creationDate>
     <copyright>(C) CleanTalk</copyright>
     <license>GNU/GPLv2</license>
     <authorEmail>welcome@cleantalk.org</authorEmail>
     <authorUrl>cleantalk.org</authorUrl>
-    <version>1.78</version>
+    <version>2.1</version>
     <description>PLG_CLEANTALK_DESCRIPTION</description>
     <files>
 	<filename plugin="antispambycleantalk">antispambycleantalk.php</filename>
@@ -56,6 +56,7 @@
 			/>
         
             <field name="jcomments_unpublished_nofications" type="checkbox" label="COM_PLUGINS_JCOMMENTS_NOTIFY_NEW_UNPUBLISHED" value="0" />
+            <field name="relevance_test" type="checkbox" label="COM_PLUGINS_RELEVANCE_TEST" value="0" />
 			
 		</fieldset>
 	</fields>
