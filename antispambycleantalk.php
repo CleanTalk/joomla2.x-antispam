@@ -1150,51 +1150,60 @@ ctSetCookie("%s", "%s");
         return $result;
     }
 
-    /**
-     * Does the CleanTalk Magic and Throws error message if message is not allowed
-     * @param	string  $sender_email       Sender email 
-     * @param	string  $sender_nickname    Sender nickname
-     * @param	string  $message            Contact/comment message text 
-     * @return 	mixed 	true if passes validation OR string with error message if it fails
-     */
-    public function onSpamCheck($sender_email = null, $sender_nickname = null, $message = null){
-        $session = JFactory::getSession();
-        $submit_time = $this->submit_time_test();
-
-        $checkjs = $this->get_ct_checkjs(true);
-
-        $sender_info = $this->get_sender_info();
-        $sender_info = json_encode($sender_info);
-        if ($sender_info === false) {
-            $sender_info = '';
-        }
-        
-        $post_info['comment_type'] = 'event_message'; 
-        $post_info['post_url'] = $session->get($this->current_page); 
-        $post_info = json_encode($post_info);
-        if ($post_info === false) {
-            $post_info = '';
-        }
-        
-        self::getCleantalk();
-        $ctResponse = self::ctSendRequest(
-            'check_message', array(
-                'message' => $message, 
-                'sender_email' => $sender_email, 
-                'sender_ip' => self::$CT->ct_session_ip($_SERVER['REMOTE_ADDR']),
-                'sender_nickname' => $sender_nickname, 
-                'js_on' => $checkjs,
-                'post_info' => $post_info,
-                'submit_time' => $submit_time,
-            )
-        );
-        
-        if (!empty($ctResponse['allow']) AND $ctResponse['allow'] == 1) {
-            return true;
-        } else {
-            return $ctResponse['comment'];
-        }
-    }
+	 /**
+	 * Does the CleanTalk Magic and Throws error message if message is not allowed
+	 * @param	array	$data		Containing all required data ($sender_email, $sender_nickname,$message)
+	 * @param	string	$context	The context of the content being passed to the plugin. Usually component.view (example: com_contactenhanced.contact)
+	 * @return 	mixed 	True if passes validation OR string with error message if it fails
+	 */
+	public function onSpamCheck($data,$context=''){
+		// Converts $data Array into an Object
+		$obj = new JObject($data);
+		// sets 'sender_email' ONLY if not already set. Also checks to see if 'email' was not provided instead
+		$obj->def('sender_email',$obj->get('email',null));
+		// sets 'sender_nickname' ONLY if not already set. Also checks to see if 'name' was not provided instead
+		$obj->def('sender_nickname',$obj->get('name',null));
+		// sets 'message' ONLY if not already set. Also checks to see if 'comment' was not provided instead
+		$obj->def('message',$obj->get('comment',null));
+	
+		$session = JFactory::getSession();
+		$submit_time = $this->submit_time_test();
+	
+		$checkjs = $this->get_ct_checkjs(true);
+	
+		$sender_info = $this->get_sender_info();
+		$sender_info = json_encode($sender_info);
+		if ($sender_info === false) {
+			$sender_info = '';
+		}
+	
+		// gets 'comment_type' from $data. If not se it will use 'event_message'
+		$post_info['comment_type'] = $obj->get('comment_type','event_message');
+		$post_info['post_url'] = $session->get($this->current_page);
+		$post_info = json_encode($post_info);
+		if ($post_info === false) {
+			$post_info = '';
+		}
+	
+		self::getCleantalk();
+		$ctResponse = self::ctSendRequest(
+				'check_message', array(
+						'message' => $obj->get('message'),
+						'sender_email' => $obj->get('sender_email'),
+						'sender_ip' => self::$CT->ct_session_ip($_SERVER['REMOTE_ADDR']),
+						'sender_nickname' => $obj->get('sender_nickname'),
+						'js_on' => $checkjs,
+						'post_info' => $post_info,
+						'submit_time' => $submit_time,
+				)
+		);
+	
+		if (!empty($ctResponse['allow']) AND $ctResponse['allow'] == 1) {
+			return true;
+		} else {
+			return $ctResponse['comment'];
+		}
+	}
 
 
 }
