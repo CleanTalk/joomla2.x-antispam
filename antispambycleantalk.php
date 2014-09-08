@@ -1152,11 +1152,11 @@ ctSetCookie("%s", "%s");
 
 	 /**
 	 * Does the CleanTalk Magic and Throws error message if message is not allowed
-	 * @param	array	$data		Containing all required data ($sender_email, $sender_nickname,$message)
 	 * @param	string	$context	The context of the content being passed to the plugin. Usually component.view (example: com_contactenhanced.contact)
-	 * @return 	mixed 	True if passes validation OR string with error message if it fails
+	 * @param	array	$data		Containing all required data ($sender_email, $sender_nickname,$message)
+	 * @return 	boolean True if passes validation OR false if it fails
 	 */
-	public function onSpamCheck($data,$context=''){
+	public function onSpamCheck($context='', $data){
 		// Converts $data Array into an Object
 		$obj = new JObject($data);
 		// sets 'sender_email' ONLY if not already set. Also checks to see if 'email' was not provided instead
@@ -1201,7 +1201,9 @@ ctSetCookie("%s", "%s");
 		if (!empty($ctResponse['allow']) AND $ctResponse['allow'] == 1) {
 			return true;
 		} else {
-			return $ctResponse['comment'];
+			// records error message in dispatcher (and let the event caller handle)
+			$this->_subject->setError($ctResponse['comment']);
+			return false;
 		}
 	}
 
