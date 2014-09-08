@@ -3,7 +3,7 @@
 /**
  * CleanTalk joomla plugin
  *
- * @version 2.1
+ * @version 2.2
  * @package Cleantalk
  * @subpackage Joomla
  * @author CleanTalk (welcome@cleantalk.ru) 
@@ -21,7 +21,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
     /**
      * Plugin version string for server
      */
-    const ENGINE = 'joomla-21';
+    const ENGINE = 'joomla-22';
     
     /**
      * Default value for hidden field ct_checkjs 
@@ -551,22 +551,10 @@ class plgSystemAntispambycleantalk extends JPlugin {
         }
 
         if ($contact_email !== null){
-            self::getCleantalk();
-            $ctResponse = self::ctSendRequest(
-                'check_message', array(
-                    'message' => $contact_message, 
-                    'sender_email' => $contact_email, 
-                    'sender_ip' => self::$CT->ct_session_ip($_SERVER['REMOTE_ADDR']),
-                    'sender_nickname' => $contact_nickname, 
-                    'js_on' => $checkjs,
-                    'post_info' => $post_info,
-                    'submit_time' => $submit_time,
-                )
-            );
-            if (isset($ctResponse) && is_array($ctResponse)) {
-                if ($ctResponse['allow'] == 0) {
-                    JError::raiseError(503, $ctResponse['comment']);
-                }
+            $result = $this->onSpamCheck($contact_email, $contact_nickname, $contact_message);
+
+            if ($result !== true) {
+                JError::raiseError(503, $result);
             }
         }
 
@@ -1160,6 +1148,53 @@ ctSetCookie("%s", "%s");
         }
         
         return $result;
-}
+    }
+
+    /**
+     * Does the CleanTalk Magic and Throws error message if message is not allowed
+     * @param	string  $sender_email       Sender email 
+     * @param	string  $sender_nickname    Sender nickname
+     * @param	string  $message            Contact/comment message text 
+     * @return 	mixed 	true if passes validation OR string with error message if it fails
+     */
+    public function onSpamCheck($sender_email = null, $sender_nickname = null, $message = null){
+        $session = JFactory::getSession();
+        $submit_time = $this->submit_time_test();
+
+        $checkjs = $this->get_ct_checkjs(true);
+
+        $sender_info = $this->get_sender_info();
+        $sender_info = json_encode($sender_info);
+        if ($sender_info === false) {
+            $sender_info = '';
+        }
+        
+        $post_info['comment_type'] = 'event_message'; 
+        $post_info['post_url'] = $session->get($this->current_page); 
+        $post_info = json_encode($post_info);
+        if ($post_info === false) {
+            $post_info = '';
+        }
+        
+        self::getCleantalk();
+        $ctResponse = self::ctSendRequest(
+            'check_message', array(
+                'message' => $message, 
+                'sender_email' => $sender_email, 
+                'sender_ip' => self::$CT->ct_session_ip($_SERVER['REMOTE_ADDR']),
+                'sender_nickname' => $sender_nickname, 
+                'js_on' => $checkjs,
+                'post_info' => $post_info,
+                'submit_time' => $submit_time,
+            )
+        );
+        
+        if (!empty($ctResponse['allow']) AND $ctResponse['allow'] == 1) {
+            return true;
+        } else {
+            return $ctResponse['comment'];
+        }
+    }
+
 
 }
