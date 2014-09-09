@@ -284,20 +284,21 @@ class plgSystemAntispambycleantalk extends JPlugin {
         }
 
         $ver = new JVersion();
-        // constants can be found in components/com_contact/views/contact/tmpl/default_form.php
+        // Converts $data Array into an Object
+        $obj = new JObject($data);
+        // sets 'sender_email' ONLY if not already set. Also checks to see if 'email' was not provided instead
+        $obj->def('sender_email',$obj->get('email',$obj->get('contact_email',null)));
+        // sets 'sender_nickname' ONLY if not already set. Also checks to see if 'name' was not provided instead
+        $obj->def('sender_nickname',$obj->get('name',$obj->get('contact_name',null)));
+        // sets 'message' ONLY if not already set. Also checks to see if 'comment' was not provided instead
+        $obj->def('subject',$obj->get('subject',$obj->get('contact_subject',null)));
+        // sets 'message' ONLY if not already set. Also checks to see if 'comment' was not provided instead
+        $obj->def('message',$obj->get('text',$obj->get('contact_message',null)));
+
         if (strcmp($ver->RELEASE, '1.5') <= 0) {  // 1.5 and lower
-            $user_name_key = 'name';
-            $user_email_key = 'email';
-            $subject_key = 'subject';
-            $message_key = 'text';
             $sendAlarm = TRUE;
-        } else {      // current higest version by default ('2.5' now)
-            $user_name_key = 'contact_name';
-            $user_email_key = 'contact_email';
-            $subject_key = 'contact_subject';
-            $message_key = 'contact_message';
         }
-        
+
         $post_info['comment_type'] = 'feedback';
         $post_info = json_encode($post_info);
         if ($post_info === false)
@@ -306,11 +307,11 @@ class plgSystemAntispambycleantalk extends JPlugin {
         self::getCleantalk();
         $ctResponse = self::ctSendRequest(
             'check_message', array(
-                'example' => null, 
-                'sender_nickname' => $data[$user_name_key],
-                'sender_email' => $data[$user_email_key],
+                'example' => null,
+                'sender_nickname' => $obj->get('sender_nickname'),
+                'sender_email' => $obj->get('sender_email'),
                 'sender_ip' => self::$CT->ct_session_ip($_SERVER['REMOTE_ADDR']),
-                'message' => $data[$subject_key] . "\n" . $data[$message_key],
+                'message' => $obj->get('subject') . "\n" . $obj->get('message'),
                 'js_on' => $checkjs,
                 'submit_time' => $submit_time,
                 'post_info' => $post_info,
