@@ -551,7 +551,12 @@ class plgSystemAntispambycleantalk extends JPlugin {
         }
 
         if ($contact_email !== null){
-            $result = $this->onSpamCheck($contact_email, $contact_nickname, $contact_message);
+            $result = $this->onSpamCheck(
+                array(
+                    'sender_email' => $contact_email, 
+                    'sender_nickname' => $contact_nickname, 
+                    'message' => $contact_message
+                ));
 
             if ($result !== true) {
                 JError::raiseError(503, $result);
@@ -1165,7 +1170,7 @@ ctSetCookie("%s", "%s");
 		$obj->def('sender_nickname',$obj->get('name',null));
 		// sets 'message' ONLY if not already set. Also checks to see if 'comment' was not provided instead
 		$obj->def('message',$obj->get('comment',null));
-	
+
 		$session = JFactory::getSession();
 		$submit_time = $this->submit_time_test();
 	
