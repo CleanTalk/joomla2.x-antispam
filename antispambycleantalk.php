@@ -284,21 +284,20 @@ class plgSystemAntispambycleantalk extends JPlugin {
         }
 
         $ver = new JVersion();
-        // Converts $data Array into an Object
-        $obj = new JObject($data);
-        // sets 'sender_email' ONLY if not already set. Also checks to see if 'email' was not provided instead
-        $obj->def('sender_email',$obj->get('email',$obj->get('contact_email',null)));
-        // sets 'sender_nickname' ONLY if not already set. Also checks to see if 'name' was not provided instead
-        $obj->def('sender_nickname',$obj->get('name',$obj->get('contact_name',null)));
-        // sets 'message' ONLY if not already set. Also checks to see if 'comment' was not provided instead
-        $obj->def('subject',$obj->get('subject',$obj->get('contact_subject',null)));
-        // sets 'message' ONLY if not already set. Also checks to see if 'comment' was not provided instead
-        $obj->def('message',$obj->get('text',$obj->get('contact_message',null)));
-
+        // constants can be found in components/com_contact/views/contact/tmpl/default_form.php
         if (strcmp($ver->RELEASE, '1.5') <= 0) {  // 1.5 and lower
+            $user_name_key = 'name';
+            $user_email_key = 'email';
+            $subject_key = 'subject';
+            $message_key = 'text';
             $sendAlarm = TRUE;
+        } else {      // current higest version by default ('2.5' now)
+            $user_name_key = 'contact_name';
+            $user_email_key = 'contact_email';
+            $subject_key = 'contact_subject';
+            $message_key = 'contact_message';
         }
-
+        
         $post_info['comment_type'] = 'feedback';
         $post_info = json_encode($post_info);
         if ($post_info === false)
@@ -307,11 +306,11 @@ class plgSystemAntispambycleantalk extends JPlugin {
         self::getCleantalk();
         $ctResponse = self::ctSendRequest(
             'check_message', array(
-                'example' => null,
-                'sender_nickname' => $obj->get('sender_nickname'),
-                'sender_email' => $obj->get('sender_email'),
+                'example' => null, 
+                'sender_nickname' => $data[$user_name_key],
+                'sender_email' => $data[$user_email_key],
                 'sender_ip' => self::$CT->ct_session_ip($_SERVER['REMOTE_ADDR']),
-                'message' => $obj->get('subject') . "\n" . $obj->get('message'),
+                'message' => $data[$subject_key] . "\n" . $data[$message_key],
                 'js_on' => $checkjs,
                 'submit_time' => $submit_time,
                 'post_info' => $post_info,
@@ -552,7 +551,8 @@ class plgSystemAntispambycleantalk extends JPlugin {
         }
 
         if (!$contact_email && $_SERVER['REQUEST_METHOD'] == 'POST' 
-            && $option_cmd != 'com_jcomments' && $option_cmd != 'com_contact' && $option_cmd != 'com_users'
+            && $option_cmd != 'com_jcomments' && $option_cmd != 'com_contact' && $option_cmd != 'com_users' 
+            && $option_cmd != 'com_user' // Joomla 1.5
             ) {
             $config = $this->getCTConfig();
             
@@ -566,6 +566,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
         }
 
         if ($contact_email !== null){
+
             $result = $this->onSpamCheck(
                 '',
                 array(
@@ -669,7 +670,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
                 array_push($user_groups, $user->gid);
             }
         }
-
+        error_log(print_r($config['relevance_test'], true)); 
         foreach ($user_groups as $group) {
             if (in_array($group, $plugin_groups)) {
                 
@@ -701,7 +702,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
                     
                     $example = $baseText . "\n\n\n\n" . $prevComments;
                 }
-
+                error_log('JC');
                 self::getCleantalk();
                 $ctResponse = self::ctSendRequest(
                     'check_message', array(
@@ -1187,12 +1188,20 @@ ctSetCookie("%s", "%s");
 	public function onSpamCheck($context='', $data){
 		// Converts $data Array into an Object
 		$obj = new JObject($data);
-		// sets 'sender_email' ONLY if not already set. Also checks to see if 'email' was not provided instead
-		$obj->def('sender_email',$obj->get('email',null));
-		// sets 'sender_nickname' ONLY if not already set. Also checks to see if 'name' was not provided instead
-		$obj->def('sender_nickname',$obj->get('name',null));
-		// sets 'message' ONLY if not already set. Also checks to see if 'comment' was not provided instead
-		$obj->def('message',$obj->get('comment',null));
+        
+        $ver = new JVersion();
+        if (strcmp($ver->RELEASE, '1.5') <= 0) {
+            foreach ($data as $k => $v) {
+                $obj->set($k, $v);
+            }
+        } else {
+            // sets 'sender_email' ONLY if not already set. Also checks to see if 'email' was not provided instead
+            $obj->def('sender_email',$obj->get('email',null));
+            // sets 'sender_nickname' ONLY if not already set. Also checks to see if 'name' was not provided instead
+            $obj->def('sender_nickname',$obj->get('name',null));
+            // sets 'message' ONLY if not already set. Also checks to see if 'comment' was not provided instead
+            $obj->def('message',$obj->get('comment',null));
+        }
 
 		$session = JFactory::getSession();
 		$submit_time = $this->submit_time_test();
