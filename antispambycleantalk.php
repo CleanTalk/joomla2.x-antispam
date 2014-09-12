@@ -3,7 +3,7 @@
 /**
  * CleanTalk joomla plugin
  *
- * @version 2.2
+ * @version 2.3
  * @package Cleantalk
  * @subpackage Joomla
  * @author CleanTalk (welcome@cleantalk.ru) 
@@ -21,7 +21,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
     /**
      * Plugin version string for server
      */
-    const ENGINE = 'joomla-22';
+    const ENGINE = 'joomla-23';
     
     /**
      * Default value for hidden field ct_checkjs 
@@ -551,8 +551,21 @@ class plgSystemAntispambycleantalk extends JPlugin {
             }
         }
 
+        if (!$contact_email && $_SERVER['REQUEST_METHOD'] == 'POST' && $option_cmd != 'com_jcomments') {
+            $config = $this->getCTConfig();
+            
+            if ($config['general_contact_forms_test'] != '') {
+                foreach ($_POST as $v) {
+                    if ($this->validEmail($v)) {
+                        $contact_email = $v;
+                    }
+                }
+            }
+        }
+
         if ($contact_email !== null){
             $result = $this->onSpamCheck(
+                '',
                 array(
                     'sender_email' => $contact_email, 
                     'sender_nickname' => $contact_nickname, 
@@ -560,7 +573,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
                 ));
 
             if ($result !== true) {
-                JError::raiseError(503, $result);
+                JError::raiseError(503, $this->_subject->getError());
             }
         }
 
@@ -686,7 +699,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
                     
                     $example = $baseText . "\n\n\n\n" . $prevComments;
                 }
-
+                error_log('JC');
                 self::getCleantalk();
                 $ctResponse = self::ctSendRequest(
                     'check_message', array(
@@ -878,18 +891,21 @@ class plgSystemAntispambycleantalk extends JPlugin {
         $config['apikey'] = ''; 
         $config['server'] = '';
         $config['jcomments_unpublished_nofications'] = '';
+        $config['general_contact_forms_test'] = '';
         $config['relevance_test'] = '';
         if (class_exists('JParameter')) {   //1.5
             $jparam = new JParameter($plugin->params);
             $config['apikey'] = $jparam->def('apikey', '');
             $config['server'] = $jparam->def('server', '');
             $config['jcomments_unpublished_nofications'] = $jparam->def('jcomments_unpublished_nofications', '');
+            $config['general_contact_forms_test'] = $jparam->def('general_contact_forms_test', '');
             $config['relevance_test'] = $jparam->def('relevance_test', '');
         } else {      //1.6+
             $jreg = new JRegistry($plugin->params);
             $config['apikey'] = $jreg->get('apikey', '');
             $config['server'] = $jreg->get('server', '');
             $config['jcomments_unpublished_nofications'] = $jreg->get('jcomments_unpublished_nofications', '');
+            $config['general_contact_forms_test'] = $jreg->get('general_contact_forms_test', '');
             $config['relevance_test'] = $jreg->get('relevance_test', '');
         }
 
@@ -1182,7 +1198,7 @@ ctSetCookie("%s", "%s");
 		if ($sender_info === false) {
 			$sender_info = '';
 		}
-	
+
 		// gets 'comment_type' from $data. If not se it will use 'event_message'
 		$post_info['comment_type'] = $obj->get('comment_type','event_message');
 		$post_info['post_url'] = $session->get($this->current_page);
@@ -1201,9 +1217,10 @@ ctSetCookie("%s", "%s");
 						'js_on' => $checkjs,
 						'post_info' => $post_info,
 						'submit_time' => $submit_time,
+                        'sender_info' => $sender_info 
 				)
 		);
-	
+
 		if (!empty($ctResponse['allow']) AND $ctResponse['allow'] == 1) {
 			return true;
 		} else {
