@@ -551,7 +551,9 @@ class plgSystemAntispambycleantalk extends JPlugin {
             }
         }
 
-        if (!$contact_email && $_SERVER['REQUEST_METHOD'] == 'POST' && $option_cmd != 'com_jcomments') {
+        if (!$contact_email && $_SERVER['REQUEST_METHOD'] == 'POST' 
+            && $option_cmd != 'com_jcomments' && $option_cmd != 'com_contact' && $option_cmd != 'com_users'
+            ) {
             $config = $this->getCTConfig();
             
             if ($config['general_contact_forms_test'] != '') {
@@ -1112,6 +1114,10 @@ ctSetCookie("%s", "%s");
      * @since 1.5
      */
     function validEmail($string) {
+        if (!isset($string) || !is_string($string)) {
+            return false;
+        }
+
         return preg_match("/^\S+@\S+$/i", $string); 
     }
     
