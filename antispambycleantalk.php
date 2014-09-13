@@ -61,7 +61,19 @@ class plgSystemAntispambycleantalk extends JPlugin {
     * Form submited without page load
     */
     private $ct_direct_post = 0;
-    
+
+    /**
+    * Components lists to skip onSpamCheck()
+    */
+    private $skip_coms = array(
+        'com_jcomments',
+        'com_contact',
+        'com_virtuemart',
+        'com_users',
+        'com_user',
+        'com_login'
+    );
+  
     /**
     * This event is triggered before an update of a user record.
     */
@@ -550,10 +562,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
             }
         }
 
-        if (!$contact_email && $_SERVER['REQUEST_METHOD'] == 'POST' 
-            && $option_cmd != 'com_jcomments' && $option_cmd != 'com_contact' && $option_cmd != 'com_users' 
-            && $option_cmd != 'com_user' // Joomla 1.5
-            ) {
+        if (!$contact_email && $_SERVER['REQUEST_METHOD'] == 'POST' && !in_array($option_cmd, $this->skip_coms)) {
             $config = $this->getCTConfig();
             
             if ($config['general_contact_forms_test'] != '') {
