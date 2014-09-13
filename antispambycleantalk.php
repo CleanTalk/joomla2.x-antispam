@@ -564,7 +564,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 
         if (!$contact_email && $_SERVER['REQUEST_METHOD'] == 'POST' && !in_array($option_cmd, $this->skip_coms)) {
             $config = $this->getCTConfig();
-            
+
             if ($config['general_contact_forms_test'] != '') {
                 foreach ($_POST as $v) {
                     if ($this->validEmail($v)) {
@@ -574,7 +574,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
             }
         }
 
-        if ($contact_email !== null){
+        if ($contact_email !== null && !$app->isAdmin()){
 
             $result = $this->onSpamCheck(
                 '',
