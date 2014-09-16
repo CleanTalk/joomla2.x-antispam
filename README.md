@@ -1,4 +1,8 @@
 Anti-spam plugin for Joomla 2.5-3.X.
+============
+
+
+## Simple antispam test
 
 Example how to use plugin to filter spam bots at any Joomla form.
 
