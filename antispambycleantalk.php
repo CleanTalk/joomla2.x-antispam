@@ -3,7 +3,7 @@
 /**
  * CleanTalk joomla plugin
  *
- * @version 2.3
+ * @version 2.4
  * @package Cleantalk
  * @subpackage Joomla
  * @author CleanTalk (welcome@cleantalk.ru) 
@@ -21,7 +21,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
     /**
      * Plugin version string for server
      */
-    const ENGINE = 'joomla-23';
+    const ENGINE = 'joomla-24';
     
     /**
      * Default value for hidden field ct_checkjs 
@@ -753,7 +753,14 @@ class plgSystemAntispambycleantalk extends JPlugin {
      * @since 1.5
      */
     function onJCommentsCommentBeforePublish(&$comment) {
-        self::moderateMessage($comment->comment, 1);
+        if ($comment->published == 0) {
+            $comment_comment = $comment->comment;
+            self::moderateMessage($comment->comment, 1);
+
+            if ($comment_comment != $comment->comment) {
+                $comment->store();
+            }
+        }
         return true;
     }
 
