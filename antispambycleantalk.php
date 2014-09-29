@@ -679,7 +679,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
                 array_push($user_groups, $user->gid);
             }
         }
-        error_log(print_r($config['relevance_test'], true)); 
+
         foreach ($user_groups as $group) {
             if (in_array($group, $plugin_groups)) {
                 
@@ -711,7 +711,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
                     
                     $example = $baseText . "\n\n\n\n" . $prevComments;
                 }
-                error_log('JC');
+
                 self::getCleantalk();
                 $ctResponse = self::ctSendRequest(
                     'check_message', array(
@@ -732,7 +732,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
                         return false;
                     } else if ($ctResponse['allow'] == 0) {
                         $comment->published = false;
-                        $comment->comment = self::$CT->addCleantalkComment($comment->comment, $ctResponse['comment']);
                         
                         // Send notification to administrator
                         if ($config['jcomments_unpublished_nofications'] != '') {
@@ -743,66 +742,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
                 return true;
             } //if(in_array($group, $plugin_groups))
         } //foreach
-    }
-
-    /**
-     * onJCommentsCommentBeforePublish trigger
-     * @access public
-     * @param JCommentsDB $comment
-     * @return bolean true
-     * @since 1.5
-     */
-    function onJCommentsCommentBeforePublish(&$comment) {
-        if ($comment->published == 0) {
-            $comment_comment = $comment->comment;
-            self::moderateMessage($comment->comment, 1);
-
-            if ($comment_comment != $comment->comment) {
-                $comment->store();
-            }
-        }
-        return true;
-    }
-
-    /**
-     * onJCommentsCommentAfterDelete trigger
-     * @access public
-     * @param JCommentsDB $comment
-     * @return bolean true
-     * @since 1.5
-     */
-    function onJCommentsCommentAfterDelete(&$comment) {
-        self::moderateMessage($comment->comment, 0);
-        return true;
-    }
-
-    ////////////////////////////
-    // Common basic sutff
-
-    /**
-     * Function to send the results of moderation
-     * @param $message
-     * @param $allow
-     * @return void
-     */
-    function moderateMessage(&$message, $allow) {
-        self::getCleantalk();
-        $hash = self::$CT->getCleantalkCommentHash($message);
-        $resultMessage = self::$CT->delCleantalkComment($message);
-
-        if ($hash != NULL) {
-            $ctFbParams = array(
-                'moderate' => array(
-                    array('msg_hash' => $hash, 'is_allow' => $allow),
-                ),
-            );
-
-            self::ctSendRequest(
-                    'send_feedback', $ctFbParams
-            );
-        }
-
-        $message = $resultMessage;
     }
 
     /**
