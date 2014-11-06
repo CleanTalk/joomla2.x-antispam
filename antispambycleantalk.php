@@ -3,7 +3,7 @@
 /**
  * CleanTalk joomla plugin
  *
- * @version 2.4
+ * @version 2.5
  * @package Cleantalk
  * @subpackage Joomla
  * @author CleanTalk (welcome@cleantalk.ru) 
@@ -21,7 +21,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
     /**
      * Plugin version string for server
      */
-    const ENGINE = 'joomla-24';
+    const ENGINE = 'joomla-25';
     
     /**
      * Default value for hidden field ct_checkjs 
@@ -1203,6 +1203,10 @@ ctSetCookie("%s", "%s");
                         'sender_info' => $sender_info 
 				)
 		);
+
+        if ($ctResponse['errno'] != 0) {
+            $this->sendAdminEmail("CleanTalk plugin error", $ctResponse['comment']);
+        }
 
 		if (!empty($ctResponse['allow']) AND $ctResponse['allow'] == 1) {
 			return true;
