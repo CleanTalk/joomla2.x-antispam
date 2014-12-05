@@ -39,32 +39,42 @@ class plgSystemAntispambycleantalk extends JPlugin {
      */
     static $tables_ready = FALSE;
 
-    /*
-    * Flag marked JComments form initilization. 
+    /**
+     * Load the language file on instantiation.
+     *
+     * @var    boolean
+     * @since  3.1
+     */
+    protected $autoloadLanguage = false;
 
-    */
+    /*
+     * Flag marked JComments form initilization. 
+     */
     private $JCReady = false;
 
     /*
-    * Page load label
-    *
-    */
+     * Page load label
+     */
     private $form_load_label = 'formtime';
     
     /*
-    * Page load label
-    *
-    */
+     * Page load label
+     */
     private $current_page = null;
     
     /**
-    * Form submited without page load
-    */
+     * Form submited without page load
+     */
     private $ct_direct_post = 0;
 
     /**
-    * Components list to skip onSpamCheck()
-    */
+     * Admin notice counter to prevent to show notice twice.
+     */
+    private $ct_admin_notices = 0;
+
+    /**
+     * Components lists to skip onSpamCheck()
+     */
     private $skip_coms = array(
         'com_jcomments',
         'com_contact',
@@ -73,91 +83,50 @@ class plgSystemAntispambycleantalk extends JPlugin {
         'com_user',
         'com_login'
     );
-    
-    /**
-    * Parametrs list to skip onSpamCheck()
-    */
-    private $skip_params = array(
-        'ipn_track_id', // PayPal IPN #
-        'txn_type', // PayPal transaction type 
-    );
-  
-    /**
-    * This event is triggered before an update of a user record.
-    */
-    function onUserBeforeSave($user, $isnew, $new) {
 
-        if ($isnew) {
-            $this->moderateUser();
-        }
-
-        return null;
-    }
     /**
-    * This event is triggered before an update of a user record.
-    * Joomla 1.5
-    */
-    function onBeforeStoreUser($user, $isnew) {
-        if ($isnew) {
-            $this->moderateUser();
-        }
-
-        return null;
-    }
-    /**
-     * Include in head adn fill form
-     * @param type $form_id
-     * @param type $data
-     * @return string
+     * Constructor
+     * @access public
+     * @param $subject
+     * @param $config
+     * @return void
      */
-    function fillRegisterFormScriptHTML($form_id, $data = null, $onLoad = true) {
-        if ($data === null) {
-            $session = JFactory::getSession();
-            $data = $session->get('ct_register_form_data');
-        }
-       
-        $str = "\n";
-        
-        // setTimeout to fill form under Joomla 1.5
-        $str .= 'window.onload = window.setTimeout(\'fillHide()\', 1000); function fillHide() {';
+    public function plgSystemAntispambycleantalk (&$subject, $config) {
+        parent::__construct($subject, $config);
+    }
 
-        $str .= 'form = document.getElementById("' . $form_id . '");' . "\n";
-        $str .= 'if(form){' . "\n";
-        if (!empty($data)) {
-            foreach ($data as $key => $val) {
-                
-                // Skip data for JavaScript test
-                if (preg_match('/^ct_checkjs/', $key))
-                    continue;
+    /**
+     * This event is triggered before an update of a user record.
+     * @access public
+     */
+    public function onUserBeforeSave($user, $isnew, $new) {
 
-                if (is_array($val)) {
-                    foreach ($val as $_key => $_val) {
-                        $str .= "\t" . 'if (document.getElementsByName("' . $key . '[' . $_key . ']")) {' . "\n";
-                        $str .= "\t\t" . 'if (document.getElementsByName("' . $key . '[' . $_key . ']")[0].type != "hidden") {' . "\n";
-                        $str .= "\t\t\t" . 'document.getElementsByName("' . $key . '[' . $_key . ']")[0].value = "' . $_val . '"' . "\n";
-                        $str .= "\t\t } \n";
-                        $str .= "\t } \n";
-                    }
-                } else {
-                    $str .= "\t" . 'if (document.getElementsByName("' . $key . '")) {' . "\n";
-                    $str .= "\t\t" . 'if (document.getElementsByName("' . $key . '")[0].type != "hidden") {' . "\n";
-                    $str .= "\t\t\t" . 'document.getElementsByName("' . $key . '")[0].value = "' . $val . '"' . "\n";
-                    $str .= "\t\t } \n";
-                    $str .= "\t } \n";
-                }
-            }
+        if ($isnew) {
+            $this->moderateUser();
         }
-        $str .= '}' . "\n";
-        $str .= '}' . "\n";
-        
-        return $str;
+
+        return null;
+    }
+
+    /**
+     * This event is triggered before an update of a user record.
+     * Joomla 1.5
+     * @access public
+     */
+    public function onBeforeStoreUser($user, $isnew) {
+        if ($isnew) {
+            $this->moderateUser();
+        }
+
+        return null;
     }
 
     /**
      * Save user registration request_id
+     * @access public
      * @return type
      */
-    function onBeforeCompileHead() {
+    public function onBeforeCompileHead() {
         $app = JFactory::getApplication();
         if ($app->isAdmin())
             return;
@@ -186,201 +155,95 @@ class plgSystemAntispambycleantalk extends JPlugin {
     }
 
     /**
-     * Moderate new user
-     */
-    function moderateUser() {
-        // Call function only for guests
-        // Call only for $_POST with variables
-        if (JFactory::getUser()->id || $_SERVER['REQUEST_METHOD'] != 'POST') {
-            return false;
-        }
-
-        $post = $_POST;
-        $ver = new JVersion();
-        if (strcmp($ver->RELEASE, '1.5') <= 0) {
-            $post_name = isset($post['name']) ? $post['name'] : null;
-            $post_username = isset($post['username']) ? $post['username'] : null;
-            $post_email = isset($post['email']) ? $post['email'] : null;
-        } else {
-            $post_name = isset($post['name']) ? $post['name'] : (isset($post['jform']['name']) ? $post['jform']['name'] : null);
-            $post_username = isset($post['username']) ? $post['username'] : (isset($post['jform']['username']) ? $post['jform']['username'] : null);
-            $post_email = isset($post['email']) ? $post['email'] : (isset($post['jform']['email1']) ? $post['jform']['email1'] : null);
-        }
-
-        $session = JFactory::getSession();
-        $submit_time = $this->submit_time_test();
-
-        $checkjs = $this->get_ct_checkjs();
-
-        $sender_info = $this->get_sender_info();
-        $sender_info = json_encode($sender_info);
-        if ($sender_info === false) {
-            $sender_info = '';
-        }
-
-        self::getCleantalk();
-        $ctResponse = self::ctSendRequest(
-                'check_newuser', array(
-                    'sender_ip' => self::$CT->ct_session_ip($_SERVER['REMOTE_ADDR']),
-                    'sender_email' => $post_email,
-                    'sender_nickname' => $post_username,
-                    'submit_time' => $submit_time,
-                    'js_on' => $checkjs,
-                    'sender_info' => $sender_info 
-                )
-        );
-
-        if (!empty($ctResponse) && is_array($ctResponse)) {
-            if ($ctResponse['allow'] == 0) {
-                if ($ctResponse['errno'] != 0) {
-                    $this->sendAdminEmail("CleanTalk plugin", $ctResponse['comment']);
-                } else {
-                    $session->set('ct_register_form_data', $post);
-
-                    $app = & JFactory::getApplication();
-                    $app->enqueueMessage($ctResponse['comment'], 'error');
-
-                    $uri = & JFactory::getUri();
-                    $redirect = $uri->toString();
-                    
-                    // OPC
-                    if (isset($_POST['return'])) {
-                        $redirect_opc = base64_decode($_POST['return']);
-                        $u =& JURI::getInstance( $redirect);
-                        $u_opc =& JURI::getInstance( $redirect_opc );
-
-                        if ($u->getHost() == $u_opc->getHost()) {
-                            $app->redirect(base64_decode($_POST['return']));
-                            die;    
-                        }
-                    }
-
-                    $redirect = str_replace('?task=registration.register', '', $redirect);
-                    $app->redirect($redirect);
-                    die();
-                }
-            } else {
-                $comment = self::$CT->addCleantalkComment("", $ctResponse['comment']);
-                $hash = self::$CT->getCleantalkCommentHash($comment);
-
-                $session->set('register_username', $post_username);
-                $session->set('register_email', $post_email);
-                $session->set('ct_request_id', $hash);
-            }
-        }
-    }
-
-    /**
-     * Constructor
-     * @param $subject
-     * @param $config
-     * @return void
-     */
-    function plgSystemAntispambycleantalk (&$subject, $config) {
-        parent::__construct($subject, $config);
-    }
-
-    ////////////////////////////
-    // com_contact related sutff
-
-    /**
-     * onValidateContact trigger - used by com_contact
-     * @access public
-     * @param &$contact
-     * @param &$data
-     * @return instanceof Exception when fails
-     * @since 1.5
-     */
-    function onValidateContact(&$contact, &$data) {
-        $session = JFactory::getSession();
-        $submit_time = $this->submit_time_test();
-
-        $checkjs = $this->get_ct_checkjs();
-
-        $sender_info = $this->get_sender_info();
-        $sender_info = json_encode($sender_info);
-        if ($sender_info === false) {
-            $sender_info = '';
-        }
-
-        $ver = new JVersion();
-        // constants can be found in components/com_contact/views/contact/tmpl/default_form.php
-        if (strcmp($ver->RELEASE, '1.5') <= 0) {  // 1.5 and lower
-            $user_name_key = 'name';
-            $user_email_key = 'email';
-            $subject_key = 'subject';
-            $message_key = 'text';
-            $sendAlarm = TRUE;
-        } else {      // current higest version by default ('2.5' now)
-            $user_name_key = 'contact_name';
-            $user_email_key = 'contact_email';
-            $subject_key = 'contact_subject';
-            $message_key = 'contact_message';
-        }
-        
-        $post_info['comment_type'] = 'feedback';
-        $post_info = json_encode($post_info);
-        if ($post_info === false)
-            $post_info = '';
-
-        self::getCleantalk();
-        $ctResponse = self::ctSendRequest(
-            'check_message', array(
-                'example' => null, 
-                'sender_nickname' => $data[$user_name_key],
-                'sender_email' => $data[$user_email_key],
-                'sender_ip' => self::$CT->ct_session_ip($_SERVER['REMOTE_ADDR']),
-                'message' => $data[$subject_key] . "\n" . $data[$message_key],
-                'js_on' => $checkjs,
-                'submit_time' => $submit_time,
-                'post_info' => $post_info,
-                'sender_info' => $sender_info,
-            )
-        );
-        
-        $app = JFactory::getApplication();
-        if (!empty($ctResponse) && is_array($ctResponse)) {
-            if ($ctResponse['errno'] != 0) {
-                $this->sendAdminEmail("CleanTalk. Can't verify feedback message!", $ctResponse['comment']);
-            } else {
-                if ($ctResponse['allow'] == 0) {
-                    $session->set($this->form_load_label, time()); // update session 'formtime'
-                    $res_str = $ctResponse['comment'];
-                    $app->setUserState('com_contact.contact.data', $data);  // not used in 1.5 :(
-                    $stub = JRequest::getString('id');
-                    // Redirect back to the contact form.
-                    // see http://docs.joomla.org/JApplication::redirect/11.1 - what does last param mean?
-                    // but it works! AZ
-                    $app->redirect(JRoute::_('index.php?option=com_contact&view=contact&id=' . $stub, false), $res_str, 'warning');
-                    return new Exception($res_str); // $res_str not used in com_contact code - see source :(
-                }
-            }
-        }
-        $session->clear($this->form_load_label); // clear session 'formtime'
-    }
-
-    function sendAdminEmail($subject, $message, $is_html = false) {
-        $app = JFactory::getApplication();
-        
-        $mail = JFactory::getMailer();
-        $mail->addRecipient($app->getCfg('mailfrom'));
-        $mail->setSender(array($app->getCfg('mailfrom'), $app->getCfg('fromname')));
-        $mail->setSubject($subject);
-        $mail->setBody($message);
-        $mail->isHTML($is_html);
-        $sent = $mail->Send();
-    }
-
-    /**
      * onAfterDispatch trigger - used by com_contact
      * @access public
      * @since 1.5
      */
-    function onAfterDispatch() {
+    public function onAfterDispatch() {
         $app = JFactory::getApplication();
-        if ($app->isAdmin())
+        if ($app->isAdmin()){
+            if ($this->ct_admin_notices == 0 && JFactory::getUser()->authorise('core.admin')) {
+                $this->ct_admin_notices++;
+		$this->loadLanguage();
+                $config = $this->getCTConfig();
+
+		$next_notice = true; // Flag to show one notice per time
+		$notice = '';
+
+		// Notice about not entered api key
+		if (empty($config['apikey']) || $config['apikey'] == 'enter key') {
+		    $notice = JText::_('PLG_SYSTEM_CLEANTALK_NOTICE_APIKEY');
+		    $next_notice = false;
+		}
+
+		// Notice about state of api key - trial, expired and so on.
+		if($next_notice){
+                    // Short timeout before new check in hours - for bad accounts
+                    $notice_check_timeout_short = 1;
+                    // Long timeout before new check in hours - for good accounts
+                    $notice_check_timeout_long = 24;
+                    // Trial notice show time in minutes
+                    $notice_showtime = 10;
+
+                    // First try to get stored status
+		    $db_status = self::dbGetApikeyStatus();
+		    try{
+			$status = unserialize($db_status['ct_status']);
+		    }catch(Exception $e){
+		    }
+
+		    // Default api key check timeout is small
+                    $notice_check_timeout = $notice_check_timeout_short; 
+                    if(is_array($status) && isset($status['show_notice']) && $status['show_notice'] == 0) {
+			// Good key state is stored - increase api key check timeout to long
+                        $notice_check_timeout = $notice_check_timeout_long; 
+                    }
+
+                    // Time is greater than check timeout - need to check actual status now
+                    if(time() > strtotime("+$notice_check_timeout hours", $db_status['ct_changed'])){
+                        $status = self::checkApiKeyStatus($config['apikey'], 'notice_paid_till');
+                        if(isset($status) && $status !== FALSE){
+                            $db_status['ct_status'] = serialize($status);
+                            $db_status['ct_changed'] = time();
+                            self::dbSetApikeyStatus($db_status['ct_status'], $db_status['ct_changed']);
+                        }
+                    }
+
+                    // Time is in notice show time - need to show notice
+                    if(is_array($status) && time() < strtotime("+$notice_showtime minutes", $db_status['ct_changed'])){
+                    {
+                        // Bad apikey status is in database - need to check actual status again,
+                        //  because admin could change key from bad to good since last notice
+                        //  before api key check timeout.
+                        if(isset($status['show_notice']) && $status['show_notice'] == 1) {
+                            $new_status = self::checkApiKeyStatus($config['apikey'], 'notice_paid_till');
+                            if(isset($new_status) && $new_status !== FALSE){
+                                self::dbSetApikeyStatus(serialize($new_status), $db_status['ct_changed']); // Save it with old time!
+                                $status = $new_status;
+                            }
+                        }
+
+                        if(isset($status['show_notice']) && $status['show_notice'] == 1 && isset($status['trial']) && $status['trial'] == 1) {
+                            $user_token = '';
+                            if(isset($status['user_token'])) {
+                                $user_token = 'user_token=' . $status['user_token'];
+                            }
+			    $notice = JText::sprintf('PLG_SYSTEM_CLEANTALK_NOTICE_TRIAL', $user_token);
+    			    $next_notice = false;
+			}
+		    }
+
+		}
+
+		// Place other notices here.
+
+		// Show notice when defined
+                if(!empty($notice)){
+		    JError::raiseNotice(1024, $notice);
+		}
+            }
             return;
-        
+        }
         $document = JFactory::getDocument();
         // Add Javascript
         $document->addScriptDeclaration($this->getJSTest(null, null, true));
@@ -393,15 +256,18 @@ class plgSystemAntispambycleantalk extends JPlugin {
      * @access public
      * @since 1.5
      */
-    function onAfterRoute() {
+    public function onAfterRoute() {
         $option_cmd = JRequest::getCmd('option');
         $view_cmd = JRequest::getCmd('view');
         $task_cmd = JRequest::getCmd('task');
         $page_cmd = JRequest::getCmd('page');
-        
+
         $ver = new JVersion();
         $app = JFactory::getApplication();
+        //$config = $this->getCTConfig();
+
         if ($app->isAdmin()) {
+
             if ($option_cmd == 'com_users') {
                 $task_cmd_remove = 'users.delete'; //2.5
                 if (strcmp($ver->RELEASE, '1.5') <= 0) {
@@ -409,7 +275,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
                 }
                 if ($task_cmd == $task_cmd_remove) {
                     // Отсылаем фидбэк
-                    $a = 1;
                     if (!empty($_POST['cid'])) {
                         $db = JFactory::getDBO();
                         $db->setQuery("SELECT * FROM `#__users` WHERE id IN(" . implode(', ', $_POST['cid']) . ")");
@@ -433,7 +298,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
             }
         }
 
-        $ver = new JVersion();
         // constants can be found in  components/com_contact/views/contact/tmpl/default_form.php
         // 'option' and 'view' constants are the same in all versions
         if (strcmp($ver->RELEASE, '1.5') <= 0) {
@@ -571,17 +435,9 @@ class plgSystemAntispambycleantalk extends JPlugin {
         }
 
         if (!$contact_email && $_SERVER['REQUEST_METHOD'] == 'POST' && !in_array($option_cmd, $this->skip_coms)) {
-            
-            $do_test = true;
-            foreach ($_POST as $k => $v) {
-                if ($do_test && in_array($k, $this->skip_params)) {
-                    $do_test = false;
-                }
-            } 
-            
             $config = $this->getCTConfig();
 
-            if ($config['general_contact_forms_test'] != '' && $do_test) {
+            if ($config['general_contact_forms_test'] != '') {
                 foreach ($_POST as $v) {
                     
                     if ($contact_email) {
@@ -604,6 +460,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
         }
 
         if ($contact_email !== null && !$app->isAdmin()){
+
             $result = $this->onSpamCheck(
                 '',
                 array(
@@ -617,6 +474,85 @@ class plgSystemAntispambycleantalk extends JPlugin {
             }
         }
 
+    }
+
+    ////////////////////////////
+    // com_contact related sutff
+
+    /**
+     * onValidateContact trigger - used by com_contact
+     * @access public
+     * @param &$contact
+     * @param &$data
+     * @return instanceof Exception when fails
+     * @since 1.5
+     */
+    public function onValidateContact(&$contact, &$data) {
+        $session = JFactory::getSession();
+        $submit_time = $this->submit_time_test();
+
+        $checkjs = $this->get_ct_checkjs();
+
+        $sender_info = $this->get_sender_info();
+        $sender_info = json_encode($sender_info);
+        if ($sender_info === false) {
+            $sender_info = '';
+        }
+
+        $ver = new JVersion();
+        // constants can be found in components/com_contact/views/contact/tmpl/default_form.php
+        if (strcmp($ver->RELEASE, '1.5') <= 0) {  // 1.5 and lower
+            $user_name_key = 'name';
+            $user_email_key = 'email';
+            $subject_key = 'subject';
+            $message_key = 'text';
+            $sendAlarm = TRUE;
+        } else {      // current higest version by default ('2.5' now)
+            $user_name_key = 'contact_name';
+            $user_email_key = 'contact_email';
+            $subject_key = 'contact_subject';
+            $message_key = 'contact_message';
+        }
+        
+        $post_info['comment_type'] = 'feedback';
+        $post_info = json_encode($post_info);
+        if ($post_info === false)
+            $post_info = '';
+
+        self::getCleantalk();
+        $ctResponse = self::ctSendRequest(
+            'check_message', array(
+                'example' => null, 
+                'sender_nickname' => $data[$user_name_key],
+                'sender_email' => $data[$user_email_key],
+                'sender_ip' => self::$CT->ct_session_ip($_SERVER['REMOTE_ADDR']),
+                'message' => $data[$subject_key] . "\n" . $data[$message_key],
+                'js_on' => $checkjs,
+                'submit_time' => $submit_time,
+                'post_info' => $post_info,
+                'sender_info' => $sender_info,
+            )
+        );
+        
+        $app = JFactory::getApplication();
+        if (!empty($ctResponse) && is_array($ctResponse)) {
+            if ($ctResponse['errno'] != 0) {
+                $this->sendAdminEmail("CleanTalk. Can't verify feedback message!", $ctResponse['comment']);
+            } else {
+                if ($ctResponse['allow'] == 0) {
+                    $session->set($this->form_load_label, time()); // update session 'formtime'
+                    $res_str = $ctResponse['comment'];
+                    $app->setUserState('com_contact.contact.data', $data);  // not used in 1.5 :(
+                    $stub = JRequest::getString('id');
+                    // Redirect back to the contact form.
+                    // see http://docs.joomla.org/JApplication::redirect/11.1 - what does last param mean?
+                    // but it works! AZ
+                    $app->redirect(JRoute::_('index.php?option=com_contact&view=contact&id=' . $stub, false), $res_str, 'warning');
+                    return new Exception($res_str); // $res_str not used in com_contact code - see source :(
+                }
+            }
+        }
+        $session->clear($this->form_load_label); // clear session 'formtime'
     }
 
     ////////////////////////////
@@ -648,7 +584,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
      * @return string html code to insert after JComments form (id="comments-form")
      * @since 1.5
      */
-    function onJCommentsFormAfterDisplay() {
+    public function onJCommentsFormAfterDisplay() {
         $this->JCReady = true;
         return null; 
     }
@@ -660,7 +596,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
      * @return bolean true
      * @since 1.5
      */
-    function onJCommentsCommentBeforeAdd(&$comment) {
+    public function onJCommentsCommentBeforeAdd(&$comment) {
         
         $config = $this->getCTConfig();
         
@@ -772,13 +708,165 @@ class plgSystemAntispambycleantalk extends JPlugin {
         } //foreach
     }
 
+    ////////////////////////////
+    // Private methods
+
+    /**
+     * Include in head adn fill form
+     * @param type $form_id
+     * @param type $data
+     * @return string
+     */
+    private function fillRegisterFormScriptHTML($form_id, $data = null, $onLoad = true) {
+        if ($data === null) {
+            $session = JFactory::getSession();
+            $data = $session->get('ct_register_form_data');
+        }
+       
+        $str = "\n";
+        
+        // setTimeout to fill form under Joomla 1.5
+        $str .= 'window.onload = window.setTimeout(\'fillHide()\', 1000); function fillHide() {';
+
+        $str .= 'form = document.getElementById("' . $form_id . '");' . "\n";
+        $str .= 'if(form){' . "\n";
+        if (!empty($data)) {
+            foreach ($data as $key => $val) {
+                
+                // Skip data for JavaScript test
+                if (preg_match('/^ct_checkjs/', $key))
+                    continue;
+
+                if (is_array($val)) {
+                    foreach ($val as $_key => $_val) {
+                        $str .= "\t" . 'if (document.getElementsByName("' . $key . '[' . $_key . ']")) {' . "\n";
+                        $str .= "\t\t" . 'if (document.getElementsByName("' . $key . '[' . $_key . ']")[0].type != "hidden") {' . "\n";
+                        $str .= "\t\t\t" . 'document.getElementsByName("' . $key . '[' . $_key . ']")[0].value = "' . $_val . '"' . "\n";
+                        $str .= "\t\t } \n";
+                        $str .= "\t } \n";
+                    }
+                } else {
+                    $str .= "\t" . 'if (document.getElementsByName("' . $key . '")) {' . "\n";
+                    $str .= "\t\t" . 'if (document.getElementsByName("' . $key . '")[0].type != "hidden") {' . "\n";
+                    $str .= "\t\t\t" . 'document.getElementsByName("' . $key . '")[0].value = "' . $val . '"' . "\n";
+                    $str .= "\t\t } \n";
+                    $str .= "\t } \n";
+                }
+            }
+        }
+        $str .= '}' . "\n";
+        $str .= '}' . "\n";
+
+        return $str;
+    }
+
+
+    /**
+     * Moderate new user
+     */
+    private function moderateUser() {
+        // Call function only for guests
+        // Call only for $_POST with variables
+        if (JFactory::getUser()->id || $_SERVER['REQUEST_METHOD'] != 'POST') {
+            return false;
+        }
+
+        $post = $_POST;
+        $ver = new JVersion();
+        if (strcmp($ver->RELEASE, '1.5') <= 0) {
+            $post_name = isset($post['name']) ? $post['name'] : null;
+            $post_username = isset($post['username']) ? $post['username'] : null;
+            $post_email = isset($post['email']) ? $post['email'] : null;
+        } else {
+            $post_name = isset($post['name']) ? $post['name'] : (isset($post['jform']['name']) ? $post['jform']['name'] : null);
+            $post_username = isset($post['username']) ? $post['username'] : (isset($post['jform']['username']) ? $post['jform']['username'] : null);
+            $post_email = isset($post['email']) ? $post['email'] : (isset($post['jform']['email1']) ? $post['jform']['email1'] : null);
+        }
+
+        $session = JFactory::getSession();
+        $submit_time = $this->submit_time_test();
+
+        $checkjs = $this->get_ct_checkjs();
+
+        $sender_info = $this->get_sender_info();
+        $sender_info = json_encode($sender_info);
+        if ($sender_info === false) {
+            $sender_info = '';
+        }
+
+        self::getCleantalk();
+        $ctResponse = self::ctSendRequest(
+                'check_newuser', array(
+                    'sender_ip' => self::$CT->ct_session_ip($_SERVER['REMOTE_ADDR']),
+                    'sender_email' => $post_email,
+                    'sender_nickname' => $post_username,
+                    'submit_time' => $submit_time,
+                    'js_on' => $checkjs,
+                    'sender_info' => $sender_info 
+                )
+        );
+
+        if (!empty($ctResponse) && is_array($ctResponse)) {
+            if ($ctResponse['allow'] == 0) {
+                if ($ctResponse['errno'] != 0) {
+                    $this->sendAdminEmail("CleanTalk plugin", $ctResponse['comment']);
+                } else {
+                    $session->set('ct_register_form_data', $post);
+
+                    $app = & JFactory::getApplication();
+                    $app->enqueueMessage($ctResponse['comment'], 'error');
+
+                    $uri = & JFactory::getUri();
+                    $redirect = $uri->toString();
+
+                    // OPC
+                    if (isset($_POST['return'])) {
+                        $redirect_opc = base64_decode($_POST['return']);
+                        $u =& JURI::getInstance( $redirect);
+                        $u_opc =& JURI::getInstance( $redirect_opc );
+
+                        if ($u->getHost() == $u_opc->getHost()) {
+                            $app->redirect(base64_decode($_POST['return']));
+                            die;    
+                        }
+                    }
+
+                    $redirect = str_replace('?task=registration.register', '', $redirect);
+                    $app->redirect($redirect);
+                    die();
+                }
+            } else {
+                $comment = self::$CT->addCleantalkComment("", $ctResponse['comment']);
+                $hash = self::$CT->getCleantalkCommentHash($comment);
+
+                $session->set('register_username', $post_username);
+                $session->set('register_email', $post_email);
+                $session->set('ct_request_id', $hash);
+            }
+        }
+    }
+
+
+    private function sendAdminEmail($subject, $message, $is_html = false) {
+        $app = JFactory::getApplication();
+        
+        $mail = JFactory::getMailer();
+        $mail->addRecipient($app->getCfg('mailfrom'));
+        $mail->setSender(array($app->getCfg('mailfrom'), $app->getCfg('fromname')));
+        $mail->setSubject($subject);
+        $mail->setBody($message);
+        $mail->isHTML($is_html);
+        $sent = $mail->Send();
+    }
+
+
     /**
      * Interface to XML RPC server
      * $mehod - method name
      * $params - array of XML params
      * return XML RPS server response
      */
-    function ctSendRequest($method, $params) {
+    private function ctSendRequest($method, $params) {
         self::getCleantalk();
 
         switch ($method) {
@@ -841,7 +929,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 
         // Result should be an associative array 
         $result = json_decode(json_encode($result), true);
-        
+
         return $result;
     }
 
@@ -849,7 +937,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
      * Cleantalk instance
      * @return Cleantalk instance
      */
-    function getCleantalk() {
+    private function getCleantalk() {
         if (!isset(self::$CT)) {
 
             $config = $this->getCTConfig();
@@ -871,7 +959,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
      * Interface to get CT options 
      * @return array 
      */
-    function getCTConfig() {
+    private function getCTConfig() {
         $plugin = JPluginHelper::getPlugin('system', 'antispambycleantalk');
             
         $config['apikey'] = ''; 
@@ -903,7 +991,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
      * Cleantalk tables creator
      * @return bool
      */
-    function initTables() {
+    private function initTables() {
         $db = JFactory::getDBO();
         $prefix = $db->getPrefix();
         $arrTables = $db->getTableList();
@@ -934,6 +1022,15 @@ class plgSystemAntispambycleantalk extends JPlugin {
 			) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8");
                 $db->query();
             }
+            if (!in_array($prefix . 'ct_apikey_status', $arrTables)) {
+                $db->setQuery("CREATE TABLE `#__ct_apikey_status` (
+			`id` int(11) unsigned NOT NULL auto_increment,
+			`ct_status` varchar(1000) default NULL,
+			`ct_changed` int(11) NOT NULL default '0',
+			PRIMARY KEY (`id`)
+			) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8");
+                $db->query();
+            }
 
             $db->setQuery("SELECT count(*) FROM #__ct_curr_server");
             $row = $db->loadRow();
@@ -947,6 +1044,21 @@ class plgSystemAntispambycleantalk extends JPlugin {
             }else {
                 self::$tables_ready = TRUE;
             }
+
+            if(self::$tables_ready){
+                $db->setQuery("SELECT count(*) FROM #__ct_apikey_status");
+                $row = $db->loadRow();
+                if ($row[0] == 0) {
+                    $db->setQuery(
+                        "INSERT  " .
+                        "INTO #__ct_apikey_status (ct_status,ct_changed ) " .
+                        "VALUES ('', 0)");
+                    if ($db->query() !== FALSE)
+                        self::$tables_ready = TRUE;
+                }else {
+                    self::$tables_ready = TRUE;
+                }
+            }
         }
         return self::$tables_ready;
     }
@@ -955,7 +1067,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
      * Current server getter
      * @return array
      */
-    function dbGetServer() {
+    private function dbGetServer() {
         if (!self::$tables_ready) {
             self::initTables();
         }
@@ -972,7 +1084,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
      * $ct_server_changed
      * @return null
      */
-    function dbSetServer($ct_work_url, $ct_server_ttl, $ct_server_changed) {
+    private function dbSetServer($ct_work_url, $ct_server_ttl, $ct_server_changed) {
         if (!self::$tables_ready) {
             self::initTables();
         }
@@ -987,11 +1099,44 @@ class plgSystemAntispambycleantalk extends JPlugin {
     }
   
     /**
+     * Current alikey status getter
+     * @return array
+     */
+    private function dbGetApikeyStatus() {
+        if (!self::$tables_ready) {
+            self::initTables();
+        }
+        $db = JFactory::getDBO();
+        $db->setQuery("SELECT ct_status,ct_changed FROM #__ct_apikey_status ORDER BY id LIMIT 1");
+        $row = $db->loadAssoc();
+        return $row;
+    }
+
+    /**
+     * Current apikey status setter
+     * $ct_status
+     * $ct_changed
+     * @return null
+     */
+    private function dbSetApikeyStatus($ct_status, $ct_changed) {
+        if (!self::$tables_ready) {
+            self::initTables();
+        }
+        $db = JFactory::getDBO();
+        $db->setQuery(
+                "UPDATE #__ct_apikey_status " .
+                " SET " .
+                "ct_status = '" . $ct_status . "', " .
+                "ct_changed = " . $ct_changed);
+        $db->query();
+    }
+  
+    /**
     * Get value of $ct_checkjs
     * JavaScript avaibility test.
-    * @return null|0|1    
+    * @return null|0|1
     */
-    function get_ct_checkjs($cookie_check = true){
+    private function get_ct_checkjs($cookie_check = true){
 
         if ($cookie_check) {
             $data = $_COOKIE; 
@@ -1022,11 +1167,10 @@ class plgSystemAntispambycleantalk extends JPlugin {
 
     /**
      * Gets HTML code with link to Cleantalk site
-     * @access public
      * @return null 
      * @since 1.5
      */
-    function getJSTest($needle = null, $after = false, $cookie_check = false) {
+    private function getJSTest($needle = null, $after = false, $cookie_check = false) {
         try {
             $ct_checkjs_key = $this->getJSCode();
         } catch (Exception $e) {
@@ -1040,14 +1184,14 @@ class plgSystemAntispambycleantalk extends JPlugin {
         */
         if ($cookie_check) {
             $field_name = 'ct_checkjs';
-            $html = '
-function ctSetCookie(c_name, value) {
-    document.cookie = c_name + "=" + escape(value) + "; path=/";
+	    $html = '
+function ctSetCookie(c_name, value, def_value) {
+  document.cookie = c_name + "=" + escape(value.replace(/^def_value$/, value)) + "; path=/";
 }
-ctSetCookie("%s", "%s");
+ctSetCookie("%s", "%s", "%s");
     ';
-		    $html = sprintf($html, $field_name, $ct_checkjs_key);
-            
+
+	    $html = sprintf($html, $field_name, $ct_checkjs_key, self::CT_CHECKJS_DEF);
             return $html;
         }
 
@@ -1081,11 +1225,10 @@ ctSetCookie("%s", "%s");
     
     /**
      * Returns JavaScript secure code for ct_checkjs 
-     * @access public
      * @return string HTML code
      * @since 1.5
      */
-    function getJSCode() {
+    private function getJSCode() {
         $config = $this->getCTConfig();
 
         return md5($config['apikey'] . $_SERVER['REMOTE_ADDR']);
@@ -1093,11 +1236,10 @@ ctSetCookie("%s", "%s");
     
     /**
      * Valids email 
-     * @access public
      * @return bool 
      * @since 1.5
      */
-    function validEmail($string) {
+    private function validEmail($string) {
         if (!isset($string) || !is_string($string)) {
             return false;
         }
@@ -1109,7 +1251,7 @@ ctSetCookie("%s", "%s");
      * Validate form submit time 
      *
      */
-    function submit_time_test() {
+    private function submit_time_test() {
         $session = JFactory::getSession();
         $val = $session->get($this->form_load_label);
         if ($val) {
@@ -1125,7 +1267,7 @@ ctSetCookie("%s", "%s");
      * Inner function - Default data array for senders 
      * @return array 
      */
-    function get_sender_info() {
+    private function get_sender_info() {
         $session = JFactory::getSession();
         
         return $sender_info = array(
@@ -1140,7 +1282,7 @@ ctSetCookie("%s", "%s");
      * Cookies test for sender 
      * @return null|0|1;
      */
-    function ct_cookies_test ($test = false) {
+    private function ct_cookies_test ($test = false) {
         $cookie_label = 'ct_cookies_test';
         $secret_hash = $this->getJSCode();
 
@@ -1168,7 +1310,7 @@ ctSetCookie("%s", "%s");
 	 * @param	array	$data		Containing all required data ($sender_email, $sender_nickname,$message)
 	 * @return 	boolean True if passes validation OR false if it fails
 	 */
-	public function onSpamCheck($context='', $data){
+	private function onSpamCheck($context='', $data){
 		// Converts $data Array into an Object
 		$obj = new JObject($data);
         
@@ -1219,10 +1361,6 @@ ctSetCookie("%s", "%s");
 				)
 		);
 
-        if ($ctResponse['errno'] != 0) {
-            $this->sendAdminEmail("CleanTalk plugin error", $ctResponse['comment']);
-        }
-
 		if (!empty($ctResponse['allow']) AND $ctResponse['allow'] == 1) {
 			return true;
 		} else {
@@ -1231,6 +1369,47 @@ ctSetCookie("%s", "%s");
 			return false;
 		}
 	}
+        
+        /**
+	 * Checks current state on CleanTalk API key - wrong, trial, expired and so on.
+	 * @param	string	$apikey	API key
+	 * @param	string	$method	Checking method ('notice_paid_till', 'notice_validate_key', ...)
+	 * @return 	array|boolean Assoc array or FALSE
+	 */
+        private function checkApiKeyStatus($apikey, $method){
+	    if (function_exists('curl_init') && function_exists('json_decode')) {
+                $url = 'https://cleantalk.org/app_notice';
+                $server_timeout = 2;
 
+                $data = array();
+                $data['auth_key'] = $apikey;
+                $data['param'] = $method;
+
+                $ch = curl_init();
+                curl_setopt($ch, CURLOPT_URL, $url);
+                curl_setopt($ch, CURLOPT_TIMEOUT, $server_timeout);
+                curl_setopt($ch, CURLOPT_POST, true);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
+
+                // receive server response ...
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                // resolve 'Expect: 100-continue' issue
+                curl_setopt($ch, CURLOPT_HTTPHEADER, array('Expect:'));
+
+                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+
+                $result = curl_exec($ch);
+                curl_close($ch);
+
+                if ($result) {
+                    $result = json_decode($result, true);
+                    if(isset($result)){
+                        return $result;
+                    }
+                }
+            }
+            return FALSE;
+        }
 
 }

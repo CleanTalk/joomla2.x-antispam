@@ -2,12 +2,12 @@
 <extension version="2.5" type="plugin" group="system"  method="upgrade" >
     <name>Antispam by CleanTalk</name>
     <author>CleanTalk team</author>
-    <creationDate>12.09.2014</creationDate>
+    <creationDate>31.10.2014</creationDate>
     <copyright>(C) CleanTalk</copyright>
     <license>GNU/GPLv2</license>
     <authorEmail>welcome@cleantalk.org</authorEmail>
     <authorUrl>cleantalk.org</authorUrl>
-    <version>2.3</version>
+    <version>2.5</version>
     <description>PLG_CLEANTALK_DESCRIPTION</description>
     <files>
 	<filename plugin="antispambycleantalk">antispambycleantalk.php</filename>
@@ -63,4 +63,22 @@
 		</fieldset>
 	</fields>
     </config>
+	<administration>
+		<!-- Administration Menu Section -->
+		<menu>Antispam by CleanTalk</menu>
+		<submenu>
+			  <menu view="configuration">COM_CLEANTALK_CONFIGURATION</menu>
+			  <menu view="updates">COM_CLEANTALK_UPDATES</menu>
+		</submenu>
+		<files folder="admin">
+			<!-- Admin Main File Copy Section -->
+			<filename>index.html</filename>
+			<filename>cleantalk.php</filename>
+			<!-- SQL files section -->
+			<folder>sql</folder>
+		</files>
+	</administration>
+	<updateservers>
+		<server type="extension" priority="1" name="CleanTalk Update Site">https://www.cleantalk.org/files/joomla/plugin-updates.xml</server>
+	</updateservers>
 </extension>
