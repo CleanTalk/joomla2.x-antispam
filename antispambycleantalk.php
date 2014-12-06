@@ -211,7 +211,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
 
                     // Time is in notice show time - need to show notice
                     if(is_array($status) && time() < strtotime("+$notice_showtime minutes", $db_status['ct_changed'])){
-                    {
                         // Bad apikey status is in database - need to check actual status again,
                         //  because admin could change key from bad to good since last notice
                         //  before api key check timeout.
@@ -1099,7 +1098,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
     }
   
     /**
-     * Current alikey status getter
+     * Current apikey status getter
      * @return array
      */
     private function dbGetApikeyStatus() {
