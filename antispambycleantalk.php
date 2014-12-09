@@ -73,7 +73,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
     private $ct_admin_notices = 0;
 
     /**
-     * Components lists to skip onSpamCheck()
+     * Components list to skip onSpamCheck()
      */
     private $skip_coms = array(
         'com_jcomments',
@@ -83,6 +83,14 @@ class plgSystemAntispambycleantalk extends JPlugin {
         'com_user',
         'com_login'
     );
+
+    /**
+     * Parametrs list to skip onSpamCheck()
+     */
+     private $skip_params = array(
+	'ipn_track_id', // PayPal IPN #
+	'txn_type', // PayPal transaction type
+     );
 
     /**
      * Constructor
@@ -434,9 +442,17 @@ class plgSystemAntispambycleantalk extends JPlugin {
         }
 
         if (!$contact_email && $_SERVER['REQUEST_METHOD'] == 'POST' && !in_array($option_cmd, $this->skip_coms)) {
+	    $do_test = true;
+	    foreach ($_POST as $k => $v) {
+		if ($do_test && in_array($k, $this->skip_params)) {
+		    $do_test = false;
+		    break;
+		}
+	    }
+
             $config = $this->getCTConfig();
 
-            if ($config['general_contact_forms_test'] != '') {
+            if ($config['general_contact_forms_test'] != '' && $do_test) {
                 foreach ($_POST as $v) {
                     
                     if ($contact_email) {
