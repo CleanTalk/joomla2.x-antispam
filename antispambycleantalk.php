@@ -1251,8 +1251,9 @@ ctSetCookie("%s", "%s", "%s");
      */
     private function getJSCode() {
         $config = $this->getCTConfig();
-
-        return md5($config['apikey'] . $_SERVER['REMOTE_ADDR']);
+        $app = JFactory::getApplication();
+        
+        return md5($config['apikey'] . $app->getCfg('mailfrom'));
     }
     
     /**
