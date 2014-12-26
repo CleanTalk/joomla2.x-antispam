@@ -625,6 +625,13 @@ class plgSystemAntispambycleantalk extends JPlugin {
         $checkjs = $this->get_ct_checkjs(true);
 
         $sender_info = $this->get_sender_info();
+        
+        // Raw data to validated JavaScript test in the cloud
+        $sender_info['checkjs_data'] = null; 
+        if (isset($_COOKIE['ct_checkjs'])) {
+            $sender_info['checkjs_data'] = $_COOKIE['ct_checkjs'];
+        }
+
         $sender_info = json_encode($sender_info);
         if ($sender_info === false) {
             $sender_info = '';
@@ -1201,7 +1208,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
             $field_name = 'ct_checkjs';
 	    $html = '
 function ctSetCookie(c_name, value, def_value) {
-  document.cookie = c_name + "=" + escape(value.replace(/^def_value$/, value)) + "; path=/";
+  document.cookie = c_name + "=" + escape(value.replace(/def_value/, value)) + "; path=/";
 }
 ctSetCookie("%s", "%s", "%s");
     ';
