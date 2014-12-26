@@ -3,7 +3,7 @@
 /**
  * CleanTalk joomla plugin
  *
- * @version 2.5
+ * @version 2.6
  * @package Cleantalk
  * @subpackage Joomla
  * @author CleanTalk (welcome@cleantalk.ru) 
@@ -21,7 +21,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
     /**
      * Plugin version string for server
      */
-    const ENGINE = 'joomla-25';
+    const ENGINE = 'joomla-26';
     
     /**
      * Default value for hidden field ct_checkjs 
@@ -1216,7 +1216,6 @@ ctSetCookie("%s", "%s", "%s");
         $str .= '<script type="text/javascript">'. "\n";
         $str .= '// <![CDATA['. "\n";
         $str .= 'document.getElementById("'. $field_id .'").value = document.getElementById("'. $field_id .'").value.replace(/^' . self::CT_CHECKJS_DEF . '$/, "' . $ct_checkjs_key . '");'. "\n";
-        $str .= 'console.log(document.getElementById("'. $field_id .'").value);'. "\n";
         $str .= '// ]]>'. "\n";
         $str .= '</script>'. "\n";
         
