@@ -626,12 +626,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
 
         $sender_info = $this->get_sender_info();
         
-        // Raw data to validated JavaScript test in the cloud
-        $sender_info['checkjs_data'] = null; 
-        if (isset($_COOKIE['ct_checkjs'])) {
-            $sender_info['checkjs_data'] = $_COOKIE['ct_checkjs'];
-        }
-
         $sender_info = json_encode($sender_info);
         if ($sender_info === false) {
             $sender_info = '';
@@ -1292,11 +1286,24 @@ ctSetCookie("%s", "%s", "%s");
     private function get_sender_info() {
         $session = JFactory::getSession();
         
+        // Raw data to validated JavaScript test in the cloud
+        $checkjs_data_cookies = null; 
+        if (isset($_COOKIE['ct_checkjs'])) {
+            $checkjs_data_cookies = $_COOKIE['ct_checkjs'];
+        }
+
+        $checkjs_data_post = null; 
+        if (isset($_POST['ct_checkjs'])) {
+            $checkjs_data_post = $_POST['ct_checkjs'];
+        }
+        
         return $sender_info = array(
             'REFFERRER' => @$_SERVER['HTTP_REFERER'],
             'USER_AGENT' => @$_SERVER['HTTP_USER_AGENT'],
             'direct_post' => $this->ct_direct_post,
             'cookies_enabled' => $this->ct_cookies_test(true), 
+            'checkjs_data_post' => $checkjs_data_post, 
+            'checkjs_data_cookies' => $checkjs_data_cookies, 
         );
     }
 
