@@ -196,7 +196,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
     			'method_name'=> 'check_message',
     			'message'=>'CleanTalk connection test',
     			'example'=>null,
-    			'agent'=>'joomla15',
+    			'agent'=>self::ENGINE,
     			'sender_ip'=>$_SERVER['REMOTE_ADDR'],
     			'sender_email'=>'stop_email@example.com',
     			'sender_nickname'=>'CleanTalk',
