@@ -2,17 +2,20 @@
 <extension version="2.5" type="plugin" group="system"  method="upgrade" >
     <name>Antispam by CleanTalk</name>
     <author>CleanTalk team</author>
-    <creationDate>29.12.2014</creationDate>
+    <creationDate>31.03.2015</creationDate>
     <copyright>(C) CleanTalk</copyright>
     <license>GNU/GPLv2</license>
     <authorEmail>welcome@cleantalk.org</authorEmail>
     <authorUrl>cleantalk.org</authorUrl>
-    <version>2.6</version>
+    <version>3.1</version>
     <description>PLG_CLEANTALK_DESCRIPTION</description>
     <files>
 	<filename plugin="antispambycleantalk">antispambycleantalk.php</filename>
 	<filename plugin="antispambycleantalk">cleantalk.class.php</filename>
 	<filename plugin="antispambycleantalk">JSON.php</filename>
+	<filename plugin="antispambycleantalk">cleantalk.js</filename>
+	<filename plugin="antispambycleantalk">jquery-1.11.2.min.js</filename>
+	<filename plugin="antispambycleantalk">preloader.png</filename>
     </files>
     <languages folder="language">
 	<language tag="en-GB">en-GB/en-GB.plg_system_antispambycleantalk.ini</language>
@@ -28,13 +31,29 @@
 				label="PLG_SYSTEM_CLEANTALK_PARAM_APIKEY" 
 				description="PLG_SYSTEM_CLEANTALK_PARAM_APIKEY_DESC" 
 				size="20" 
+				class="cleantalk_auth_key"
 				default="enter key"
+			/>
+			<field name="autokey" type="spacer" 
+				label="PLG_SYSTEM_CLEANTALK_PARAM_AUTOKEY"
+				class="cleantalk_auto_key"
+				description="PLG_SYSTEM_CLEANTALK_PARAM_AUTOKEY_DESCRIPTION"
+			/>
+			<field name="reg_notice" type="spacer" 
+				label=""
+				class="reg_notice"
+				description=""
+			/>
+			<field name="notice" type="spacer" 
+				label="PLG_SYSTEM_CLEANTALK_PARAM_LICENSE"
+				class="cleantalk_notice"
+				description=""
 			/>
 			<field name="myspacer" type="spacer" 
 				label="PLG_SYSTEM_CLEANTALK_PARAM_GETAPIKEY" 
 				description="" 
 			/>
-            <field name="general_contact_forms_test" type="checkbox" label="COM_PLUGINS_CT_CUSTOM_FORMS" value="0" />
+            <field name="general_contact_forms_test" type="checkbox" label="COM_PLUGINS_CT_CUSTOM_FORMS" value="0" default="1"/>
 
             <field name="pluginhomepage" type="spacer" 
 				label="PLG_SYSTEM_CLEANTALK_PARAM_HOMEPAGE" 
@@ -45,6 +64,12 @@
 				description="PLG_SYSTEM_CLEANTALK_PARAM_SERVER_DESC" 
 				size="50" 
 				default="http://moderate.cleantalk.org" 
+			/>
+			<field name="user_token" type="hidden" 
+				label="user_token" 
+				description="user_token" 
+				size="50" 
+				default="" 
 			/>
             
 		</fieldset>
