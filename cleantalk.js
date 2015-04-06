@@ -1,3 +1,22 @@
+var close_animate=true;
+function animate_banner(to)
+{
+	if(close_animate)
+	{
+		if(to==0.3)
+		{
+			jQuery('#feedback_notice').fadeTo(300,to,function(){
+				animate_banner(1)
+			});
+		}
+		else
+		{
+			jQuery('#feedback_notice').fadeTo(300,to,function(){
+				animate_banner(0.3)
+			});
+		}
+	}
+}
 jQuery(document).ready(function(){
 	jQuery('#cleantalk_manual_key').attr('href', 'https://cleantalk.org/register?platform=joomla15&email=' + cleantalk_mail + '&website=' + cleantalk_domain);
 	var ct_auth_key=jQuery('.cleantalk_auth_key').prop('value');
@@ -6,11 +25,45 @@ jQuery(document).ready(function(){
 	if(ct_joom25)
 	{
 		jQuery('#jform_params_autokey-lbl').append('<img border="0" align="" src="../plugins/system/antispambycleantalk/preloader.png" id="ct_preloader" style="float:right;margin:0px;margin-top:-3px;display:none;"/>');
+		if(jQuery('#system-message').length==0)
+		{
+			jQuery('#system-message-container').append('<dl id="system-message"></dl>');
+		}
+		
+		if(ct_show_feedback)
+		{
+			jQuery('#system-message').prepend('<dt class="notice">Error</dt><dd class="notice message" id="feedback_notice"><a href="#" style="font-size:15px;float:right;margin:6px;text-decoration:none;" id="feedback_notice_close">X</a><ul><li style="text-align:center;">'+ct_show_feedback_mes+'</li></ul></dd>');
+		}
 	}
 	else
 	{
 		jQuery('#jform_params_autokey-lbl').append('<img border="0" align="" src="../plugins/system/antispambycleantalk/preloader.png" id="ct_preloader" style="float:right;margin:0px;margin-top:3px;display:none;"/>');
+		if(ct_show_feedback)
+		{
+			jQuery('#system-message-container').prepend('<div class="alert alert-notice" style="text-align:center;padding-right:10px;" id="feedback_notice"><a href="#" style="font-size:15px;float:right;text-decoration:none;" id="feedback_notice_close">X</a><p style="margin-top:8px;">'+ct_show_feedback_mes+'</p></div>');
+		}
 	}
+	
+	jQuery('#feedback_notice_close').click(function(){
+		var data = {
+			'ct_delete_notice': 'yes'
+		};		
+		jQuery.ajax({
+			type: "POST",
+			url: location.href,
+			data: data,
+			success: function(msg){
+				//alert(msg);
+				close_animate=false;
+				jQuery('#feedback_notice').hide();
+			}
+		});
+	});
+	jQuery('#feedback_notice_close').click(function(){
+		animate_banner(0.3);
+	});
+	
+	
 	
 	if(ct_auth_key!=''&&ct_auth_key!='enter key')
 	{
