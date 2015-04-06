@@ -71,6 +71,24 @@
 				size="50" 
 				default="" 
 			/>
+			<field name="last_status" type="hidden" 
+				label="last_status" 
+				description="last_status" 
+				size="50" 
+				default="" 
+			/>
+			<field name="show_notice" type="hidden" 
+				label="show_notice" 
+				description="show_notice" 
+				size="50" 
+				default="" 
+			/>
+			<field name="last_checked" type="hidden" 
+				label="last_checked" 
+				description="last_checked" 
+				size="50" 
+				default="" 
+			/>
             
 		</fieldset>
 		<fieldset name="jcomments">
