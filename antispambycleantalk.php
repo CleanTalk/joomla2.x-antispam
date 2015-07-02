@@ -3,10 +3,10 @@
 /**
  * CleanTalk joomla plugin
  *
- * @version 3.2
+ * @version 3.3
  * @package Cleantalk
  * @subpackage Joomla
- * @author CleanTalk (welcome@cleantalk.ru) 
+ * @author CleanTalk (welcome@cleantalk.org) 
  * @copyright (C) 2015 Сleantalk team (http://cleantalk.org)
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  *
@@ -22,7 +22,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
     /**
      * Plugin version string for server
      */
-    const ENGINE = 'joomla-32';
+    const ENGINE = 'joomla-33';
     
     /**
      * Default value for hidden field ct_checkjs 
@@ -84,6 +84,8 @@ class plgSystemAntispambycleantalk extends JPlugin {
         'com_user',
         'com_login'
     );
+    
+    private $is_executed=false;
 
     /**
      * Parametrs list to skip onSpamCheck()
@@ -249,6 +251,61 @@ class plgSystemAntispambycleantalk extends JPlugin {
     	}
     }
     
+    /**
+	 * Inner function - Finds and returns pattern in string
+	 * @return null|bool
+	 */
+    function getDataFromSubmit($value = null, $field_name = null) {
+	    if (!$value || !$field_name || !is_string($value)) {
+	        return false;
+	    }
+	    if (preg_match("/[a-z0-9_\-]*" . $field_name. "[a-z0-9_\-]*$/", $value)) {
+	        return true;
+	    }
+	}
+    
+    /*
+	* Get data from submit recursively
+	*/
+	
+	public function getFieldsAny(&$email,&$message,&$nickname,&$subject, &$contact,$arr)
+	{
+		$skip_params = array(
+		    'ipn_track_id', // PayPal IPN #
+		    'txn_type', // PayPal transaction type
+		    'payment_status', // PayPal payment status
+	    );
+		foreach($arr as $key=>$value)
+		{
+			if(!is_array($value)&&!is_object($value))
+			{
+				if (in_array($key, $skip_params) || preg_match("/^ct_checkjs/", $key)) {
+	                $contact = false;
+	            }
+				if ($email === '' && preg_match("/^\S+@\S+\.\S+$/", $value))
+		    	{
+		            $email = $value;
+		        }
+		        else if ($nickname === '' && $this->getDataFromSubmit($value, 'name'))
+		    	{
+		            $nickname = $value;
+		        }
+		        else if ($subject === '' && $this->getDataFromSubmit($value, 'subject'))
+		    	{
+		            $subject = $value;
+		        }
+		        else
+		        {
+		        	$message.="$value\n";
+		        }
+			}
+			else
+			{
+				$this->getFieldsAny($email, $message, $nickname, $subject, $contact, $value);
+			}
+		}
+	}
+    
    
     /**
      * This event is triggered after Joomla initialization
@@ -264,9 +321,33 @@ class plgSystemAntispambycleantalk extends JPlugin {
     		$this->checkIsPaid();
     	}
     	
+    	if(isset($_GET['option'])&&$_GET['option']=='com_rsform'&&isset($_POST)&&sizeof($_POST)>0&&!$app->isAdmin())
+    	{
+    		$sender_email = '';
+		    $sender_nickname = '';
+		    $subject = '';
+		    $message = '';
+		    $contact_form = true;
+		    
+		    $this->getFieldsAny($sender_email, $message, $sender_nickname, $subject, $contact_form, $_POST);
+		    
+    		$result = $this->onSpamCheck(
+                '',
+                array(
+                    'sender_email' => $sender_email, 
+                    'sender_nickname' => $sender_nickname, 
+                    'message' => $message
+                ));
+            $this->is_executed=true;
+
+            if ($result !== true) {
+                JError::raiseError(503, $this->_subject->getError());
+            }
+    	}
+    	
     	if(isset($_POST['ct_delete_notice'])&&$_POST['ct_delete_notice']==='yes')
     	{
-    		$id=$this->getId('system','antispambycleantalk');
+    		/*$id=$this->getId('system','antispambycleantalk');
     		if($id!==0)
     		{
     			$table = JTable::getInstance('extension');
@@ -277,7 +358,21 @@ class plgSystemAntispambycleantalk extends JPlugin {
 				$table->store();
     		}
     		$mainframe=JFactory::getApplication();
-    		$mainframe->close();
+    		$mainframe->close();*/
+    		$ct_db=JFactory::getDBO();
+	    	$query="select * from #__extensions where element='antispambycleantalk' and folder='system' ";
+	    	$ct_db->setQuery($query,0,1);
+	    	$rows=$ct_db->loadObjectList();
+	    	if(sizeof($rows)>0)
+	    	{
+	    		$params=json_decode($rows[0]->params);
+	    		$params->show_notice=0;
+	    		$query="update #__extensions set params='".json_encode($params)."' where extension_id=".$rows[0]->extension_id;
+	    		//print_r($query);
+	    		$ct_db->setQuery($query);
+	    		$ct_db->query();
+	    		//$rows=@$ct_db->loadObjectList();
+	    	}
     		die();
     	}
 		
@@ -473,7 +568,19 @@ class plgSystemAntispambycleantalk extends JPlugin {
     	{
 	    	if(!version_compare(JVERSION, '3', 'ge'))
 	    	{
-	    		$document->addScript(Juri::root()."plugins/system/antispambycleantalk/jquery-1.11.2.min.js");
+	    		$buf=$document->getHeadData();
+	    		$is_jquery=false;
+	    		foreach($buf['scripts'] as $key=>$value )
+	    		{
+	    			if(stripos($key,'jquery')!==false)
+	    			{
+	    				$is_jquery=true;
+	    			}
+	    		}
+	    		if(!$is_jquery)
+	    		{
+	    			$document->addScript(Juri::root()."plugins/system/antispambycleantalk/jquery-1.11.2.min.js");
+	    		}
 				$document->addScriptDeclaration("jQuery.noConflict();");
 				$document->addScriptDeclaration("var ct_joom25=true;");
 				
@@ -855,7 +962,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
             }
         }
 
-        if ($contact_email !== null && !$app->isAdmin() &&$this->exceptionMijoShop()){
+        if ($contact_email !== null && !$app->isAdmin() &&$this->exceptionMijoShop() && !$this->is_executed){
 
             $result = $this->onSpamCheck(
                 '',
@@ -1679,18 +1786,26 @@ ctSetCookie("%s", "%s", "%s");
         }
 
         $checkjs_data_post = null; 
-        if (isset($_POST['ct_checkjs'])) {
-            $checkjs_data_post = $_POST['ct_checkjs'];
-        }
+        if (count($_POST) > 0) {
+			foreach ($_POST as $k => $v) {
+				if (preg_match("/^ct_check.*/", $k)) {
+	        		$checkjs_data_post = $v; 
+				}
+			}
+		}
         
-        return $sender_info = array(
+        $config = $this->getCTConfig();
+        
+        $sender_info = array(
             'REFFERRER' => @$_SERVER['HTTP_REFERER'],
             'USER_AGENT' => @$_SERVER['HTTP_USER_AGENT'],
             'direct_post' => $this->ct_direct_post,
             'cookies_enabled' => $this->ct_cookies_test(true), 
             'checkjs_data_post' => $checkjs_data_post, 
             'checkjs_data_cookies' => $checkjs_data_cookies, 
+            'ct_options'=>json_encode($config)
         );
+        return $sender_info;
     }
 
     /**

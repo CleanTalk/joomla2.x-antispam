@@ -1,4 +1,32 @@
 var close_animate=true;
+function ct_getCookie(name) {
+  var matches = document.cookie.match(new RegExp(
+    "(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
+  ));
+  return matches ? decodeURIComponent(matches[1]) : undefined;
+}
+function ct_setCookie(name, value)
+{
+	var domain=location.hostname;
+	tmp=domain.split('.');
+	if(tmp[0].toLowerCase()=='www')
+	{
+		tmp[0]='';
+	}
+	else
+	{
+		tmp[0]='.'+tmp[0];
+	}
+	domain=tmp.join('.');
+	
+	document.cookie = name+" =; expires=Thu, 01 Jan 1970 00:00:01 GMT; path = /";
+	document.cookie = name+" =; expires=Thu, 01 Jan 1970 00:00:01 GMT";
+	document.cookie = name+" =; expires=Thu, 01 Jan 1970 00:00:01 GMT; path = /; domain = " +  domain;
+	
+	var date = new Date;
+	date.setDate(date.getDate() + 365);
+	setTimeout(function() { document.cookie = name+"=" + value + "; expires=" + date.toUTCString() + "; path = /;"}, 200)
+}
 function animate_banner(to)
 {
 	if(close_animate)
@@ -30,7 +58,9 @@ jQuery(document).ready(function(){
 			jQuery('#system-message-container').append('<dl id="system-message"></dl>');
 		}
 		
-		if(ct_show_feedback)
+		var ct_notice_cookie=ct_getCookie('ct_notice_cookie');
+		
+		if(ct_show_feedback&&ct_notice_cookie==undefined)
 		{
 			jQuery('#system-message').prepend('<dt class="notice">Error</dt><dd class="notice message" id="feedback_notice"><a href="#" style="font-size:15px;float:right;margin:6px;text-decoration:none;" id="feedback_notice_close">X</a><ul><li style="text-align:center;">'+ct_show_feedback_mes+'</li></ul></dd>');
 		}
@@ -38,7 +68,9 @@ jQuery(document).ready(function(){
 	else
 	{
 		jQuery('#jform_params_autokey-lbl').append('<img border="0" align="" src="../plugins/system/antispambycleantalk/preloader.png" id="ct_preloader" style="float:right;margin:0px;margin-top:3px;display:none;"/>');
-		if(ct_show_feedback)
+		var ct_notice_cookie=ct_getCookie('ct_notice_cookie');
+		
+		if(ct_show_feedback&&ct_notice_cookie==undefined)
 		{
 			jQuery('#system-message-container').prepend('<div class="alert alert-notice" style="text-align:center;padding-right:10px;" id="feedback_notice"><a href="#" style="font-size:15px;float:right;text-decoration:none;" id="feedback_notice_close">X</a><p style="margin-top:8px;">'+ct_show_feedback_mes+'</p></div>');
 		}
@@ -47,7 +79,8 @@ jQuery(document).ready(function(){
 	jQuery('#feedback_notice_close').click(function(){
 		var data = {
 			'ct_delete_notice': 'yes'
-		};		
+		};
+		ct_setCookie('ct_notice_cookie', '1');
 		jQuery.ajax({
 			type: "POST",
 			url: location.href,
@@ -61,6 +94,7 @@ jQuery(document).ready(function(){
 	});
 	jQuery('#feedback_notice_close').click(function(){
 		animate_banner(0.3);
+		ct_setCookie('ct_notice_cookie', '1');
 	});
 	
 	
