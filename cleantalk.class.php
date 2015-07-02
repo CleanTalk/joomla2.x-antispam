@@ -2,7 +2,7 @@
 /**
  * Cleantalk base class
  *
- * @version 1.35
+ * @version 2.0
  * @package Cleantalk
  * @subpackage Base
  * @author Cleantalk team (welcome@cleantalk.org)
@@ -43,7 +43,7 @@ class CleantalkResponse {
      * @var int
      */
     public $stop_words = null;
-
+    
     /**
      * Cleantalk comment
      * @var string
@@ -184,6 +184,36 @@ class CleantalkResponse {
  * Request class
  */
 class CleantalkRequest {
+
+     /**
+     *  All http request headers
+     * @var string
+     */
+     public $all_headers = null;
+     
+     /**
+     *  IP address of connection
+     * @var string
+     */
+     //public $remote_addr = null;
+     
+     /**
+     *  Last error number
+     * @var integer
+     */
+     public $last_error_no = null;
+     
+     /**
+     *  Last error time
+     * @var integer
+     */
+     public $last_error_time = null;
+     
+     /**
+     *  Last error text
+     * @var string
+     */
+     public $last_error_text = null;
 
     /**
      * User message
@@ -664,6 +694,12 @@ class Cleantalk {
      */
     private function httpRequest($msg) {
         $result = false;
+        $msg->all_headers=json_encode(apache_request_headers());
+        //$msg->remote_addr=$_SERVER['REMOTE_ADDR'];
+        //$msg->sender_info['remote_addr']=$_SERVER['REMOTE_ADDR'];
+        $si=json_decode($msg->sender_info,true);
+        $si['remote_addr']=$_SERVER['REMOTE_ADDR'];
+        $msg->sender_info=json_encode($si);
         if (((isset($this->work_url) && $this->work_url !== '') && ($this->server_changed + $this->server_ttl > time()))
 				|| $this->stay_on_server == true) {
 	        
@@ -960,4 +996,119 @@ class Cleantalk {
     }
 }
 
-?>
+/**
+ * Function gets access key automatically
+ *
+ * @param string website admin email
+ * @param string website host
+ * @param string website platform
+ * @return type
+ */
+
+function getAutoKey($email, $host, $platform)
+{
+	$request=Array();
+	$request['method_name'] = 'get_api_key'; 
+	$request['email'] = $email;
+	$request['website'] = $host;
+	$request['platform'] = $platform;
+	$url='https://api.cleantalk.org';
+	$result=sendRawRequest($url,$request);
+	return $result;
+}
+
+/**
+ * Function gets information about renew notice
+ *
+ * @param string api_key
+ * @return type
+ */
+
+function noticePaidTill($api_key)
+{
+	$request=Array();
+	$request['method_name'] = 'notice_paid_till'; 
+	$request['auth_key'] = $api_key;
+	$url='https://api.cleantalk.org';
+	$result=sendRawRequest($url,$request);
+	return $result;
+}
+
+/**
+ * Function sends raw request to API server
+ *
+ * @param string url of API server
+ * @param array data to send
+ * @param boolean is data have to be JSON encoded or not
+ * @param integer connect timeout
+ * @return type
+ */
+
+function sendRawRequest($url,$data,$isJSON=false,$timeout=3)
+{
+	$result=null;
+	if(!$isJSON)
+	{
+		$data=http_build_query($data);
+	}
+	else
+	{
+		$data= json_encode($data);
+	}
+	if (function_exists('curl_init') && function_exists('json_decode'))
+	{
+	
+		$ch = curl_init();
+		curl_setopt($ch, CURLOPT_URL, $url);
+		curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
+		curl_setopt($ch, CURLOPT_POST, true);
+		curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+		
+		// receive server response ...
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		// resolve 'Expect: 100-continue' issue
+		curl_setopt($ch, CURLOPT_HTTPHEADER, array('Expect:'));
+		
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+		
+		$result = curl_exec($ch);
+		curl_close($ch);
+	}
+	else
+	{
+		$opts = array(
+		    'http'=>array(
+		        'method'=>"POST",
+		        'content'=>$data)
+		);
+		$context = stream_context_create($opts);
+		$result = @file_get_contents($url, 0, $context);
+	}
+	return $result;
+}
+
+if( !function_exists('apache_request_headers') )
+{
+	function apache_request_headers()
+	{
+		$arh = array();
+		$rx_http = '/\AHTTP_/';
+		foreach($_SERVER as $key => $val)
+		{
+			if( preg_match($rx_http, $key) )
+			{
+				$arh_key = preg_replace($rx_http, '', $key);
+				$rx_matches = array();
+				$rx_matches = explode('_', $arh_key);
+				if( count($rx_matches) > 0 and strlen($arh_key) > 2 )
+				{
+					foreach($rx_matches as $ak_key => $ak_val) $rx_matches[$ak_key] = ucfirst($ak_val);
+					$arh_key = implode('-', $rx_matches);
+				}
+				$arh[$arh_key] = $val;
+			}
+		}
+		return( $arh );
+	}
+}
