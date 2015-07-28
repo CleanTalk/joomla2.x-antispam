@@ -82,7 +82,8 @@ class plgSystemAntispambycleantalk extends JPlugin {
         'com_virtuemart',
         'com_users',
         'com_user',
-        'com_login'
+        'com_login',
+        'com_akeebasubs'
     );
     
     private $is_executed=false;
@@ -964,7 +965,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
             }
         }
 
-        if ($contact_email !== null && !$app->isAdmin() &&$this->exceptionMijoShop() && !$this->is_executed){
+        if ($contact_email !== null && !$app->isAdmin() &&$this->exceptionMijoShop() && !$this->is_executed && !in_array($option_cmd, $this->skip_coms)){
 
             $result = $this->onSpamCheck(
                 '',
