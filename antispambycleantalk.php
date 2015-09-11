@@ -324,7 +324,10 @@ class plgSystemAntispambycleantalk extends JPlugin {
     	//print_r($_POST);
     	//die();
     	
-    	if(isset($_GET['option'])&&$_GET['option']=='com_rsform'&&isset($_POST)&&sizeof($_POST)>0&&!$app->isAdmin() || isset($_POST['option'])&&$_POST['option']=='com_virtuemart'&&isset($_POST['task'])&&$_POST['task']=='saveUser')
+    	if(isset($_GET['option'])&&$_GET['option']=='com_rsform'&&isset($_POST)&&sizeof($_POST)>0&&!$app->isAdmin() ||
+    	isset($_POST['option'])&&$_POST['option']=='com_virtuemart'&&isset($_POST['task'])&&$_POST['task']=='saveUser' ||
+    	isset($_GET['api_controller'])
+    	)
     	{
     		$sender_email = '';
 		    $sender_nickname = '';
@@ -1477,7 +1480,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
         $config['general_contact_forms_test'] = '';
         $config['relevance_test'] = '';
         $config['user_token'] = '';
-        if (class_exists('JParameter')) {   //1.5
+        /*if (class_exists('JParameter')) {   //1.5
             $jparam = new JParameter($plugin->params);
             $config['apikey'] = $jparam->def('apikey', '');
             $config['server'] = $jparam->def('server', '');
@@ -1485,7 +1488,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
             $config['general_contact_forms_test'] = $jparam->def('general_contact_forms_test', '');
             $config['relevance_test'] = $jparam->def('relevance_test', '');
             $config['user_token'] = $jparam->def('user_token', '');
-        } else {      //1.6+
+        } else {      //1.6+*/
             $jreg = new JRegistry($plugin->params);
             $config['apikey'] = $jreg->get('apikey', '');
             $config['server'] = $jreg->get('server', '');
@@ -1493,7 +1496,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
             $config['general_contact_forms_test'] = $jreg->get('general_contact_forms_test', '');
             $config['relevance_test'] = $jreg->get('relevance_test', '');
             $config['user_token'] = $jreg->get('user_token', '');
-        }
+        //}
 
         return $config;
     }
