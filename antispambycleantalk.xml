@@ -54,6 +54,7 @@
 				description="" 
 			/>
             <field name="general_contact_forms_test" type="checkbox" label="COM_PLUGINS_CT_CUSTOM_FORMS" value="0" default="1"/>
+            <field name="spam_firewall" type="checkbox" label="COM_PLUGINS_CT_SPAM_FIREWALL" value="0" default="0" description="COM_PLUGINS_CT_SPAM_FIREWALL_DESCRIPTION" />
 
             <field name="pluginhomepage" type="spacer" 
 				label="PLG_SYSTEM_CLEANTALK_PARAM_HOMEPAGE" 
