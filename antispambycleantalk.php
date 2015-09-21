@@ -3,7 +3,7 @@
 /**
  * CleanTalk joomla plugin
  *
- * @version 3.4
+ * @version 4.1
  * @package Cleantalk
  * @subpackage Joomla
  * @author CleanTalk (welcome@cleantalk.org) 
@@ -22,7 +22,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
     /**
      * Plugin version string for server
      */
-    const ENGINE = 'joomla-34';
+    const ENGINE = 'joomla-41';
     
     /**
      * Default value for hidden field ct_checkjs 
@@ -316,6 +316,55 @@ class plgSystemAntispambycleantalk extends JPlugin {
     
     public function onAfterInitialise()
     {
+    	$id=$this->getId('system','antispambycleantalk');
+
+        $table = JTable::getInstance('extension');
+        $table->load($id);
+        if($table->element == 'antispambycleantalk')
+        {
+            $plugin = JPluginHelper::getPlugin('system', 'antispambycleantalk');
+            $jparam = new JRegistry($plugin->params);
+            
+            /*
+                Sync to local table most spam IP networks
+            */
+            $sfw_last_check = $jparam->get('sfw_last_check', 0);
+            $sfw_check_interval = $jparam->get('sfw_check_interval', 0);
+            if ($sfw_check_interval > 0 && (($sfw_last_check + $sfw_check_interval) > time())
+                || $sfw_last_check == 0 
+                ) {
+                $sfw_nets = null;
+                $ct_rd = null;
+                self::getCleantalk(); 
+
+                $ct_r = self::$CT->get_2s_blacklists_db($jparam->get('apikey', ''));
+                if ($ct_r) {
+                   $ct_rd = json_decode($ct_r, true); 
+                }
+                if (isset($ct_rd['data'])) {
+                    $sfw_nets = $ct_rd['data'];
+                }
+                if ($sfw_nets) {
+                    $db = JFactory::getDbo();
+
+                    $query = $db->getQuery(true);
+
+                    $query->delete($db->quoteName('#__sfw_networks'));
+
+                    $db->setQuery($query);
+//                    var_dump($query, $db);
+                } else {
+                    error_log(print_r($ct_r, true));
+                }
+                
+                $params = new JRegistry($table->params);
+                $params->set('sfw_last_check', time());
+                $table->params = $params->toString();
+                $table->store();
+            }
+
+        }
+
     	$app = JFactory::getApplication();
     	if($app->isAdmin())
     	{

@@ -56,6 +56,19 @@
             <field name="general_contact_forms_test" type="checkbox" label="COM_PLUGINS_CT_CUSTOM_FORMS" value="0" default="1"/>
             <field name="spam_firewall" type="checkbox" label="COM_PLUGINS_CT_SPAM_FIREWALL" value="0" default="0" description="COM_PLUGINS_CT_SPAM_FIREWALL_DESCRIPTION" />
 
+			<field name="sfw_last_check" type="hidden" 
+				label="" 
+				description="" 
+				size="" 
+				default="" 
+			/>
+			<field name="sfw_check_interval" type="hidden" 
+				label="" 
+				description="" 
+				size="" 
+				default="86400" 
+			/>
+
             <field name="pluginhomepage" type="spacer" 
 				label="PLG_SYSTEM_CLEANTALK_PARAM_HOMEPAGE" 
 				description="" 
@@ -125,4 +138,9 @@
 	<updateservers>
 		<server type="extension" priority="1" name="CleanTalk Update Site">https://www.cleantalk.org/files/joomla/plugin-updates.xml</server>
 	</updateservers>
+    <install>
+        <sql>
+            <file driver="mysql" charset="utf8">sql/mysql/install.mysql.utf8.sql</file>
+        </sql>
+    </install>
 </extension>
