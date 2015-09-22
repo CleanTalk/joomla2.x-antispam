@@ -316,53 +316,77 @@ class plgSystemAntispambycleantalk extends JPlugin {
     
     public function onAfterInitialise()
     {
-    	$id=$this->getId('system','antispambycleantalk');
-
-        $table = JTable::getInstance('extension');
-        $table->load($id);
-        if($table->element == 'antispambycleantalk')
+        $plugin = JPluginHelper::getPlugin('system', 'antispambycleantalk');
+        $jparam = new JRegistry($plugin->params);
+        $sfw_enable = $jparam->get('sfw_enable', 0);
+ 
+        if($sfw_enable == 1)
         {
-            $plugin = JPluginHelper::getPlugin('system', 'antispambycleantalk');
-            $jparam = new JRegistry($plugin->params);
-            
             /*
                 Sync to local table most spam IP networks
             */
             $sfw_last_check = $jparam->get('sfw_last_check', 0);
             $sfw_check_interval = $jparam->get('sfw_check_interval', 0);
-            if ($sfw_check_interval > 0 && (($sfw_last_check + $sfw_check_interval) > time())
-                || $sfw_last_check == 0 
+            if ($sfw_check_interval > 0 && (($sfw_last_check + $sfw_check_interval) < time()
+                || $sfw_last_check == 0) 
                 ) {
+                
+                $app = JFactory::getApplication();
+                $prefix = $app->getCfg('dbprefix');
+                $sfw_table_name = '#__sfw_networks';
+                $sfw_table_name_full = preg_replace('/^(#__)/', $prefix, $sfw_table_name);
+                $tables = JFactory::getDbo()->getTableList();
+                
                 $sfw_nets = null;
+                $ct_r = null;
                 $ct_rd = null;
-                self::getCleantalk(); 
-
-                $ct_r = self::$CT->get_2s_blacklists_db($jparam->get('apikey', ''));
-                if ($ct_r) {
-                   $ct_rd = json_decode($ct_r, true); 
-                }
-                if (isset($ct_rd['data'])) {
-                    $sfw_nets = $ct_rd['data'];
+                if (in_array($sfw_table_name_full, $tables)) {
+                    self::getCleantalk(); 
+                    $ct_r = self::$CT->get_2s_blacklists_db($jparam->get('apikey', ''));
+                    if ($ct_r) {
+                       $ct_rd = json_decode($ct_r, true); 
+                    }
+                    if (isset($ct_rd['data'])) {
+                        $sfw_nets = $ct_rd['data'];
+                    } else {
+                        error_log(print_r($ct_r, true));
+                    }
                 }
                 if ($sfw_nets) {
                     $db = JFactory::getDbo();
 
                     $query = $db->getQuery(true);
 
-                    $query->delete($db->quoteName('#__sfw_networks'));
+                    $query->delete($db->quoteName($sfw_table_name));
 
                     $db->setQuery($query);
-//                    var_dump($query, $db);
-                } else {
-                    error_log(print_r($ct_r, true));
+                    $result = $db->execute();
+                    if ($result === true) {
+                        // Create a new query object.
+                        $query = $db->getQuery(true);
+                         
+                        // Insert columns.
+                        $columns = array('network', 'mask');
+                         
+                        // Prepare the insert query.
+                        $query->insert($db->quoteName($sfw_table_name));
+                        $query->columns($db->quoteName($columns));
+                        foreach ($sfw_nets as $v) {
+                            $query->values(implode(',', $v));
+                        }
+                        $db->setQuery($query);
+                        $result = $db->execute();
+                    }
                 }
+                $id = $this->getId('system','antispambycleantalk');
+                $table = JTable::getInstance('extension');
+                $table->load($id);
                 
                 $params = new JRegistry($table->params);
                 $params->set('sfw_last_check', time());
                 $table->params = $params->toString();
                 $table->store();
             }
-
         }
 
     	$app = JFactory::getApplication();
