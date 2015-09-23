@@ -102,6 +102,16 @@ class plgSystemAntispambycleantalk extends JPlugin {
      
      private $ct_is_newkey=false;
 
+     /**
+     * SpamFireWall table name
+     */
+    private $sfw_table_name = '#__sfw_networks';
+     
+     /**
+     * SpamFireWall cookie name
+     */
+    private $sfw_cookie_lable = 'ct_sfw_pass_key';
+
     /**
      * Constructor
      * @access public
@@ -319,12 +329,14 @@ class plgSystemAntispambycleantalk extends JPlugin {
         $plugin = JPluginHelper::getPlugin('system', 'antispambycleantalk');
         $jparam = new JRegistry($plugin->params);
         $sfw_enable = $jparam->get('sfw_enable', 0);
- 
+        $ct_apikey = $jparam->get('apikey', 0);
+    	
+        $app = JFactory::getApplication();
+        /*
+            Sync to local table most spam IP networks
+        */
         if($sfw_enable == 1)
         {
-            /*
-                Sync to local table most spam IP networks
-            */
             $sfw_last_check = $jparam->get('sfw_last_check', 0);
             $sfw_check_interval = $jparam->get('sfw_check_interval', 0);
             if ($sfw_check_interval > 0 && (($sfw_last_check + $sfw_check_interval) < time()
@@ -333,8 +345,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
                 
                 $app = JFactory::getApplication();
                 $prefix = $app->getCfg('dbprefix');
-                $sfw_table_name = '#__sfw_networks';
-                $sfw_table_name_full = preg_replace('/^(#__)/', $prefix, $sfw_table_name);
+                $sfw_table_name_full = preg_replace('/^(#__)/', $prefix, $this->sfw_table_name);
                 $tables = JFactory::getDbo()->getTableList();
                 
                 $sfw_nets = null;
@@ -357,7 +368,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 
                     $query = $db->getQuery(true);
 
-                    $query->delete($db->quoteName($sfw_table_name));
+                    $query->delete($db->quoteName($this->sfw_table_name));
 
                     $db->setQuery($query);
                     $result = $db->execute();
@@ -369,10 +380,19 @@ class plgSystemAntispambycleantalk extends JPlugin {
                         $columns = array('network', 'mask');
                          
                         // Prepare the insert query.
-                        $query->insert($db->quoteName($sfw_table_name));
+                        $query->insert($db->quoteName($this->sfw_table_name));
                         $query->columns($db->quoteName($columns));
+                        $min_mask = pow(2, 32); 
+                        $max_mask = 0;
                         foreach ($sfw_nets as $v) {
                             $query->values(implode(',', $v));
+                            
+                            if ($v[1] <= $min_mask) {
+                                $min_mask = $v[1];
+                            }
+                            if ($v[1] >= $max_mask) {
+                                $max_mask = $v[1];
+                            }
                         }
                         $db->setQuery($query);
                         $result = $db->execute();
@@ -384,12 +404,22 @@ class plgSystemAntispambycleantalk extends JPlugin {
                 
                 $params = new JRegistry($table->params);
                 $params->set('sfw_last_check', time());
+                $params->set('sfw_min_mask', $min_mask);
+                $params->set('sfw_max_mask', $max_mask);
                 $table->params = $params->toString();
                 $table->store();
             }
         }
+        /*
+            Do SpamFireWall actions for visitors if we have GET request and option enabled. 
+        */
+        if($sfw_enable == 1 && !JFactory::getUser()->id && $_SERVER['REQUEST_METHOD'] === 'GET') {
+//            if (isset($_GET['sfw_ip']) && preg_match("/\d{1,3}\./"))
+            if ($this->swf_do_check($ct_apikey)) {
+                $this->swf_init($ct_apikey); 
+            }
+        }
 
-    	$app = JFactory::getApplication();
     	if($app->isAdmin())
     	{
     		$this->checkIsPaid();
@@ -2022,4 +2052,100 @@ ctSetCookie("%s", "%s", "%s");
             }
             return FALSE;
         }
+
+    /**
+	 *  Generage secret key to protect website against spam bots. 
+	 * @return null|bool	
+	 */
+    private function swf_get_key($sender_ip = '', $apikey = '') {
+        return md5($sender_ip + $apikey); 
+    }
+    
+    /**
+	 *  Checks necessity to run SpamFireWall for a visitor 
+	 * @return null|bool	
+	 */
+    private function swf_do_check($ct_apikey) {
+        $do_check = true;
+
+        self::getCleantalk(); 
+        $sender_ip = self::$CT->ct_session_ip($_SERVER['REMOTE_ADDR']);
+
+        if (isset($_COOKIE[$this->sfw_cookie_lable])) {
+            $sfw_key = $this->swf_get_key($sender_ip, $ct_apikey);
+            if ($_COOKIE[$this->sfw_cookie_lable] == $sfw_key) {
+                $do_check = false;
+            }
+        }
+
+        return $do_check; 
+    }
+    
+    /**
+	 * Initialize CleanTalk SpamFireWall option. 
+	 * @return null|bool	
+	 */
+    private function swf_init($ct_apikey) {
+        self::getCleantalk();
+        $sender_ip = self::$CT->ct_session_ip($_SERVER['REMOTE_ADDR']); 
+        if (!$sender_ip) {
+            return false;
+        }
+        
+        $plugin = JPluginHelper::getPlugin('system', 'antispambycleantalk');
+        $jparam = new JRegistry($plugin->params);
+        $sfw_min_mask = $jparam->get('sfw_min_mask', 0);
+        $sfw_max_mask = $jparam->get('sfw_max_mask', 0);
+
+        $base = ip2long('255.255.255.255');
+        
+        $sfw_min_mask_bit = 32 - log(($sfw_min_mask ^ $base)+1,2);
+        $sfw_max_mask_bit = 32 - log(($sfw_max_mask ^ $base)+1,2);
+
+        $nets = array();
+        for ($i = $sfw_max_mask_bit; $i >= $sfw_min_mask_bit; $i--) {
+            $mask = ip2long(long2ip(-1 << (32 - (int)$i)));
+            $network = ip2long($sender_ip) & $mask;
+            $nets[$network] = true; 
+        }
+        if (count($nets) == 0) {
+            return false;
+        }
+        $sql_list = implode(",", array_keys($nets));
+
+        $db = JFactory::getDbo();
+        $query = $db->getQuery(true);
+        $query->select($db->quoteName(array('network')));
+        $query->from($db->quoteName($this->sfw_table_name));
+        $query->where($db->quoteName('network') . ' in (' . $sql_list . ')');
+        $query->setlLimit(1);
+        $db->setQuery($query);
+        $row = $db->loadRow();
+            
+        $sfw_key = $this->swf_get_key($sender_ip, $ct_apikey);
+
+        if (isset($row[0]) && preg_match("/^\d+$/", $row[0])) {
+            header('HTTP/1.0 403 Forbidden');
+
+            $sfw_reload_timeout = $jparam->get('sfw_reload_timeout', 3);
+            $html_file = file_get_contents(dirname(__FILE__) . '/spamfirewall.html');
+            echo sprintf($html_file, 
+                $sfw_reload_timeout * 1000,
+                $this->sfw_cookie_lable,
+                $sfw_key,
+                $sender_ip, 
+                $sender_ip,
+                $sfw_reload_timeout
+                );
+            exit; 
+        }
+        
+        //
+        // Setup secret key if the visitor doesn't exit in sfw_networks.
+        //
+        setcookie($this->sfw_cookie_lable, $sfw_key, 0, '/');
+
+        return null;
+    }
+
 }
