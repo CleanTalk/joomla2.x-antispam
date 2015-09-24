@@ -330,18 +330,16 @@ class plgSystemAntispambycleantalk extends JPlugin {
         $jparam = new JRegistry($plugin->params);
         $sfw_enable = $jparam->get('sfw_enable', 0);
         $ct_apikey = $jparam->get('apikey', 0);
+        $sfw_last_check = $jparam->get('sfw_last_check', 0);
     	
         $app = JFactory::getApplication();
+        $save_params = array();
         /*
             Sync to local table most spam IP networks
         */
-        if($sfw_enable == 1)
-        {
-            $sfw_last_check = $jparam->get('sfw_last_check', 0);
+        if($sfw_enable == 1) {
             $sfw_check_interval = $jparam->get('sfw_check_interval', 0);
-            if ($sfw_check_interval > 0 && (($sfw_last_check + $sfw_check_interval) < time()
-                || $sfw_last_check == 0) 
-                ) {
+            if ($sfw_check_interval > 0 && ($sfw_last_check + $sfw_check_interval) < time()) {
                 
                 $app = JFactory::getApplication();
                 $prefix = $app->getCfg('dbprefix');
@@ -351,6 +349,8 @@ class plgSystemAntispambycleantalk extends JPlugin {
                 $sfw_nets = null;
                 $ct_r = null;
                 $ct_rd = null;
+                $min_mask = pow(2, 32); 
+                $max_mask = 0;
                 if (in_array($sfw_table_name_full, $tables)) {
                     self::getCleantalk(); 
                     $ct_r = self::$CT->get_2s_blacklists_db($jparam->get('apikey', ''));
@@ -382,8 +382,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
                         // Prepare the insert query.
                         $query->insert($db->quoteName($this->sfw_table_name));
                         $query->columns($db->quoteName($columns));
-                        $min_mask = pow(2, 32); 
-                        $max_mask = 0;
                         foreach ($sfw_nets as $v) {
                             $query->values(implode(',', $v));
                             
@@ -398,17 +396,31 @@ class plgSystemAntispambycleantalk extends JPlugin {
                         $result = $db->execute();
                     }
                 }
-                $id = $this->getId('system','antispambycleantalk');
-                $table = JTable::getInstance('extension');
-                $table->load($id);
-                
-                $params = new JRegistry($table->params);
-                $params->set('sfw_last_check', time());
-                $params->set('sfw_min_mask', $min_mask);
-                $params->set('sfw_max_mask', $max_mask);
-                $table->params = $params->toString();
-                $table->store();
+                $save_params['sfw_last_check'] = time();
+                $save_params['sfw_min_mask'] = $min_mask;
+                $save_params['sfw_max_mask'] = $max_mask;
             }
+        } else {
+            // Reset variables to enable recheck networks on on/off event.
+            if ($sfw_last_check > 0) {
+                $save_params['sfw_last_check'] = 0;
+            }
+        
+        }
+        //
+        // Save new settings
+        //
+        if (count($save_params)) {
+            $id = $this->getId('system','antispambycleantalk');
+            $table = JTable::getInstance('extension');
+            $table->load($id);
+            
+            $params = new JRegistry($table->params);
+            foreach ($save_params as $k => $v) {
+                $params->set($k, $v);
+            }
+            $table->params = $params->toString();
+            $table->store();
         }
         /*
             Do SpamFireWall actions for visitors if we have a GET request and option enabled. 

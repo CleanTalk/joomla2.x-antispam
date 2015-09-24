@@ -17,6 +17,8 @@
 	<filename plugin="antispambycleantalk">jquery-1.11.2.min.js</filename>
 	<filename plugin="antispambycleantalk">preloader.png</filename>
 	<filename plugin="antispambycleantalk">spamfirewall.html</filename>
+	<filename plugin="antispambycleantalk">sql/mysql/install.mysql.utf8.sql</filename>
+	<filename plugin="antispambycleantalk">sql/mysql/uninstall.mysql.utf8.sql</filename>
     </files>
     <languages folder="language">
 	<language tag="en-GB">en-GB/en-GB.plg_system_antispambycleantalk.ini</language>
