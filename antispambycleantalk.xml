@@ -54,8 +54,8 @@
 				label="PLG_SYSTEM_CLEANTALK_PARAM_GETAPIKEY" 
 				description="" 
 			/>
-            <field name="general_contact_forms_test" type="checkbox" label="COM_PLUGINS_CT_CUSTOM_FORMS" value="0" default="1"/>
-            <field name="sfw_enable" type="checkbox" label="COM_PLUGINS_CT_SPAM_FIREWALL" value="0" default="0" description="COM_PLUGINS_CT_SPAM_FIREWALL_DESCRIPTION" />
+            <field name="general_contact_forms_test" type="checkbox" label="COM_PLUGINS_CT_CUSTOM_FORMS" value="1" default="1" />
+            <field name="sfw_enable" type="checkbox" label="COM_PLUGINS_CT_SPAM_FIREWALL" value="1" default="0" description="COM_PLUGINS_CT_SPAM_FIREWALL_DESCRIPTION" />
 
 			<field name="sfw_last_check" type="hidden" 
 				default="0" 
