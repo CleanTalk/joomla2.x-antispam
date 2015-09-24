@@ -411,12 +411,16 @@ class plgSystemAntispambycleantalk extends JPlugin {
             }
         }
         /*
-            Do SpamFireWall actions for visitors if we have GET request and option enabled. 
+            Do SpamFireWall actions for visitors if we have a GET request and option enabled. 
         */
         if($sfw_enable == 1 && !JFactory::getUser()->id && $_SERVER['REQUEST_METHOD'] === 'GET') {
-//            if (isset($_GET['sfw_ip']) && preg_match("/\d{1,3}\./"))
-            if ($this->swf_do_check($ct_apikey)) {
-                $this->swf_init($ct_apikey); 
+            
+            $sfw_test_ip = null;
+            if (isset($_GET['sfw_test_ip']) && preg_match("/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/", $_GET['sfw_test_ip'])) {
+                $sfw_test_ip = $_GET['sfw_test_ip'];
+            }
+            if ($this->swf_do_check($ct_apikey, $sfw_test_ip)) {
+                $this->swf_init($ct_apikey, $sfw_test_ip); 
             }
         }
 
@@ -2065,11 +2069,14 @@ ctSetCookie("%s", "%s", "%s");
 	 *  Checks necessity to run SpamFireWall for a visitor 
 	 * @return null|bool	
 	 */
-    private function swf_do_check($ct_apikey) {
+    private function swf_do_check($ct_apikey, $sfw_test_ip = null) {
         $do_check = true;
 
         self::getCleantalk(); 
         $sender_ip = self::$CT->ct_session_ip($_SERVER['REMOTE_ADDR']);
+        if ($sfw_test_ip) {
+            $sender_ip = $sfw_test_ip;
+        }
 
         if (isset($_COOKIE[$this->sfw_cookie_lable])) {
             $sfw_key = $this->swf_get_key($sender_ip, $ct_apikey);
@@ -2085,13 +2092,17 @@ ctSetCookie("%s", "%s", "%s");
 	 * Initialize CleanTalk SpamFireWall option. 
 	 * @return null|bool	
 	 */
-    private function swf_init($ct_apikey) {
+    private function swf_init($ct_apikey, $sfw_test_ip = null) {
         self::getCleantalk();
         $sender_ip = self::$CT->ct_session_ip($_SERVER['REMOTE_ADDR']); 
         if (!$sender_ip) {
             return false;
         }
         
+        if ($sfw_test_ip) {
+            $sender_ip = $sfw_test_ip;
+        }
+
         $plugin = JPluginHelper::getPlugin('system', 'antispambycleantalk');
         $jparam = new JRegistry($plugin->params);
         $sfw_min_mask = $jparam->get('sfw_min_mask', 0);
