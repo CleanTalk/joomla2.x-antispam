@@ -2,12 +2,12 @@
 <extension version="2.5" type="plugin" group="system"  method="upgrade" >
     <name>Antispam by CleanTalk</name>
     <author>CleanTalk team</author>
-    <creationDate>26.08.2015</creationDate>
+    <creationDate>24.09.2015</creationDate>
     <copyright>(C) CleanTalk</copyright>
     <license>GNU/GPLv2</license>
     <authorEmail>welcome@cleantalk.org</authorEmail>
     <authorUrl>cleantalk.org</authorUrl>
-    <version>3.4</version>
+    <version>4.1</version>
     <description>PLG_CLEANTALK_DESCRIPTION</description>
     <files>
 	<filename plugin="antispambycleantalk">antispambycleantalk.php</filename>
@@ -16,12 +16,13 @@
 	<filename plugin="antispambycleantalk">cleantalk.js</filename>
 	<filename plugin="antispambycleantalk">jquery-1.11.2.min.js</filename>
 	<filename plugin="antispambycleantalk">preloader.png</filename>
+	<filename plugin="antispambycleantalk">spamfirewall.html</filename>
+	<filename plugin="antispambycleantalk">sql/mysql/install.mysql.utf8.sql</filename>
+	<filename plugin="antispambycleantalk">sql/mysql/uninstall.mysql.utf8.sql</filename>
     </files>
     <languages folder="language">
 	<language tag="en-GB">en-GB/en-GB.plg_system_antispambycleantalk.ini</language>
 	<language tag="en-GB">en-GB/en-GB.plg_system_antispambycleantalk.sys.ini</language>
-	<language tag="ru-RU">ru-RU/ru-RU.plg_system_antispambycleantalk.ini</language>
-	<language tag="ru-RU">ru-RU/ru-RU.plg_system_antispambycleantalk.sys.ini</language>
     </languages> 
     <!-- Joomla 1.7+ config -->
     <config>
@@ -53,8 +54,18 @@
 				label="PLG_SYSTEM_CLEANTALK_PARAM_GETAPIKEY" 
 				description="" 
 			/>
-            <field name="general_contact_forms_test" type="checkbox" label="COM_PLUGINS_CT_CUSTOM_FORMS" value="0" default="1"/>
+            <field name="general_contact_forms_test" type="checkbox" label="COM_PLUGINS_CT_CUSTOM_FORMS" value="1" default="1" />
+            <field name="sfw_enable" type="checkbox" label="COM_PLUGINS_CT_SPAM_FIREWALL" value="1" default="0" description="COM_PLUGINS_CT_SPAM_FIREWALL_DESCRIPTION" />
 
+			<field name="sfw_last_check" type="hidden" 
+				default="0" 
+			/>
+			<field name="sfw_check_interval" type="hidden" 
+				default="86400" 
+			/>
+			<field name="sfw_reload_timeout" type="hidden" 
+				default="3" 
+			/>
             <field name="pluginhomepage" type="spacer" 
 				label="PLG_SYSTEM_CLEANTALK_PARAM_HOMEPAGE" 
 				description="" 
@@ -124,4 +135,14 @@
 	<updateservers>
 		<server type="extension" priority="1" name="CleanTalk Update Site">https://www.cleantalk.org/files/joomla/plugin-updates.xml</server>
 	</updateservers>
+    <install>
+        <sql>
+            <file driver="mysql" charset="utf8">sql/mysql/install.mysql.utf8.sql</file>
+        </sql>
+    </install>
+    <uninstall>
+        <sql>
+            <file driver="mysql" charset="utf8">sql/mysql/uninstall.mysql.utf8.sql</file>
+        </sql>
+    </uninstall>
 </extension>
