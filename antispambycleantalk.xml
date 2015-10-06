@@ -7,7 +7,7 @@
     <license>GNU/GPLv2</license>
     <authorEmail>welcome@cleantalk.org</authorEmail>
     <authorUrl>cleantalk.org</authorUrl>
-    <version>4.1</version>
+    <version>3.5</version>
     <description>PLG_CLEANTALK_DESCRIPTION</description>
     <files>
 	<filename plugin="antispambycleantalk">antispambycleantalk.php</filename>
@@ -23,6 +23,8 @@
     <languages folder="language">
 	<language tag="en-GB">en-GB/en-GB.plg_system_antispambycleantalk.ini</language>
 	<language tag="en-GB">en-GB/en-GB.plg_system_antispambycleantalk.sys.ini</language>
+	<language tag="ru-RU">ru-RU/ru-RU.plg_system_antispambycleantalk.ini</language>
+	<language tag="ru-RU">ru-RU/ru-RU.plg_system_antispambycleantalk.sys.ini</language>
     </languages> 
     <!-- Joomla 1.7+ config -->
     <config>
@@ -56,6 +58,7 @@
 			/>
             <field name="general_contact_forms_test" type="checkbox" label="COM_PLUGINS_CT_CUSTOM_FORMS" value="1" default="1" />
             <field name="sfw_enable" type="checkbox" label="COM_PLUGINS_CT_SPAM_FIREWALL" value="1" default="0" description="COM_PLUGINS_CT_SPAM_FIREWALL_DESCRIPTION" />
+            <field name="tell_about_cleantalk" type="checkbox" label="COM_PLUGINS_CT_TELL_ABOUT" value="0" default="0" description="COM_PLUGINS_CT_TELL_ABOUT_DESCRIPTION" />
 
 			<field name="sfw_last_check" type="hidden" 
 				default="0" 

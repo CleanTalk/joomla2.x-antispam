@@ -331,6 +331,9 @@ class plgSystemAntispambycleantalk extends JPlugin {
         $sfw_enable = $jparam->get('sfw_enable', 0);
         $ct_apikey = $jparam->get('apikey', 0);
         $sfw_last_check = $jparam->get('sfw_last_check', 0);
+        
+        $sfw_log = $jparam->get('sfw_log', 0);
+        $sfw_last_send_log = $jparam->get('sfw_last_send_log', 0);
     	
         $app = JFactory::getApplication();
         $save_params = array();
@@ -399,6 +402,33 @@ class plgSystemAntispambycleantalk extends JPlugin {
                 $save_params['sfw_last_check'] = time();
                 $save_params['sfw_min_mask'] = $min_mask;
                 $save_params['sfw_max_mask'] = $max_mask;
+            }
+            
+            if(time()-$sfw_last_send_log>3600)
+            {
+            	if(is_array($sfw_log))
+            	{
+            		$data=Array();
+			    	foreach($sfw_log as $key=>$value)
+			    	{
+			    		$data[]=Array($key, $value->all, $value->block);
+			    	}
+			    	$qdata = array (
+						'data' => json_encode($data),
+						'rows' => count($data),
+						'timestamp' => time()
+					);
+					$result = sendRawRequest('https://api.cleantalk.org/?method_name=sfw_logs&auth_key='.$ct_apikey,$qdata);
+					$result = json_decode($result);
+					if(isset($result->data) && isset($result->data->rows))
+					{
+						if($result->data->rows == count($data))
+						{
+							$save_params['sfw_log']=Array();
+							$save_params['sfw_last_send_log']=time();
+						}
+					}
+            	}
             }
         } else {
             // Reset variables to enable recheck networks on on/off event.
@@ -678,6 +708,18 @@ class plgSystemAntispambycleantalk extends JPlugin {
         }
 
         return null;
+    }
+    
+    public function onAfterRender()
+    {
+    	$config = $this->getCTConfig();
+    	if($config['tell_about_cleantalk']==1)
+    	{
+			$code = "<div id='cleantalk_footer_link' style='width:100%;text-align:center;'><a href='https://cleantalk.org/joomla-anti-spam-plugin-without-captcha'>Joomla spam</a> blocked by CleanTalk.</div>";
+			$documentbody = JResponse::getBody();
+			$documentbody = str_replace ("</body>", $code." </body>", $documentbody);
+			JResponse::setBody($documentbody);
+		}
     }
     
     /**
@@ -1615,6 +1657,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
             $config['general_contact_forms_test'] = $jreg->get('general_contact_forms_test', '');
             $config['relevance_test'] = $jreg->get('relevance_test', '');
             $config['user_token'] = $jreg->get('user_token', '');
+            $config['tell_about_cleantalk'] = $jreg->get('tell_about_cleantalk', '');
         //}
 
         return $config;
@@ -2074,7 +2117,7 @@ ctSetCookie("%s", "%s", "%s");
 	 * @return null|bool	
 	 */
     private function swf_get_key($sender_ip = '', $apikey = '') {
-        return md5($sender_ip + $apikey); 
+        return md5($sender_ip . $apikey); 
     }
     
     /**
@@ -2115,7 +2158,7 @@ ctSetCookie("%s", "%s", "%s");
             $sender_ip = $sfw_test_ip;
         }
 
-        $plugin = JPluginHelper::getPlugin('system', 'antispambycleantalk');
+        /*$plugin = JPluginHelper::getPlugin('system', 'antispambycleantalk');
         $jparam = new JRegistry($plugin->params);
         $sfw_min_mask = $jparam->get('sfw_min_mask', 0);
         $sfw_max_mask = $jparam->get('sfw_max_mask', 0);
@@ -2131,21 +2174,45 @@ ctSetCookie("%s", "%s", "%s");
             $network = ip2long($sender_ip) & $mask;
             $nets[$network] = true; 
         }
+        
         if (count($nets) == 0) {
             return false;
         }
-        $sql_list = implode(",", array_keys($nets));
-
+        $sql_list = implode(",", array_keys($nets));*/
+        
         $db = JFactory::getDbo();
         $query = $db->getQuery(true);
         $query->select($db->quoteName(array('network')));
         $query->from($db->quoteName($this->sfw_table_name));
-        $query->where($db->quoteName('network') . ' in (' . $sql_list . ')');
+        //$query->where($db->quoteName('network') . ' in (' . $sql_list . ')');
+        $query->where($db->quoteName('network') . ' = '.sprintf("%u", ip2long($sender_ip)). '& mask');
         $query->setlLimit(1);
         $db->setQuery($query);
         $row = $db->loadRow();
             
         $sfw_key = $this->swf_get_key($sender_ip, $ct_apikey);
+        
+		$id=$this->getId('system','antispambycleantalk');
+		
+		$component = JRequest::getCmd( 'component' );
+		$table = JTable::getInstance('extension');
+		$table->load($id);
+		if($table->element=='antispambycleantalk')
+		{
+			$plugin = JPluginHelper::getPlugin('system', 'antispambycleantalk');
+			$jparam = new JRegistry($plugin->params);
+			$sfw_log = $jparam->get('sfw_log', 0);
+			if(!is_array($sfw_log))
+			{
+				$sfw_log = Array();
+			}
+		}
+		if(!isset($sfw_log[$sender_ip]))
+		{
+			$sfw_log[$sender_ip]=Array();
+			$sfw_log[$sender_ip]['all']=0;
+			$sfw_log[$sender_ip]['block']=0;
+		}
 
         if (isset($row[0]) && preg_match("/^\d+$/", $row[0])) {
             header('HTTP/1.0 403 Forbidden');
@@ -2160,8 +2227,24 @@ ctSetCookie("%s", "%s", "%s");
                 $sender_ip,
                 $sfw_reload_timeout
                 );
+            
+            $sfw_log[$sender_ip]['all']++;
+            $sfw_log[$sender_ip]['block']++;
+            $params   = new JRegistry($table->params);
+			$params->set('sfw_log',$sfw_log);
+			$table->params = $params->toString();
+			$table->store();
             exit; 
         }
+        else
+        {
+        	$sfw_log[$sender_ip]['all']++;
+        }
+        
+        $params   = new JRegistry($table->params);
+		$params->set('sfw_log',$sfw_log);
+		$table->params = $params->toString();
+		$table->store();
         
         //
         // Setup secret key if the visitor doesn't exit in sfw_networks.
