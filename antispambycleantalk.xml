@@ -58,7 +58,7 @@
 			/>
             <field name="general_contact_forms_test" type="checkbox" label="COM_PLUGINS_CT_CUSTOM_FORMS" value="1" default="1" />
             <field name="sfw_enable" type="checkbox" label="COM_PLUGINS_CT_SPAM_FIREWALL" value="1" default="0" description="COM_PLUGINS_CT_SPAM_FIREWALL_DESCRIPTION" />
-            <field name="tell_about_cleantalk" type="checkbox" label="COM_PLUGINS_CT_TELL_ABOUT" value="0" default="0" description="COM_PLUGINS_CT_TELL_ABOUT_DESCRIPTION" />
+            <field name="tell_about_cleantalk" type="checkbox" label="COM_PLUGINS_CT_TELL_ABOUT" value="1" default="0" description="COM_PLUGINS_CT_TELL_ABOUT_DESCRIPTION" />
 
 			<field name="sfw_last_check" type="hidden" 
 				default="0" 
@@ -72,6 +72,9 @@
             <field name="pluginhomepage" type="spacer" 
 				label="PLG_SYSTEM_CLEANTALK_PARAM_HOMEPAGE" 
 				description="" 
+			/>
+			<field name="sfw_last_send_log" type="hidden" 
+				default="0" 
 			/>
 			<field name="server" type="hidden" 
 				label="PLG_SYSTEM_CLEANTALK_PARAM_SERVER" 

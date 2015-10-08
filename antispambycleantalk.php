@@ -332,7 +332,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
         $ct_apikey = $jparam->get('apikey', 0);
         $sfw_last_check = $jparam->get('sfw_last_check', 0);
         
-        $sfw_log = $jparam->get('sfw_log', 0);
+        $sfw_log = (array)$jparam->get('sfw_log', 0);
         $sfw_last_send_log = $jparam->get('sfw_last_send_log', 0);
     	
         $app = JFactory::getApplication();
@@ -403,12 +403,13 @@ class plgSystemAntispambycleantalk extends JPlugin {
                 $save_params['sfw_min_mask'] = $min_mask;
                 $save_params['sfw_max_mask'] = $max_mask;
             }
-            
+            print $sfw_last_send_log;
             if(time()-$sfw_last_send_log>3600)
             {
-            	if(is_array($sfw_log))
+            	if(is_array($sfw_log)&&sizeof($sfw_log)>0)
             	{
             		$data=Array();
+            		include_once("cleantalk.class.php");
 			    	foreach($sfw_log as $key=>$value)
 			    	{
 			    		$data[]=Array($key, $value->all, $value->block);
@@ -420,13 +421,10 @@ class plgSystemAntispambycleantalk extends JPlugin {
 					);
 					$result = sendRawRequest('https://api.cleantalk.org/?method_name=sfw_logs&auth_key='.$ct_apikey,$qdata);
 					$result = json_decode($result);
-					if(isset($result->data) && isset($result->data->rows))
+					if(isset($result->data) && isset($result->data->rows) && $result->data->rows == count($data))
 					{
-						if($result->data->rows == count($data))
-						{
-							$save_params['sfw_log']=Array();
-							$save_params['sfw_last_send_log']=time();
-						}
+						$save_params['sfw_log']=Array();
+						$save_params['sfw_last_send_log']=time();
 					}
             	}
             }
@@ -2201,7 +2199,8 @@ ctSetCookie("%s", "%s", "%s");
 		{
 			$plugin = JPluginHelper::getPlugin('system', 'antispambycleantalk');
 			$jparam = new JRegistry($plugin->params);
-			$sfw_log = $jparam->get('sfw_log', 0);
+			$sfw_log = (array)$jparam->get('sfw_log', 0);
+			//var_dump($sfw_log);
 			if(!is_array($sfw_log))
 			{
 				$sfw_log = Array();
@@ -2209,9 +2208,9 @@ ctSetCookie("%s", "%s", "%s");
 		}
 		if(!isset($sfw_log[$sender_ip]))
 		{
-			$sfw_log[$sender_ip]=Array();
-			$sfw_log[$sender_ip]['all']=0;
-			$sfw_log[$sender_ip]['block']=0;
+			$sfw_log[$sender_ip]=new stdClass();
+			$sfw_log[$sender_ip]->all=0;
+			$sfw_log[$sender_ip]->block=0;
 		}
 
         if (isset($row[0]) && preg_match("/^\d+$/", $row[0])) {
@@ -2228,8 +2227,8 @@ ctSetCookie("%s", "%s", "%s");
                 $sfw_reload_timeout
                 );
             
-            $sfw_log[$sender_ip]['all']++;
-            $sfw_log[$sender_ip]['block']++;
+            $sfw_log[$sender_ip]->all++;
+            $sfw_log[$sender_ip]->block++;
             $params   = new JRegistry($table->params);
 			$params->set('sfw_log',$sfw_log);
 			$table->params = $params->toString();
@@ -2238,7 +2237,7 @@ ctSetCookie("%s", "%s", "%s");
         }
         else
         {
-        	$sfw_log[$sender_ip]['all']++;
+        	$sfw_log[$sender_ip]->all++;
         }
         
         $params   = new JRegistry($table->params);
