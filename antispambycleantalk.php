@@ -3,7 +3,7 @@
 /**
  * CleanTalk joomla plugin
  *
- * @version 4.1
+ * @version 3.5
  * @package Cleantalk
  * @subpackage Joomla
  * @author CleanTalk (welcome@cleantalk.org) 
@@ -22,7 +22,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
     /**
      * Plugin version string for server
      */
-    const ENGINE = 'joomla-41';
+    const ENGINE = 'joomla-35';
     
     /**
      * Default value for hidden field ct_checkjs 
@@ -2251,6 +2251,36 @@ ctSetCookie("%s", "%s", "%s");
         setcookie($this->sfw_cookie_lable, $sfw_key, 0, '/');
 
         return null;
+    }
+    
+    function onExtensionAfterInstall($installer, $eid)
+    {
+    	$db = JFactory::getDbo();
+    	$app = JFactory::getApplication();
+        $prefix = $app->getCfg('dbprefix');
+        $sfw_table_name_full = preg_replace('/^(#__)/', $prefix, $this->sfw_table_name);
+        $query="CREATE TABLE  IF NOT EXISTS ".$sfw_table_name_full." (
+  `network` int(11) unsigned NOT NULL,
+  `mask` int(11) unsigned NOT NULL,
+  KEY `network` (`network`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;";
+        $db->setQuery($query);
+		$db->execute();
+    }
+    
+    function onExtensionAfterUpdate($installer, $eid)
+    {
+    	$db = JFactory::getDbo();
+    	$app = JFactory::getApplication();
+        $prefix = $app->getCfg('dbprefix');
+        $sfw_table_name_full = preg_replace('/^(#__)/', $prefix, $this->sfw_table_name);
+        $query="CREATE TABLE  IF NOT EXISTS ".$sfw_table_name_full." (
+  `network` int(11) unsigned NOT NULL,
+  `mask` int(11) unsigned NOT NULL,
+  KEY `network` (`network`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;";
+        $db->setQuery($query);
+		$db->execute();
     }
 
 }
