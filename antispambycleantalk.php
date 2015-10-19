@@ -488,8 +488,8 @@ class plgSystemAntispambycleantalk extends JPlugin {
     	
     	if(isset($_GET['option'])&&$_GET['option']=='com_rsform'&&isset($_POST)&&sizeof($_POST)>0&&!$app->isAdmin() ||
     	isset($_POST['option'])&&$_POST['option']=='com_virtuemart'&&isset($_POST['task'])&&$_POST['task']=='saveUser' ||
-    	isset($_GET['api_controller'] ||
-    	isset($_GET['task'])&&$_GET['task']=='mailAskquestion')
+    	isset($_GET['api_controller']) ||
+    	isset($_GET['task'])&&$_GET['task']=='mailAskquestion'
     	)
     	{
     		$sender_email = '';
