@@ -745,65 +745,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
     {
     	$document = JFactory::getDocument();
     	$app = JFactory::getApplication();
-    	if($app->isAdmin())
-    	{
-	    	if(!version_compare(JVERSION, '3', 'ge'))
-	    	{
-	    		$buf=$document->getHeadData();
-	    		$is_jquery=false;
-	    		foreach($buf['scripts'] as $key=>$value )
-	    		{
-	    			if(stripos($key,'jquery')!==false)
-	    			{
-	    				$is_jquery=true;
-	    			}
-	    		}
-	    		if(!$is_jquery)
-	    		{
-	    			$document->addScript(Juri::root()."plugins/system/antispambycleantalk/jquery-1.11.2.min.js");
-	    		}
-				$document->addScriptDeclaration("jQuery.noConflict();");
-				$document->addScriptDeclaration("var ct_joom25=true;");
-				
-	    	}
-	    	else
-	    	{
-	    		JHtml::_('jquery.framework');
-	    		$document->addScriptDeclaration("var ct_joom25=false;");
-	    	}
-	    	
-	    	$plugin = JPluginHelper::getPlugin('system', 'antispambycleantalk');
-			$jparam = new JRegistry($plugin->params);
-			$show_notice=$jparam->get('show_notice', 0);
-	    	
-	    	$document->addStyleDeclaration('.cleantalk_auto_key{-webkit-border-bottom-left-radius: 5px;-webkit-border-bottom-right-radius: 5px;-webkit-border-radius: 5px;-webkit-border-top-left-radius: 5px;-webkit-border-top-right-radius: 5px;background: #3399FF;border-radius: 5px;box-sizing: border-box;color: #FFFFFF;font: normal normal 400 14px/16.2px "Open Sans";padding:3px;border:0px none;cursor:pointer;display:block;width:250px;height:30px;text-align:center;}');
-			$document->addStyleDeclaration('#jform_params_autokey-lbl{width:240px;}');
-			
-			$config = JFactory::getConfig();
-			$adminmail=$config->get('mailfrom');
-			$document->addScriptDeclaration('var cleantalk_domain="'.$_SERVER['HTTP_HOST'].'";
-	var cleantalk_mail="'.$adminmail.'";
-	var ct_register_message="'.JText::_('PLG_SYSTEM_CLEANTALK_REGISTER_MESSAGE').$adminmail.'";
-	var ct_register_error="'.addslashes(JText::_('PLG_SYSTEM_CLEANTALK_PARAM_GETAPIKEY')).'";
-	var ct_register_notice="'.JText::_('PLG_SYSTEM_CLEANTALK_PARAM_NOTICE1').$adminmail.JText::_('PLG_SYSTEM_CLEANTALK_PARAM_NOTICE2').'";
-	');
-			$document->addScript(JURI::root(true)."/plugins/system/antispambycleantalk/cleantalk.js");
-			
-			$cfg=$this->getCTConfig();
-			
-			$document->addScriptDeclaration('var ct_user_token="'.$cfg['user_token'].'";');
-			$document->addScriptDeclaration('var ct_stat_link="'.JText::_('PLG_SYSTEM_CLEANTALK_STATLINK').'";');
-			
-			if($show_notice==1&&@isset($_SESSION['__default']['user']->id)&&$_SESSION['__default']['user']->id>0)
-			{
-				$document->addScriptDeclaration('var ct_show_feedback=true;');
-				$document->addScriptDeclaration('var ct_show_feedback_mes="'.JText::_('PLG_SYSTEM_CLEANTALK_FEEDBACKLINK').'";');
-			}
-			else
-			{
-				$document->addScriptDeclaration('var ct_show_feedback=false;');
-			}
-    	}
         
         if ($app->isAdmin())
             return;
