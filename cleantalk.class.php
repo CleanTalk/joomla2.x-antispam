@@ -2,7 +2,7 @@
 /**
  * Cleantalk base class
  *
- * @version 2.1.1
+ * @version 2.1.2
  * @package Cleantalk
  * @subpackage Base
  * @author Cleantalk team (welcome@cleantalk.org)
@@ -376,7 +376,7 @@ class Cleantalk {
 	* Server connection timeout in seconds 
 	* @var int
 	*/
-	private $server_timeout = 3;
+	private $server_timeout = 6;
 
     /**
      * Cleantalk server url
