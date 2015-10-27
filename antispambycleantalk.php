@@ -426,7 +426,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 			    	{
 			    		if(is_object($value))
 			    		{
-			    			$data[]=Array($key, $value->all, $value->block);
+			    			$data[]=Array($value->datetime, $key, $value->all, $value->block);
 			    		}
 			    	}
 			    	$qdata = array (
@@ -2227,6 +2227,7 @@ ctSetCookie("%s", "%s", "%s");
 			$sfw_log[$sender_ip]=new stdClass();
 			$sfw_log[$sender_ip]->all=0;
 			$sfw_log[$sender_ip]->block=0;
+			$sfw_log[$sender_ip]->datetime=time();
 		}
 
         if (isset($row[0]) && preg_match("/^\d+$/", $row[0])) {
