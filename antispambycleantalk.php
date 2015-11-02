@@ -424,9 +424,9 @@ class plgSystemAntispambycleantalk extends JPlugin {
             		include_once("cleantalk.class.php");
 			    	foreach($sfw_log as $key=>$value)
 			    	{
-			    		if(is_object($value))
+			    		if(is_object($value)&&isset($value->datetime))
 			    		{
-			    			$data[]=Array($value->datetime, $key, $value->all, $value->block);
+			    			$data[]=Array($key, $value->all, $value->block, $value->datetime);
 			    		}
 			    	}
 			    	$qdata = array (
