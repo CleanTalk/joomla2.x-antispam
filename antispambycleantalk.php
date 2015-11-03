@@ -628,11 +628,11 @@ class plgSystemAntispambycleantalk extends JPlugin {
     		$dt=Array(
     			'auth_key'=>$new_config->apikey,
     			'method_name'=> 'check_message',
-    			'message'=>'CleanTalk connection test',
+    			'message'=>'This message is a test to check the connection to the CleanTalk servers.',
     			'example'=>null,
     			'agent'=>self::ENGINE,
     			'sender_ip'=>$_SERVER['REMOTE_ADDR'],
-    			'sender_email'=>'stop_email@example.com',
+    			'sender_email'=>'good@cleantalk.org',
     			'sender_nickname'=>'CleanTalk',
     			'js_on'=>1);
     		if (function_exists('curl_init') && function_exists('json_decode'))
@@ -1101,7 +1101,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
         // BreezingForms 
         // http://crosstec.de/en/extensions/joomla-forms-download.html
         //
-        if (isset($_POST['ff_task']) && $_POST['ff_task'] == 'submit' && $option_cmd == 'com_breezingforms') {
+        if (isset($_POST['ff_task']) && $_POST['ff_task'] == 'submit' && ($option_cmd == 'com_breezingforms'||$_POST['option']=='com_content')) {
             $contact_email = '';
             foreach ($_POST as $v) {
                 if (is_array($v)) {
@@ -1942,6 +1942,7 @@ ctSetCookie("%s", "%s", "%s");
         if (!isset($string) || !is_string($string)) {
             return false;
         }
+        
 
         return preg_match("/^\S+@\S+$/i", $string); 
     }
