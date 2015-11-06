@@ -3,7 +3,7 @@
 /**
  * CleanTalk joomla plugin
  *
- * @version 3.6
+ * @version 3.6.1
  * @package Cleantalk
  * @subpackage Joomla
  * @author CleanTalk (welcome@cleantalk.org) 
@@ -22,7 +22,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
     /**
      * Plugin version string for server
      */
-    const ENGINE = 'joomla-36';
+    const ENGINE = 'joomla-361';
     
     /**
      * Default value for hidden field ct_checkjs 
@@ -497,7 +497,8 @@ class plgSystemAntispambycleantalk extends JPlugin {
     	if(isset($_GET['option'])&&$_GET['option']=='com_rsform'&&isset($_POST)&&sizeof($_POST)>0&&!$app->isAdmin() ||
     	isset($_POST['option'])&&$_POST['option']=='com_virtuemart'&&isset($_POST['task'])&&$_POST['task']=='saveUser' ||
     	isset($_GET['api_controller']) ||
-    	isset($_GET['task'])&&$_GET['task']=='mailAskquestion'
+    	isset($_GET['task'])&&$_GET['task']=='mailAskquestion'||
+    	isset($_POST['task'])&&$_POST['task']=='mailAskquestion'
     	)
     	{
     		$sender_email = '';
