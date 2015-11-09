@@ -3,7 +3,7 @@
 /**
  * CleanTalk joomla plugin
  *
- * @version 3.6.1
+ * @version 3.6.2
  * @package Cleantalk
  * @subpackage Joomla
  * @author CleanTalk (welcome@cleantalk.org) 
@@ -22,7 +22,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
     /**
      * Plugin version string for server
      */
-    const ENGINE = 'joomla-361';
+    const ENGINE = 'joomla-362';
     
     /**
      * Default value for hidden field ct_checkjs 
@@ -434,7 +434,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 			    			{
 			    				$datetime=time();
 			    			}
-			    			$data[]=Array($key, $value->all, $value->block, $datetime);
+			    			$data[]=Array($key, $value->all, $value->allow, $datetime);
 			    		}
 			    	}
 			    	$qdata = array (
@@ -458,6 +458,29 @@ class plgSystemAntispambycleantalk extends JPlugin {
             }
         
         }
+        /*
+            Do SpamFireWall actions for visitors if we have a GET request and option enabled. 
+        */
+        if($sfw_enable == 1 && !JFactory::getUser()->id && $_SERVER['REQUEST_METHOD'] === 'GET') {
+            
+            $sfw_test_ip = null;
+            if (isset($_GET['sfw_test_ip']) && preg_match("/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/", $_GET['sfw_test_ip'])) {
+                $sfw_test_ip = $_GET['sfw_test_ip'];
+            }
+            if ($this->swf_do_check($ct_apikey, $sfw_test_ip)) {
+                $this->swf_init($ct_apikey, $sfw_test_ip); 
+            }
+            else
+            {
+            	if(isset($_COOKIE['ct_sfw_passed']))
+	    		{
+	    			$sfw_log[$sender_ip]->allow++;
+	    			$save_params['sfw_log']=$sfw_log;
+	    			@setcookie ('ct_sfw_passed', '0', 1, "/");
+	    		}
+            }
+        }
+        
         //
         // Save new settings
         //
@@ -472,19 +495,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
             }
             $table->params = $params->toString();
             $table->store();
-        }
-        /*
-            Do SpamFireWall actions for visitors if we have a GET request and option enabled. 
-        */
-        if($sfw_enable == 1 && !JFactory::getUser()->id && $_SERVER['REQUEST_METHOD'] === 'GET') {
-            
-            $sfw_test_ip = null;
-            if (isset($_GET['sfw_test_ip']) && preg_match("/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/", $_GET['sfw_test_ip'])) {
-                $sfw_test_ip = $_GET['sfw_test_ip'];
-            }
-            if ($this->swf_do_check($ct_apikey, $sfw_test_ip)) {
-                $this->swf_init($ct_apikey, $sfw_test_ip); 
-            }
         }
 
     	if($app->isAdmin())
@@ -677,7 +687,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
     {
 		if(isset($_SESSION['__default'])&&isset($_SESSION['__default']['user']))
 		{
-			print_r($_SESSION);
+			//print_r($_SESSION);
 			$user=$_SESSION['__default']['user'];
 		
 			$groups = $user->groups;
@@ -2232,16 +2242,17 @@ ctSetCookie("%s", "%s", "%s");
 				$sfw_log = Array();
 			}
 		}
-		if(!isset($sfw_log[$sender_ip]))
-		{
-			$sfw_log[$sender_ip]=new stdClass();
-			$sfw_log[$sender_ip]->all=0;
-			$sfw_log[$sender_ip]->block=0;
-			$sfw_log[$sender_ip]->datetime=time();
-		}
 
         if (isset($row[0]) && preg_match("/^\d+$/", $row[0])) {
             header('HTTP/1.0 403 Forbidden');
+            
+            if(!isset($sfw_log[$sender_ip]))
+			{
+				$sfw_log[$sender_ip]=new stdClass();
+				$sfw_log[$sender_ip]->all=1;
+				$sfw_log[$sender_ip]->allow=0;
+				$sfw_log[$sender_ip]->datetime=time();
+			}
 
             $sfw_reload_timeout = $jparam->get('sfw_reload_timeout', 3);
             $html_file = file_get_contents(dirname(__FILE__) . '/spamfirewall.html');
@@ -2254,8 +2265,8 @@ ctSetCookie("%s", "%s", "%s");
                 $sfw_reload_timeout
                 );
             
-            $sfw_log[$sender_ip]->all++;
-            $sfw_log[$sender_ip]->block++;
+            /*$sfw_log[$sender_ip]->all++;
+            $sfw_log[$sender_ip]->block++;*/
             $params   = new JRegistry($table->params);
 			$params->set('sfw_log',$sfw_log);
 			$table->params = $params->toString();
@@ -2264,7 +2275,11 @@ ctSetCookie("%s", "%s", "%s");
         }
         else
         {
-        	$sfw_log[$sender_ip]->all++;
+        	//$sfw_log[$sender_ip]->all++;
+        	//
+	        // Setup secret key if the visitor doesn't exit in sfw_networks.
+	        //
+	        setcookie($this->sfw_cookie_lable, $sfw_key, 0, '/');
         }
         
         $params   = new JRegistry($table->params);
@@ -2272,10 +2287,7 @@ ctSetCookie("%s", "%s", "%s");
 		$table->params = $params->toString();
 		$table->store();
         
-        //
-        // Setup secret key if the visitor doesn't exit in sfw_networks.
-        //
-        setcookie($this->sfw_cookie_lable, $sfw_key, 0, '/');
+        
 
         return null;
     }

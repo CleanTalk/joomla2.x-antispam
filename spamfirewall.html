@@ -27,6 +27,7 @@
 var reload_timeout = %d;
 function set_spamFireWallCookie() {
     document.cookie = "%s=" + escape('%s') + "; path=/";
+    document.cookie = "ct_sfw_passed=1; path=/";
     return null;
 }
 function get_current_url() {
