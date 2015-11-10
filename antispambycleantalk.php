@@ -474,6 +474,10 @@ class plgSystemAntispambycleantalk extends JPlugin {
             {
             	if(isset($_COOKIE['ct_sfw_passed']))
 	    		{
+	    			$sender_ip = self::$CT->ct_session_ip($_SERVER['REMOTE_ADDR']);
+			        if ($sfw_test_ip) {
+			            $sender_ip = $sfw_test_ip;
+			        }
 	    			$sfw_log[$sender_ip]->allow++;
 	    			$save_params['sfw_log']=$sfw_log;
 	    			@setcookie ('ct_sfw_passed', '0', 1, "/");
