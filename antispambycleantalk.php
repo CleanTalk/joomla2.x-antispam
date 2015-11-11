@@ -416,7 +416,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
                 $save_params['sfw_max_mask'] = $max_mask;
             }
             //print $sfw_last_send_log;
-            if(time()-$sfw_last_send_log>3600)
+            if(time()-$sfw_last_send_log>300)
             {
             	if(is_array($sfw_log)&&sizeof($sfw_log)>0)
             	{
@@ -474,6 +474,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
             {
             	if(isset($_COOKIE['ct_sfw_passed']))
 	    		{
+	    			self::getCleantalk();
 	    			$sender_ip = self::$CT->ct_session_ip($_SERVER['REMOTE_ADDR']);
 			        if ($sfw_test_ip) {
 			            $sender_ip = $sfw_test_ip;
