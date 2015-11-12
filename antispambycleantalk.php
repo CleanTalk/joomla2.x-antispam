@@ -1125,10 +1125,18 @@ class plgSystemAntispambycleantalk extends JPlugin {
                         if ($this->validEmail($v2)) {
                             $contact_email = $v2;
                         }
+                        else
+                        {
+                        	$contact_message.=$v2."\n";
+                        }
                     }
                 } else {
                     if ($this->validEmail($v)) {
                         $contact_email = $v;
+                    }
+                    else
+                    {
+                    	$contact_message.=$v2."\n";
                     }
                 }
             }
