@@ -462,7 +462,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
             Do SpamFireWall actions for visitors if we have a GET request and option enabled. 
         */
         if($sfw_enable == 1 && !JFactory::getUser()->id && $_SERVER['REQUEST_METHOD'] === 'GET') {
-            
             $sfw_test_ip = null;
             if (isset($_GET['sfw_test_ip']) && preg_match("/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/", $_GET['sfw_test_ip'])) {
                 $sfw_test_ip = $_GET['sfw_test_ip'];
@@ -484,6 +483,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 	    			@setcookie ('ct_sfw_passed', '0', 1, "/");
 	    		}
             }
+            //print_r($sfw_log);
         }
         
         //
@@ -2257,6 +2257,10 @@ ctSetCookie("%s", "%s", "%s");
 				$sfw_log[$sender_ip]->all=1;
 				$sfw_log[$sender_ip]->allow=0;
 				$sfw_log[$sender_ip]->datetime=time();
+			}
+			else
+			{
+				$sfw_log[$sender_ip]->all++;
 			}
 
             $sfw_reload_timeout = $jparam->get('sfw_reload_timeout', 3);
