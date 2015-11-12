@@ -416,7 +416,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
                 $save_params['sfw_max_mask'] = $max_mask;
             }
             //print $sfw_last_send_log;
-            if(time()-$sfw_last_send_log>300)
+            if(time()-$sfw_last_send_log>3600)
             {
             	if(is_array($sfw_log)&&sizeof($sfw_log)>0)
             	{
