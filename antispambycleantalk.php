@@ -326,6 +326,14 @@ class plgSystemAntispambycleantalk extends JPlugin {
     
     public function onAfterInitialise()
     {
+    	$session = JFactory::getSession();
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+			//do nothing
+        } else {
+            $session->set($this->form_load_label, time());
+            $session->set($this->current_page, JURI::current());
+        }
+        
         $plugin = JPluginHelper::getPlugin('system', 'antispambycleantalk');
         $jparam = new JRegistry($plugin->params);
         $sfw_enable = $jparam->get('sfw_enable', 0);
