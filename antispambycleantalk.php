@@ -3,7 +3,7 @@
 /**
  * CleanTalk joomla plugin
  *
- * @version 3.6.2
+ * @version 3.7
  * @package Cleantalk
  * @subpackage Joomla
  * @author CleanTalk (welcome@cleantalk.org) 
@@ -22,7 +22,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
     /**
      * Plugin version string for server
      */
-    const ENGINE = 'joomla-362';
+    const ENGINE = 'joomla-370';
     
     /**
      * Default value for hidden field ct_checkjs 
@@ -2114,7 +2114,7 @@ ctSetCookie("%s", "%s", "%s");
 				)
 		);
 
-		if (!empty($ctResponse['allow']) AND $ctResponse['allow'] == 1) {
+		if (!empty($ctResponse['allow']) AND $ctResponse['allow'] == 1 || $ctResponse['errno']!=0 && $checkjs==1) {
 			return true;
 		} else {
 			// records error message in dispatcher (and let the event caller handle)
