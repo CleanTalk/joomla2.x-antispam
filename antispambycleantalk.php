@@ -1161,25 +1161,40 @@ class plgSystemAntispambycleantalk extends JPlugin {
 
             $config = $this->getCTConfig();
 
-            if ($config['general_contact_forms_test'] != '' && $do_test) {
-                foreach ($_POST as $v) {
+            if ($config['general_contact_forms_test'] != '' && $do_test)
+            {
+                /*foreach ($_POST as $v)
+                {
                     
-                    if ($contact_email) {
+                    if ($contact_email)
+                    {
                         continue;
                     }
 
-                    if (is_array($v)) {
-                        foreach ($v as $v2) {
-                            if ($this->validEmail($v2)) {
+                    if (is_array($v))
+                    {
+                        foreach ($v as $v2)
+                        {
+                            if ($this->validEmail($v2))
+                            {
                                 $contact_email = $v2;
                             }
                         }
-                    } else {
-                        if ($this->validEmail($v)) {
+                    }
+                    else
+                    {
+                        if ($this->validEmail($v))
+                        {
                             $contact_email = $v;
                         }
                     }
-                }
+                }*/
+                $contact_email = '';
+			    $contact_nickname = '';
+			    $subject = '';
+			    $contact_message = '';
+			    $contact_form = true;
+			    $this->getFieldsAny($contact_email, $message, $contact_nickname, $subject, $contact_form, $_POST);
             }
         }
 
