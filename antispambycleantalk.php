@@ -1671,14 +1671,15 @@ class plgSystemAntispambycleantalk extends JPlugin {
 
         // Result should be an associative array 
         $result = json_decode(json_encode($result), true);
-        
-        if(isset($result['errno']) && intval($result['errno'])!=0 && $ct_request['js_on']==1)
+
+        if(isset($result['errno']) && intval($result['errno'])!=0 && $ct_request->js_on==1)
         {
         	$result['allow'] = 1;
         }
-        else if(isset($result['errno']) && intval($result['errno'])!=0 && $ct_request['js_on']!=1)
+        else if(isset($result['errno']) && intval($result['errno'])!=0 && $ct_request->js_on!=1)
         {
         	$result['allow'] = 0;
+        	$result['comment']='Forbidden. Please, enable Javascript.';
         }
 
         return $result;
