@@ -1144,7 +1144,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
                     }
                     else
                     {
-                    	$contact_message.=$v2."\n";
+                    	$contact_message.=$v."\n";
                     }
                 }
             }
@@ -1163,32 +1163,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
 
             if ($config['general_contact_forms_test'] != '' && $do_test)
             {
-                /*foreach ($_POST as $v)
-                {
-                    
-                    if ($contact_email)
-                    {
-                        continue;
-                    }
-
-                    if (is_array($v))
-                    {
-                        foreach ($v as $v2)
-                        {
-                            if ($this->validEmail($v2))
-                            {
-                                $contact_email = $v2;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        if ($this->validEmail($v))
-                        {
-                            $contact_email = $v;
-                        }
-                    }
-                }*/
                 $contact_email = '';
 			    $contact_nickname = '';
 			    $subject = '';
