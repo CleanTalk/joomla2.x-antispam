@@ -3,7 +3,7 @@
 /**
  * CleanTalk joomla plugin
  *
- * @version 3.7
+ * @version 3.7.1
  * @package Cleantalk
  * @subpackage Joomla
  * @author CleanTalk (welcome@cleantalk.org) 
@@ -22,7 +22,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
     /**
      * Plugin version string for server
      */
-    const ENGINE = 'joomla-370';
+    const ENGINE = 'joomla-371';
     
     /**
      * Default value for hidden field ct_checkjs 
@@ -521,7 +521,8 @@ class plgSystemAntispambycleantalk extends JPlugin {
     	isset($_POST['option'])&&$_POST['option']=='com_virtuemart'&&isset($_POST['task'])&&$_POST['task']=='saveUser' ||
     	isset($_GET['api_controller']) ||
     	isset($_GET['task'])&&$_GET['task']=='mailAskquestion'||
-    	isset($_POST['task'])&&$_POST['task']=='mailAskquestion'
+    	isset($_POST['task'])&&$_POST['task']=='mailAskquestion' ||
+    	isset($_GET['ajax']) && isset($_GET['username']) && isset($_GET['email'])
     	)
     	{
     		$sender_email = '';
@@ -530,7 +531,15 @@ class plgSystemAntispambycleantalk extends JPlugin {
 		    $message = '';
 		    $contact_form = true;
 		    
-		    $this->getFieldsAny($sender_email, $message, $sender_nickname, $subject, $contact_form, $_POST);
+		    if(isset($_GET['ajax']))
+		    {
+		    	$sender_email = $_GET['email'];
+		    	$sender_nickname = $_GET['username'];
+		    }
+		    else
+		    {
+		    	$this->getFieldsAny($sender_email, $message, $sender_nickname, $subject, $contact_form, $_POST);
+		    }
 		    
     		$result = $this->onSpamCheck(
                 '',
@@ -542,7 +551,15 @@ class plgSystemAntispambycleantalk extends JPlugin {
             $this->is_executed=true;
 
             if ($result !== true) {
-                JError::raiseError(503, $this->_subject->getError());
+            	if(isset($_GET['ajax']))
+            	{
+            		print $this->_subject->getError();
+            		die();
+            	}
+            	else
+            	{
+                	JError::raiseError(503, $this->_subject->getError());
+                }
             }
     	}
     	
