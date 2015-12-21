@@ -1065,8 +1065,11 @@ class plgSystemAntispambycleantalk extends JPlugin {
                 $this->ct_direct_post = 1;
             }
         } else {
-            $session->set($this->form_load_label, time());
-            $session->set($this->current_page, JURI::current());
+        	if(!(isset($_GET['option']) && $_GET['option'] == 'com_extrawatch'))
+        	{
+            	$session->set($this->form_load_label, time());
+            	$session->set($this->current_page, JURI::current());
+            }
         }
         
         /*
