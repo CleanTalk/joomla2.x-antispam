@@ -330,8 +330,11 @@ class plgSystemAntispambycleantalk extends JPlugin {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 			//do nothing
         } else {
-            $session->set($this->form_load_label, time());
-            $session->set($this->current_page, JURI::current());
+           if(!(isset($_GET['option']) && $_GET['option'] == 'com_extrawatch'))
+        	{
+            	$session->set($this->form_load_label, time());
+            	$session->set($this->current_page, JURI::current());
+            }
         }
         
         $plugin = JPluginHelper::getPlugin('system', 'antispambycleantalk');
