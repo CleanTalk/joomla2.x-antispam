@@ -1149,13 +1149,16 @@ class plgSystemAntispambycleantalk extends JPlugin {
             $contact_email = '';
             foreach ($_POST as $v) {
                 if (is_array($v)) {
-                    foreach ($v as $v2) {
+                    foreach ($v as $k=>$v2) {
                         if ($this->validEmail($v2)) {
                             $contact_email = $v2;
                         }
                         else
                         {
-                        	$contact_message.=$v2."\n";
+                        	if(is_int($k))
+                        	{
+                        		$contact_message.=$v2."\n";
+                        	}
                         }
                     }
                 } else {
@@ -1164,7 +1167,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
                     }
                     else
                     {
-                    	$contact_message.=$v."\n";
+                   		//$contact_message.=$v."\n";
                     }
                 }
             }
