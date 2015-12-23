@@ -1133,7 +1133,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
         // BreezingForms 
         // http://crosstec.de/en/extensions/joomla-forms-download.html
         //
-        if (isset($_POST['ff_task']) && $_POST['ff_task'] == 'submit' && ($option_cmd == 'com_breezingforms'||$_POST['option']=='com_content')) {
+        if (isset($_POST['ff_task']) && $_POST['ff_task'] == 'submit') {
             $contact_email = '';
             foreach ($_POST as $v) {
                 if (is_array($v)) {
@@ -1182,9 +1182,8 @@ class plgSystemAntispambycleantalk extends JPlugin {
 			    $this->getFieldsAny($contact_email, $message, $contact_nickname, $subject, $contact_form, $_POST);
             }
         }
-
-        if ($contact_email !== null && !$app->isAdmin() &&$this->exceptionMijoShop() && !$this->is_executed && !in_array($option_cmd, $this->skip_coms)){
-
+        
+        if (trim($contact_email) !='' && !$app->isAdmin() &&$this->exceptionMijoShop() && !$this->is_executed && !in_array($option_cmd, $this->skip_coms)){
             $result = $this->onSpamCheck(
                 '',
                 array(
