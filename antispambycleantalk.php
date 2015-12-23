@@ -333,7 +333,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
            if(!(isset($_GET['option']) && $_GET['option'] == 'com_extrawatch'))
         	{
             	$session->set($this->form_load_label, time());
-            	$session->set($this->current_page, JURI::current());
+            	$session->set('cleantalk_current_page', JURI::current());
             }
         }
         
@@ -713,29 +713,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
     
    
     /*
-    Checks if script running with admin rights
-    */
-    
-    public function checkAdmin()
-    {
-		if(isset($_SESSION['__default'])&&isset($_SESSION['__default']['user']))
-		{
-			//print_r($_SESSION);
-			$user=$_SESSION['__default']['user'];
-		
-			$groups = $user->groups;
-			if(isset($groups[8])||isset($groups[7]))
-			{
-				return true;
-			}
-			else
-			{
-				return false;
-			}
-		}
-    }
-    
-    /*
     exception for MijoShop ajax calls
     */
     public function exceptionMijoShop()
@@ -846,7 +823,15 @@ class plgSystemAntispambycleantalk extends JPlugin {
 			$document->addScriptDeclaration('var ct_user_token="'.$cfg['user_token'].'";');
 			$document->addScriptDeclaration('var ct_stat_link="'.JText::_('PLG_SYSTEM_CLEANTALK_STATLINK').'";');
 			
-			if($show_notice==1&&@isset($_SESSION['__default']['user']->id)&&$_SESSION['__default']['user']->id>0)
+			$session = JFactory::getSession();
+			$user = $session->get('user');
+			$is_logged_in=false;
+			if(is_object($user)&&isset($user->id)&&$user->id>0)
+			{
+				$is_logged_in = true;
+			}
+			
+			if($show_notice==1 && $is_logged_in)
 			{
 				$document->addScriptDeclaration('var ct_show_feedback=true;');
 				$document->addScriptDeclaration('var ct_show_feedback_mes="'.JText::_('PLG_SYSTEM_CLEANTALK_FEEDBACKLINK').'";');
@@ -856,7 +841,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 				$document->addScriptDeclaration('var ct_show_feedback=false;');
 			}
     	}
-        
+
         if ($app->isAdmin())
             return;
 
@@ -1072,7 +1057,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
             }
         }
         
-        $session = JFactory::getSession();
+        $session = &JFactory::getSession();
         $submit_time = NULL;
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $checkjs = $this->get_ct_checkjs();
@@ -1088,7 +1073,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
         	if(!(isset($_GET['option']) && $_GET['option'] == 'com_extrawatch'))
         	{
             	$session->set($this->form_load_label, time());
-            	$session->set($this->current_page, JURI::current());
+            	$session->set('cleantalk_current_page', JURI::current());
             }
         }
         
@@ -1356,7 +1341,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
         }
         
         $post_info['comment_type'] = 'jcomments_comment'; 
-        $post_info['post_url'] = $session->get($this->current_page); 
+        $post_info['post_url'] = $session->get('cleantalk_current_page'); 
         $post_info = json_encode($post_info);
         if ($post_info === false) {
             $post_info = '';
@@ -2123,7 +2108,7 @@ ctSetCookie("%s", "%s", "%s");
 
 		// gets 'comment_type' from $data. If not se it will use 'event_message'
 		$post_info['comment_type'] = $obj->get('comment_type','event_message');
-		$post_info['post_url'] = $session->get($this->current_page);
+		$post_info['post_url'] = $session->get('cleantalk_current_page');
 		$post_info = json_encode($post_info);
 		if ($post_info === false) {
 			$post_info = '';
