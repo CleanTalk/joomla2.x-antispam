@@ -1057,7 +1057,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
             }
         }
         
-        $session = &JFactory::getSession();
+        $session = JFactory::getSession();
         $submit_time = NULL;
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $checkjs = $this->get_ct_checkjs();
