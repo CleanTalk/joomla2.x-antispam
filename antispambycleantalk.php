@@ -3,7 +3,7 @@
 /**
  * CleanTalk joomla plugin
  *
- * @version 3.7.1
+ * @version 3.7.2
  * @package Cleantalk
  * @subpackage Joomla
  * @author CleanTalk (welcome@cleantalk.org) 
@@ -22,7 +22,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
     /**
      * Plugin version string for server
      */
-    const ENGINE = 'joomla-371';
+    const ENGINE = 'joomla-372';
     
     /**
      * Default value for hidden field ct_checkjs 
@@ -1275,7 +1275,10 @@ class plgSystemAntispambycleantalk extends JPlugin {
                 }
             }
         }
-        $session->clear($this->form_load_label); // clear session 'formtime'
+        if(!(isset($_POST['itemName']) && $_POST['itemName'] == 'reginfo'))
+        {
+        	$session->clear($this->form_load_label); // clear session 'formtime'
+        }
     }
 
     ////////////////////////////
