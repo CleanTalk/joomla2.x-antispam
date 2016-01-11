@@ -330,7 +330,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 			//do nothing
         } else {
-           if(!(isset($_GET['option']) && $_GET['option'] == 'com_extrawatch') && !(isset($_GET['checkCaptcha']) && $_GET['checkCaptcha'] == 'true'))
+           if(!(isset($_GET['option']) && $_GET['option'] == 'com_extrawatch') && !(isset($_GET['checkCaptcha']) && $_GET['checkCaptcha'] == 'true') && strpos($_SERVER['REQUEST_URI'],'securimage_show.php')===false))
         	{
             	$session->set($this->form_load_label, time());
             	$session->set('cleantalk_current_page', JURI::current());
@@ -1070,7 +1070,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
                 $this->ct_direct_post = 1;
             }
         } else {
-        	if(!(isset($_GET['option']) && $_GET['option'] == 'com_extrawatch'))
+        	if(!(isset($_GET['option']) && $_GET['option'] == 'com_extrawatch') && !(isset($_GET['checkCaptcha']) && $_GET['checkCaptcha'] == 'true') && strpos($_SERVER['REQUEST_URI'],'securimage_show.php')===false))
         	{
             	$session->set($this->form_load_label, time());
             	$session->set('cleantalk_current_page', JURI::current());
@@ -1275,7 +1275,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
                 }
             }
         }
-        if(!(isset($_POST['itemName']) && $_POST['itemName'] == 'reginfo'))
+        if(!(isset($_POST['itemName']) && $_POST['itemName'] == 'reginfo') && !(isset($_POST['option']) && $_POST['option'] == 'com_breezingforms'))
         {
         	$session->clear($this->form_load_label); // clear session 'formtime'
         }
