@@ -666,7 +666,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
     {
     	$config = $this->getCTConfig();
     	$new_config=json_decode($data->params);
-    	if($new_config->apikey!=$config['apikey']&&trim($new_config->apikey)!=''&&$new_config->apikey!='enter key')
+    	if(isset($new_config->apikey) && $new_config->apikey!=$config['apikey'] && trim($new_config->apikey)!='' && $new_config->apikey!='enter key')
     	{
     		$url = 'http://moderate.cleantalk.org/api2.0';
     		$dt=Array(
