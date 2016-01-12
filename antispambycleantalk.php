@@ -1070,7 +1070,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
                 $this->ct_direct_post = 1;
             }
         } else {
-        	if(!(isset($_GET['option']) && $_GET['option'] == 'com_extrawatch') && !(isset($_GET['checkCaptcha']) && $_GET['checkCaptcha'] == 'true') && strpos($_SERVER['REQUEST_URI'],'securimage_show.php')===false))
+        	if(!(isset($_GET['option']) && $_GET['option'] == 'com_extrawatch') && !(isset($_GET['checkCaptcha']) && $_GET['checkCaptcha'] == 'true') && strpos($_SERVER['REQUEST_URI'],'securimage_show.php')===false)
         	{
             	$session->set($this->form_load_label, time());
             	$session->set('cleantalk_current_page', JURI::current());
