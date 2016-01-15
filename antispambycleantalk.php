@@ -3,11 +3,11 @@
 /**
  * CleanTalk joomla plugin
  *
- * @version 3.7.2
+ * @version 3.8
  * @package Cleantalk
  * @subpackage Joomla
  * @author CleanTalk (welcome@cleantalk.org) 
- * @copyright (C) 2015 Сleantalk team (http://cleantalk.org)
+ * @copyright (C) 2016 Сleantalk team (http://cleantalk.org)
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  *
  */
@@ -22,7 +22,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
     /**
      * Plugin version string for server
      */
-    const ENGINE = 'joomla-372';
+    const ENGINE = 'joomla-38';
     
     /**
      * Default value for hidden field ct_checkjs 
@@ -815,12 +815,14 @@ class plgSystemAntispambycleantalk extends JPlugin {
 	var ct_register_message="'.JText::_('PLG_SYSTEM_CLEANTALK_REGISTER_MESSAGE').$adminmail.'";
 	var ct_register_error="'.addslashes(JText::_('PLG_SYSTEM_CLEANTALK_PARAM_GETAPIKEY')).'";
 	var ct_register_notice="'.JText::_('PLG_SYSTEM_CLEANTALK_PARAM_NOTICE1').$adminmail.JText::_('PLG_SYSTEM_CLEANTALK_PARAM_NOTICE2').'";
+	var ct_moderate_ip = "'.$jparam->get('moderate_ip', 0).'";
+	var ct_ip_license = "'.$jparam->get('ip_license', 0).'";
 	');
 			$document->addScript(JURI::root(true)."/plugins/system/antispambycleantalk/cleantalk.js");
 			
 			$cfg=$this->getCTConfig();
 			
-			$document->addScriptDeclaration('var ct_user_token="'.$cfg['user_token'].'";');
+			$document->addScriptDeclaration('var ct_user_token="'.$jparam->get('user_token', '').'";');
 			$document->addScriptDeclaration('var ct_stat_link="'.JText::_('PLG_SYSTEM_CLEANTALK_STATLINK').'";');
 			
 			$session = JFactory::getSession();
@@ -917,6 +919,20 @@ class plgSystemAntispambycleantalk extends JPlugin {
                     if(time() > strtotime("+$notice_check_timeout hours", $db_status['ct_changed'])){
                         $status = self::checkApiKeyStatus($config['apikey'], 'notice_paid_till');
                         if(isset($status) && $status !== FALSE){
+                        	$status = $status['data'];
+                        	if(isset($status['moderate_ip']) && $status['moderate_ip'] == 1)
+                        	{
+                        		$id = $this->getId('system','antispambycleantalk');
+					            $table = JTable::getInstance('extension');
+					            $table->load($id);
+					            
+					            $params = new JRegistry($table->params);
+					            
+					            $params->set('moderate_ip', 1);
+					            $params->set('ip_license', $status['ip_license']);
+					            $table->params = $params->toString();
+					            $table->store();
+                        	}
                             $db_status['ct_status'] = serialize($status);
                             $db_status['ct_changed'] = time();
                             self::dbSetApikeyStatus($db_status['ct_status'], $db_status['ct_changed']);
@@ -2153,7 +2169,7 @@ ctSetCookie("%s", "%s", "%s");
 
                 $data = array();
                 $data['auth_key'] = $apikey;
-                $data['param'] = $method;
+                $data['method_name'] = $method;
 
                 $ch = curl_init();
                 curl_setopt($ch, CURLOPT_URL, $url);

@@ -116,6 +116,19 @@ jQuery(document).ready(function(){
 		jQuery('#cleantalk_manual_key').attr('href', 'https://cleantalk.org/my?user_token='+ct_user_token);
 		jQuery('#cleantalk_manual_key').html(ct_stat_link);
 	}
+	
+	if(ct_moderate_ip == 1)
+	{
+		if(ct_joom25)
+		{
+			jQuery('#jform_params_apikey').parent().html("The anti-spam service is paid by your hosting provider. License #"+ct_ip_license);
+		}
+		else
+		{
+			jQuery('#jform_params_apikey').parent().parent().html("The anti-spam service is paid by your hosting provider. License #"+ct_ip_license);
+		}
+	}
+	
 	jQuery('.cleantalk_auto_key').click(function(){
 		var data = {
 			'get_auto_key': 'yes'
