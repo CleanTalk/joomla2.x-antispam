@@ -121,11 +121,11 @@ jQuery(document).ready(function(){
 	{
 		if(ct_joom25)
 		{
-			jQuery('#jform_params_apikey').parent().html("The anti-spam service is paid by your hosting provider. License #"+ct_ip_license);
+			jQuery('#jform_params_apikey').parent().append("<br /><label>The anti-spam service is paid by your hosting provider. License #"+ct_ip_license+"</label>");
 		}
 		else
 		{
-			jQuery('#jform_params_apikey').parent().parent().html("The anti-spam service is paid by your hosting provider. License #"+ct_ip_license);
+			jQuery('#jform_params_apikey').parent().parent().append("<br /><label>The anti-spam service is paid by your hosting provider. License #"+ct_ip_license+"</label>");
 		}
 	}
 	
