@@ -2,12 +2,12 @@
 <extension version="2.5" type="plugin" group="system"  method="upgrade" >
     <name>Antispam by CleanTalk</name>
     <author>CleanTalk team</author>
-    <creationDate>15.01.2016</creationDate>
+    <creationDate>20.01.2016</creationDate>
     <copyright>(C) CleanTalk</copyright>
     <license>GNU/GPLv2</license>
     <authorEmail>welcome@cleantalk.org</authorEmail>
     <authorUrl>cleantalk.org</authorUrl>
-    <version>3.8</version>
+    <version>3.9</version>
     <description>PLG_CLEANTALK_DESCRIPTION</description>
     <files>
 	<filename plugin="antispambycleantalk">antispambycleantalk.php</filename>
@@ -17,6 +17,7 @@
 	<filename plugin="antispambycleantalk">jquery-1.11.2.min.js</filename>
 	<filename plugin="antispambycleantalk">preloader.png</filename>
 	<filename plugin="antispambycleantalk">spamfirewall.html</filename>
+	<filename plugin="antispambycleantalk">error.html</filename>
     </files>
     <languages folder="language">
 	<language tag="en-GB">en-GB/en-GB.plg_system_antispambycleantalk.ini</language>

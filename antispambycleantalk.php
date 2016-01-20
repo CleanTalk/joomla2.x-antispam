@@ -3,7 +3,7 @@
 /**
  * CleanTalk joomla plugin
  *
- * @version 3.8
+ * @version 3.9
  * @package Cleantalk
  * @subpackage Joomla
  * @author CleanTalk (welcome@cleantalk.org) 
@@ -22,7 +22,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
     /**
      * Plugin version string for server
      */
-    const ENGINE = 'joomla-38';
+    const ENGINE = 'joomla-39';
     
     /**
      * Default value for hidden field ct_checkjs 
@@ -525,7 +525,8 @@ class plgSystemAntispambycleantalk extends JPlugin {
     	isset($_GET['api_controller']) ||
     	isset($_GET['task'])&&$_GET['task']=='mailAskquestion'||
     	isset($_POST['task'])&&$_POST['task']=='mailAskquestion' ||
-    	isset($_GET['ajax']) && isset($_GET['username']) && isset($_GET['email'])
+    	isset($_GET['ajax']) && isset($_GET['username']) && isset($_GET['email']) ||
+    	isset($_POST['option'])&&$_POST['option']=='com_alfcontact'
     	)
     	{
     		$sender_email = '';
@@ -561,7 +562,16 @@ class plgSystemAntispambycleantalk extends JPlugin {
             	}
             	else
             	{
-                	JError::raiseError(503, $this->_subject->getError());
+            		if(isset($_POST['option'])&&$_POST['option']=='com_alfcontact')
+            		{
+            			$error_tpl=file_get_contents(dirname(__FILE__)."/error.html");
+						print str_replace('%ERROR_TEXT%',$this->_subject->getError(),$error_tpl);
+						die();
+            		}
+            		else
+            		{
+                		JError::raiseError(503, $this->_subject->getError());
+                	}
                 }
             }
     	}
