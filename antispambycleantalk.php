@@ -3,7 +3,7 @@
 /**
  * CleanTalk joomla plugin
  *
- * @version 3.9
+ * @version 3.8.1
  * @package Cleantalk
  * @subpackage Joomla
  * @author CleanTalk (welcome@cleantalk.org) 
@@ -22,7 +22,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
     /**
      * Plugin version string for server
      */
-    const ENGINE = 'joomla-39';
+    const ENGINE = 'joomla-381';
     
     /**
      * Default value for hidden field ct_checkjs 
@@ -123,6 +123,28 @@ class plgSystemAntispambycleantalk extends JPlugin {
         parent::__construct($subject, $config);
     }
     
+    public function check_url_exclusions()
+	{
+		global $cleantalk_url_exclusions;
+		$result=false;
+		if(isset($cleantalk_url_exclusions) && sizeof($cleantalk_url_exclusions)>0)
+		{
+			foreach($cleantalk_url_exclusions as $key=>$value)
+			{
+				if(stripos($_SERVER['REQUEST_URI'], $value)!==false)
+				{
+					$result=true;
+				}
+			}
+		}
+		else
+		{
+			$result=false;
+		}
+		return $result;
+	}
+	
+	
     /*
     * Send request to CleanTalk server
     */
@@ -1219,7 +1241,15 @@ class plgSystemAntispambycleantalk extends JPlugin {
                 ));
 
             if ($result !== true) {
-                JError::raiseError(503, $this->_subject->getError());
+                if(isset($_GET['module']) && $_GET['module'] == 'pwebcontact')
+                {
+                	print $this->_subject->getError();
+                	die();
+                }
+                else
+                {
+                	JError::raiseError(503, $this->_subject->getError());
+                }
             }
         }
 
@@ -2106,6 +2136,10 @@ ctSetCookie("%s", "%s", "%s");
 	 * @return 	boolean True if passes validation OR false if it fails
 	 */
 	private function onSpamCheck($context='', $data){
+		if($this->check_url_exclusions())
+		{
+			return false;
+		}
 		// Converts $data Array into an Object
 		$obj = new JObject($data);
         
