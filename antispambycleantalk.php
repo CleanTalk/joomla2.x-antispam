@@ -548,7 +548,8 @@ class plgSystemAntispambycleantalk extends JPlugin {
     	isset($_GET['task'])&&$_GET['task']=='mailAskquestion'||
     	isset($_POST['task'])&&$_POST['task']=='mailAskquestion' ||
     	isset($_GET['ajax']) && isset($_GET['username']) && isset($_GET['email']) ||
-    	isset($_POST['option'])&&$_POST['option']=='com_alfcontact'
+    	isset($_POST['option'])&&$_POST['option']=='com_alfcontact' ||
+    	isset($_POST['option'])&&$_POST['option']=='com_contact'&&isset($_POST['task'])&&$_POST['task']=='contact.submit'
     	)
     	{
     		$sender_email = '';
