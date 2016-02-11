@@ -3,7 +3,7 @@
 /**
  * CleanTalk joomla plugin
  *
- * @version 3.8.1
+ * @version 3.9
  * @package Cleantalk
  * @subpackage Joomla
  * @author CleanTalk (welcome@cleantalk.org) 
@@ -22,7 +22,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
     /**
      * Plugin version string for server
      */
-    const ENGINE = 'joomla-381';
+    const ENGINE = 'joomla-39';
     
     /**
      * Default value for hidden field ct_checkjs 
@@ -562,6 +562,11 @@ class plgSystemAntispambycleantalk extends JPlugin {
 		    {
 		    	$sender_email = $_GET['email'];
 		    	$sender_nickname = $_GET['username'];
+		    }
+		    else if(isset($_POST['task'])&&$_POST['task']=='saveUser')
+		    {
+		    	$sender_email = $_POST['email'];
+		    	$sender_nickname = $_POST['username'];
 		    }
 		    else
 		    {
