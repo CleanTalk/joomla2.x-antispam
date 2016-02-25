@@ -22,7 +22,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
     /**
      * Plugin version string for server
      */
-    const ENGINE = 'joomla-39';
+    const ENGINE = 'joomla-40';
     
     /**
      * Default value for hidden field ct_checkjs 

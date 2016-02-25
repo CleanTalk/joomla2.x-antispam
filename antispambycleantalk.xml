@@ -2,12 +2,12 @@
 <extension version="2.5" type="plugin" group="system"  method="upgrade" >
     <name>Antispam by CleanTalk</name>
     <author>CleanTalk team</author>
-    <creationDate>21.01.2016</creationDate>
+    <creationDate>25.02.2016</creationDate>
     <copyright>(C) CleanTalk</copyright>
     <license>GNU/GPLv2</license>
     <authorEmail>welcome@cleantalk.org</authorEmail>
     <authorUrl>cleantalk.org</authorUrl>
-    <version>3.9</version>
+    <version>4.0</version>
     <description>PLG_CLEANTALK_DESCRIPTION</description>
     <files>
 	<filename plugin="antispambycleantalk">antispambycleantalk.php</filename>
@@ -35,6 +35,21 @@
 				size="20" 
 				class="cleantalk_auth_key"
 				default="enter key"
+			/>
+			<field name="autokey" type="spacer" 
+				label="PLG_SYSTEM_CLEANTALK_PARAM_AUTOKEY"
+				class="cleantalk_auto_key"
+				description="PLG_SYSTEM_CLEANTALK_PARAM_AUTOKEY_DESCRIPTION"
+			/>
+			<field name="reg_notice" type="spacer" 
+				label=""
+				class="reg_notice"
+				description=""
+			/>
+			<field name="notice" type="spacer" 
+				label="PLG_SYSTEM_CLEANTALK_PARAM_LICENSE"
+				class="cleantalk_notice"
+				description=""
 			/>
 			<field name="myspacer" type="spacer" 
 				label="PLG_SYSTEM_CLEANTALK_PARAM_GETAPIKEY" 
