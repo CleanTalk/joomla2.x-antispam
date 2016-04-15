@@ -376,7 +376,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
         if($sfw_enable == 1) {
             $sfw_check_interval = $jparam->get('sfw_check_interval', 0);
             if ($sfw_check_interval > 0 && ($sfw_last_check + $sfw_check_interval) < time()) {
-
+                
                 $app = JFactory::getApplication();
                 $prefix = $app->getCfg('dbprefix');
                 $sfw_table_name_full = preg_replace('/^(#__)/', $prefix, $this->sfw_table_name);
@@ -448,10 +448,11 @@ class plgSystemAntispambycleantalk extends JPlugin {
                 $save_params['sfw_min_mask'] = $min_mask;
                 $save_params['sfw_max_mask'] = $max_mask;
             }
+
             //print $sfw_last_send_log;
             if(time()-$sfw_last_send_log>3600)
             {
-            	if(is_array($sfw_log)&&sizeof($sfw_log)>0 && !(count($sfw_log) == 1 && !isset($sfw_log[0])))
+            	if(is_array($sfw_log)&&sizeof($sfw_log)>0 && !(count($sfw_log) == 1 && isset($sfw_log[0])))
             	{
             		$data=Array();
             		include_once("cleantalk.class.php");
@@ -475,9 +476,9 @@ class plgSystemAntispambycleantalk extends JPlugin {
 						'rows' => count($data),
 						'timestamp' => time()
 					);
-
 					$result = sendRawRequest('https://api.cleantalk.org/?method_name=sfw_logs&auth_key='.$ct_apikey,$qdata);
 					$result = json_decode($result);
+
 					if(isset($result->data) && isset($result->data->rows) && $result->data->rows == count($data))
 					{
 						$save_params['sfw_log']=Array();
@@ -492,7 +493,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
             }
         
         }
-
         /*
             Do SpamFireWall actions for visitors if we have a GET request and option enabled. 
         */
@@ -1434,8 +1434,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
                 array_push($user_groups, $user->gid);
             }
         }
-error_log(print_r($user_groups, true));
-error_log(print_r($plugin_groups, true));
+
         foreach ($user_groups as $group) {
             if (in_array($group, $plugin_groups)) {
                 
