@@ -376,7 +376,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
         if($sfw_enable == 1) {
             $sfw_check_interval = $jparam->get('sfw_check_interval', 0);
             if ($sfw_check_interval > 0 && ($sfw_last_check + $sfw_check_interval) < time()) {
-                
                 $app = JFactory::getApplication();
                 $prefix = $app->getCfg('dbprefix');
                 $sfw_table_name_full = preg_replace('/^(#__)/', $prefix, $this->sfw_table_name);
@@ -411,6 +410,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
                         error_log(print_r($ct_r, true));
                     }
                 }
+
                 if ($sfw_nets) {
                     $db = JFactory::getDbo();
 
@@ -430,9 +430,9 @@ class plgSystemAntispambycleantalk extends JPlugin {
                         // Prepare the insert query.
                         $query->insert($db->quoteName($this->sfw_table_name));
                         $query->columns($db->quoteName($columns));
+                        $values = null;
                         foreach ($sfw_nets as $v) {
-                            $query->values(implode(',', $v));
-                            
+                            $values[] = implode(',', $v);  
                             if ($v[1] <= $min_mask) {
                                 $min_mask = $v[1];
                             }
@@ -440,6 +440,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
                                 $max_mask = $v[1];
                             }
                         }
+                        $query->values($values);
                         $db->setQuery($query);
                         $result = $db->execute();
                     }
@@ -491,7 +492,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
             if ($sfw_last_check > 0) {
                 $save_params['sfw_last_check'] = 0;
             }
-        
         }
         /*
             Do SpamFireWall actions for visitors if we have a GET request and option enabled. 
