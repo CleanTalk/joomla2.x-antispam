@@ -46,7 +46,7 @@ function animate_banner(to)
 	}
 }
 jQuery(document).ready(function(){
-	jQuery('#cleantalk_manual_key').attr('href', 'https://cleantalk.org/register?platform=joomla15&email=' + cleantalk_mail + '&website=' + cleantalk_domain);
+	jQuery('#cleantalk_manual_key').attr('href', 'https://cleantalk.org/register?platform=joomla3&email=' + cleantalk_mail + '&website=' + cleantalk_domain);
 	var ct_auth_key=jQuery('.cleantalk_auth_key').prop('value');
 	setTimeout(function(){jQuery('#jform_params_reg_notice-lbl').html(ct_register_notice);},500);
 	
