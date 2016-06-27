@@ -647,7 +647,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 				$data['method_name'] = 'get_api_key'; 
 				$data['email'] = $adminmail;
 				$data['website'] = $_SERVER['HTTP_HOST'];
-				$data['platform'] = 'joomla15';
+				$data['platform'] = 'joomla3';
 				
 				if (function_exists('curl_init') && function_exists('json_decode'))
 	    		{
