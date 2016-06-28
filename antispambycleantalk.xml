@@ -148,6 +148,6 @@
 		</files>
 	</administration>
 	<updateservers>
-		<server type="extension" priority="1" name="CleanTalk Update Site">https://www.cleantalk.org/files/joomla/plugin-updates.xml</server>
+		<server type="extension" priority="1" name="CleanTalk Update Site">http://download.cleantalk.org/joomla/plugin-updates.xml</server>
 	</updateservers>
 </extension>
