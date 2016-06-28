@@ -1529,6 +1529,10 @@ class plgSystemAntispambycleantalk extends JPlugin {
 
                 if (is_array($val)) {
                     foreach ($val as $_key => $_val) {
+                        if (is_array($_val)) {
+                            continue;
+                        }
+
                         $str .= "\t" . 'if (document.getElementsByName("' . $key . '[' . $_key . ']")) {' . "\n";
                         $str .= "\t\t" . 'if (document.getElementsByName("' . $key . '[' . $_key . ']")[0].type != "hidden") {' . "\n";
                         $str .= "\t\t\t" . 'document.getElementsByName("' . $key . '[' . $_key . ']")[0].value = "' . $_val . '"' . "\n";
