@@ -3,7 +3,7 @@
 /**
  * CleanTalk joomla plugin
  *
- * @version 4.0.1
+ * @version 4.0.2
  * @package Cleantalk
  * @subpackage Joomla
  * @author CleanTalk (welcome@cleantalk.org) 
@@ -22,7 +22,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
     /**
      * Plugin version string for server
      */
-    const ENGINE = 'joomla-401';
+    const ENGINE = 'joomla3-402';
     
     /**
      * Default value for hidden field ct_checkjs 
