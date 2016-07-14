@@ -1309,10 +1309,10 @@ class plgSystemAntispambycleantalk extends JPlugin {
         $ctResponse = self::ctSendRequest(
             'check_message', array(
                 'example' => null, 
-                'sender_nickname' => $data[$user_name_key],
-                'sender_email' => $data[$user_email_key],
+                'sender_nickname' => isset($data[$user_name_key]) ? $data[$user_name_key] : '',
+                'sender_email' => isset($data[$user_email_key]) ? $data[$user_email_key] : '',
                 'sender_ip' => self::$CT->ct_session_ip($_SERVER['REMOTE_ADDR']),
-                'message' => $data[$subject_key] . "\n" . $data[$message_key],
+                'message' => (isset($data[$subject_key]) ? $data[$subject_key] : '') . "\n" . (isset($data[$message_key]) ? $data[$message_key] : ''),
                 'js_on' => $checkjs,
                 'submit_time' => $submit_time,
                 'post_info' => $post_info,
