@@ -3,7 +3,7 @@
 /**
  * CleanTalk joomla plugin
  *
- * @version 3.9
+ * @version 4.0.2
  * @package Cleantalk
  * @subpackage Joomla
  * @author CleanTalk (welcome@cleantalk.org) 
@@ -22,7 +22,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
     /**
      * Plugin version string for server
      */
-    const ENGINE = 'joomla-40';
+    const ENGINE = 'joomla3-402';
     
     /**
      * Default value for hidden field ct_checkjs 
@@ -376,7 +376,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
         if($sfw_enable == 1) {
             $sfw_check_interval = $jparam->get('sfw_check_interval', 0);
             if ($sfw_check_interval > 0 && ($sfw_last_check + $sfw_check_interval) < time()) {
-                
                 $app = JFactory::getApplication();
                 $prefix = $app->getCfg('dbprefix');
                 $sfw_table_name_full = preg_replace('/^(#__)/', $prefix, $this->sfw_table_name);
@@ -411,6 +410,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
                         error_log(print_r($ct_r, true));
                     }
                 }
+
                 if ($sfw_nets) {
                     $db = JFactory::getDbo();
 
@@ -430,9 +430,9 @@ class plgSystemAntispambycleantalk extends JPlugin {
                         // Prepare the insert query.
                         $query->insert($db->quoteName($this->sfw_table_name));
                         $query->columns($db->quoteName($columns));
+                        $values = null;
                         foreach ($sfw_nets as $v) {
-                            $query->values(implode(',', $v));
-                            
+                            $values[] = implode(',', $v);  
                             if ($v[1] <= $min_mask) {
                                 $min_mask = $v[1];
                             }
@@ -440,6 +440,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
                                 $max_mask = $v[1];
                             }
                         }
+                        $query->values($values);
                         $db->setQuery($query);
                         $result = $db->execute();
                     }
@@ -477,6 +478,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 					);
 					$result = sendRawRequest('https://api.cleantalk.org/?method_name=sfw_logs&auth_key='.$ct_apikey,$qdata);
 					$result = json_decode($result);
+
 					if(isset($result->data) && isset($result->data->rows) && $result->data->rows == count($data))
 					{
 						$save_params['sfw_log']=Array();
@@ -489,7 +491,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
             if ($sfw_last_check > 0) {
                 $save_params['sfw_last_check'] = 0;
             }
-        
         }
         /*
             Do SpamFireWall actions for visitors if we have a GET request and option enabled. 
@@ -708,15 +709,9 @@ class plgSystemAntispambycleantalk extends JPlugin {
     	{
     		$url = 'http://moderate.cleantalk.org/api2.0';
     		$dt=Array(
+				'method_name'=> 'send_feedback',
     			'auth_key'=>$new_config->apikey,
-    			'method_name'=> 'check_message',
-    			'message'=>'This message is a test to check the connection to the CleanTalk servers.',
-    			'example'=>null,
-    			'agent'=>self::ENGINE,
-    			'sender_ip'=>$_SERVER['REMOTE_ADDR'],
-    			'sender_email'=>'good@cleantalk.org',
-    			'sender_nickname'=>'CleanTalk',
-    			'js_on'=>1);
+				'feedback' => '0:'.self::ENGINE);
     		if (function_exists('curl_init') && function_exists('json_decode'))
     		{
     			$ch = curl_init();
@@ -1528,6 +1523,10 @@ class plgSystemAntispambycleantalk extends JPlugin {
 
                 if (is_array($val)) {
                     foreach ($val as $_key => $_val) {
+                        if (is_array($_val)) {
+                            continue;
+                        }
+
                         $str .= "\t" . 'if (document.getElementsByName("' . $key . '[' . $_key . ']")) {' . "\n";
                         $str .= "\t\t" . 'if (document.getElementsByName("' . $key . '[' . $_key . ']")[0].type != "hidden") {' . "\n";
                         $str .= "\t\t\t" . 'document.getElementsByName("' . $key . '[' . $_key . ']")[0].value = "' . $_val . '"' . "\n";
