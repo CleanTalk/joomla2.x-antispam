@@ -709,15 +709,9 @@ class plgSystemAntispambycleantalk extends JPlugin {
     	{
     		$url = 'http://moderate.cleantalk.org/api2.0';
     		$dt=Array(
+				'method_name'=> 'send_feedback',
     			'auth_key'=>$new_config->apikey,
-    			'method_name'=> 'check_message',
-    			'message'=>'This message is a test to check the connection to the CleanTalk servers.',
-    			'example'=>null,
-    			'agent'=>self::ENGINE,
-    			'sender_ip'=>$_SERVER['REMOTE_ADDR'],
-    			'sender_email'=>'good@cleantalk.org',
-    			'sender_nickname'=>'CleanTalk',
-    			'js_on'=>1);
+				'feedback' => '0:'.self::ENGINE);
     		if (function_exists('curl_init') && function_exists('json_decode'))
     		{
     			$ch = curl_init();
