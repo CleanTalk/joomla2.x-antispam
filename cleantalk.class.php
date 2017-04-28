@@ -2,7 +2,7 @@
 /**
  * Cleantalk base class
  *
- * @version 2.1.2
+ * @version 2.1.4
  * @package Cleantalk
  * @subpackage Base
  * @author Cleantalk team (welcome@cleantalk.org)
@@ -11,7 +11,7 @@
  * @see https://github.com/CleanTalk/php-antispam 
  *
  */
-
+ 
 /**
 * Load JSON functions if they are not exists 
 */
@@ -34,10 +34,41 @@ if(!function_exists('json_decode')) {
 }
 
 /**
+* Creating apache_request_headers() if not exists
+*/
+if( !function_exists('apache_request_headers') ) {
+	function apache_request_headers() {
+	  $arh = array();
+	  $rx_http = '/\AHTTP_/';
+	  foreach($_SERVER as $key => $val) {
+		if( preg_match($rx_http, $key) ) {
+		  $arh_key = preg_replace($rx_http, '', $key);
+		  $rx_matches = array();
+		  // do some nasty string manipulations to restore the original letter case
+		  // this should work in most cases
+		  $rx_matches = explode('_', $arh_key);
+		  if( count($rx_matches) > 0 and strlen($arh_key) > 2 ) {
+			foreach($rx_matches as $ak_key => $ak_val) $rx_matches[$ak_key] = ucfirst($ak_val);
+			$arh_key = implode('-', $rx_matches);
+		  }
+		  $arh[$arh_key] = $val;
+		}
+	  }
+	  return( $arh );
+	}
+}
+
+/**
  * Response class
  */
 class CleantalkResponse {
 
+    /**
+     * Received feedback nubmer
+     * @var int
+     */
+    public $received = null;
+	
     /**
      *  Is stop words
      * @var int
@@ -172,6 +203,7 @@ class CleantalkResponse {
             $this->stop_queue = (isset($obj->stop_queue)) ? $obj->stop_queue : 0;
             $this->inactive = (isset($obj->inactive)) ? $obj->inactive : 0;
             $this->account_status = (isset($obj->account_status)) ? $obj->account_status : -1;
+			$this->received = (isset($obj->received)) ? $obj->received : -1;
 
             if ($this->errno !== 0 && $this->errstr !== null && $this->comment === null)
                 $this->comment = '*** ' . $this->errstr . ' Antispam service cleantalk.org ***'; 
@@ -376,7 +408,7 @@ class Cleantalk {
 	* Server connection timeout in seconds 
 	* @var int
 	*/
-	private $server_timeout = 6;
+	private $server_timeout = 15;
 
     /**
      * Cleantalk server url
@@ -450,7 +482,7 @@ class Cleantalk {
      * @return type
      */
     public function isAllowMessage(CleantalkRequest $request) {
-        $this->filterRequest($request);
+        $request = $this->filterRequest($request);
         $msg = $this->createMsg('check_message', $request);
         return $this->httpRequest($msg);
     }
@@ -461,7 +493,7 @@ class Cleantalk {
      * @return type
      */
     public function isAllowUser(CleantalkRequest $request) {
-        $this->filterRequest($request);
+        $request = $this->filterRequest($request);
         $msg = $this->createMsg('check_newuser', $request);
         return $this->httpRequest($msg);
     }
@@ -473,7 +505,7 @@ class Cleantalk {
      * @return type
      */
     public function sendFeedback(CleantalkRequest $request) {
-        $this->filterRequest($request);
+        $request = $this->filterRequest($request);
         $msg = $this->createMsg('send_feedback', $request);
         return $this->httpRequest($msg);
     }
@@ -483,7 +515,7 @@ class Cleantalk {
      * @param CleantalkRequest $request
      * @return type
      */
-    private function filterRequest(CleantalkRequest &$request) {
+    private function filterRequest(CleantalkRequest $request) {
         // general and optional
         foreach ($request as $param => $value) {
             if (in_array($param, array('message', 'example', 'agent',
@@ -523,6 +555,7 @@ class Cleantalk {
                 }
             }
         }
+		return $request;
     }
     
 	/**
@@ -604,10 +637,19 @@ class Cleantalk {
     private function sendRequest($data = null, $url, $server_timeout = 3) {
         // Convert to array
         $data = (array)json_decode(json_encode($data), true);
-
+		
+		//Cleaning from 'null' values
+		$tmp_data = array();
+		foreach($data as $key => $value){
+			if($value !== null)
+				$tmp_data[$key] = $value;
+		}
+		$data = $tmp_data;
+		unset($key, $value, $tmp_data);
+		
         // Convert to JSON
         $data = json_encode($data);
-        
+		
         if (isset($this->api_version)) {
             $url = $url . $this->api_version;
         }
@@ -616,7 +658,7 @@ class Cleantalk {
         if ($this->ssl_on && !preg_match("/^https:/", $url)) {
             $url = preg_replace("/^(http)/i", "$1s", $url);
         }
-
+		
         $result = false;
         $curl_error = null;
 		if(function_exists('curl_init')) {
@@ -708,26 +750,36 @@ class Cleantalk {
      */
     private function httpRequest($msg) {
         $result = false;
-        $msg->all_headers=json_encode(apache_request_headers());
+		
+		if($msg->method_name != 'send_feedback'){
+			$ct_tmp = apache_request_headers();
+			
+			if(isset($ct_tmp['Cookie']))
+				$cookie_name = 'Cookie';
+			elseif(isset($ct_tmp['cookie']))
+				$cookie_name = 'cookie';
+			else
+				$cookie_name = 'COOKIE';
+			
+			if(isset($tmp[$cookie_name]))
+				$ct_tmp[$cookie_name] = preg_replace(array(
+					'/\s{0,1}ct_checkjs=[a-z0-9]*[;|$]{0,1}/',
+					'/\s{0,1}ct_timezone=.{0,1}\d{1,2}[;|$]/', 
+					'/\s{0,1}ct_pointer_data=.*5D[;|$]{0,1}/', 
+					'/;{0,1}\s{0,3}$/'
+				), '', $ct_tmp[$cookie_name]);
+				
+			$msg->all_headers=json_encode($ct_tmp);
+		}
+		
         //$msg->remote_addr=$_SERVER['REMOTE_ADDR'];
         //$msg->sender_info['remote_addr']=$_SERVER['REMOTE_ADDR'];
         $si=(array)json_decode($msg->sender_info,true);
-        if(defined('IN_PHPBB'))
-        {
-        	global $request;
-        	if(method_exists($request,'server'))
-        	{
-        		$si['remote_addr']=$request->server('REMOTE_ADDR');
-        		$msg->x_forwarded_for=$request->server('X_FORWARDED_FOR');
-        		$msg->x_real_ip=$request->server('X_REAL_IP');
-        	}
-        }
-        else
-        {
-        	$si['remote_addr']=$_SERVER['REMOTE_ADDR'];
-        	$msg->x_forwarded_for=@$_SERVER['X_FORWARDED_FOR'];
-        	$msg->x_real_ip=@$_SERVER['X_REAL_IP'];
-        }
+
+		$si['remote_addr']=$_SERVER['REMOTE_ADDR'];
+		$msg->x_forwarded_for=@$_SERVER['X_FORWARDED_FOR'];
+		$msg->x_real_ip=@$_SERVER['X_REAL_IP'];
+        
         $msg->sender_info=json_encode($si);
         if (((isset($this->work_url) && $this->work_url !== '') && ($this->server_changed + $this->server_ttl > time()))
 				|| $this->stay_on_server == true) {
@@ -782,9 +834,9 @@ class Cleantalk {
                 }
             }
         }
-
+		
         $response = new CleantalkResponse(null, $result);
-
+		
         if (!empty($this->data_codepage) && $this->data_codepage !== 'UTF-8') {
             if (!empty($response->comment))
             $response->comment = $this->stringFromUTF8($response->comment, $this->data_codepage);
@@ -793,7 +845,7 @@ class Cleantalk {
             if (!empty($response->sms_error_text))
             $response->sms_error_text = $this->stringFromUTF8($response->sms_error_text, $this->data_codepage);
         }
-
+		
         return $response;
     }
     
@@ -1032,7 +1084,7 @@ class Cleantalk {
      * @return JSON/array 
      */
     public function get_2s_blacklists_db ($api_key) {
-        $request=Array();
+		$request=array();
         $request['method_name'] = '2s_blacklists_db'; 
         $request['auth_key'] = $api_key;
         $url='https://api.cleantalk.org';
@@ -1050,16 +1102,21 @@ class Cleantalk {
  * @return type
  */
 
-function getAutoKey($email, $host, $platform)
+if(!function_exists('getAutoKey'))
 {
-	$request=Array();
-	$request['method_name'] = 'get_api_key'; 
-	$request['email'] = $email;
-	$request['website'] = $host;
-	$request['platform'] = $platform;
-	$url='https://api.cleantalk.org';
-	$result=sendRawRequest($url,$request);
-	return $result;
+	function getAutoKey($email, $host, $platform, $timezone = null)
+	{
+		$request=array();
+		$request['method_name'] = 'get_api_key'; 
+		$request['email'] = $email;
+		$request['website'] = $host;
+		$request['platform'] = $platform;
+		$request['timezone'] = $timezone;
+		$request['product_name'] = 'antispam';
+		$url='https://api.cleantalk.org';
+		$result=sendRawRequest($url,$request);
+		return $result;
+	}
 }
 
 /**
@@ -1071,12 +1128,71 @@ function getAutoKey($email, $host, $platform)
 
 function noticePaidTill($api_key)
 {
-	$request=Array();
+	$request=array();
 	$request['method_name'] = 'notice_paid_till'; 
 	$request['auth_key'] = $api_key;
 	$url='https://api.cleantalk.org';
 	$result=sendRawRequest($url,$request);
 	return $result;
+}
+
+/**
+ * Function gets spam report
+ *
+ * @param string website host
+ * @param integer report days
+ * @return type
+ */
+
+if(!function_exists('getAntispamReport'))
+{
+	function getAntispamReport($host, $period = 1)
+	{
+		$url='https://api.cleantalk.org';
+		$request=Array(
+			'method_name' => 'get_antispam_report',
+			'hostname' => $host,
+			'period' => $period
+		);
+		$result=sendRawRequest($url,$request);
+		return $result;
+	}
+}
+
+/**
+ * Function gets spam statistics
+ *
+ * @param string website host
+ * @param integer report days
+ * @return type
+ */
+
+if(!function_exists('getAntispamReportBreif'))
+{
+	function getAntispamReportBreif($key='')
+	{
+		
+		$url="https://api.cleantalk.org?auth_key=$key";
+		$request=Array(
+			'method_name' => 'get_antispam_report_breif'
+		);
+		$result = sendRawRequest($url,$request);
+						
+		if($result === false)
+			return "Network error. Please, check <a target='_blank' href='https://cleantalk.org/help/faq-setup#hosting'>this article</a>.";
+		
+		$result = !empty($result) ? json_decode($result, true) : false;
+				
+		if(!empty($result['error_message']))
+			return  $result['error_message'];
+		else{
+			$tmp = array();
+			for($i=0; $i<7; $i++)
+				$tmp[date("Y-m-d", time()-86400*7+86400*$i)] = 0;
+			$result['data']['spam_stat'] = array_merge($tmp, $result['data']['spam_stat']);			
+			return $result['data'];
+		}
+	}
 }
 
 /**
@@ -1095,6 +1211,7 @@ function sendRawRequest($url,$data,$isJSON=false,$timeout=3)
 	if(!$isJSON)
 	{
 		$data=http_build_query($data);
+		$data=str_replace("&amp;", "&", $data);
 	}
 	else
 	{
@@ -1129,8 +1246,10 @@ function sendRawRequest($url,$data,$isJSON=false,$timeout=3)
 	{
 		$opts = array(
 		    'http'=>array(
-		        'method'=>"POST",
-		        'content'=>$data)
+				'method' => "POST",
+				'timeout'=> $timeout,
+				'content' => $data
+			)
 		);
 		$context = stream_context_create($opts);
 		$result = @file_get_contents($url, 0, $context);
@@ -1194,3 +1313,11 @@ function cleantalk_is_JSON($string)
 {
     return ((is_string($string) && (is_object(json_decode($string)) || is_array(json_decode($string))))) ? true : false;
 }
+
+// Patch for locale_get_display_region() for old PHP versions
+if( !function_exists('locale_get_display_region') ){	
+	function locale_get_display_region($locale, $curr_lcoale='en'){
+		return $locale;
+	}
+}
+
