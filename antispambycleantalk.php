@@ -726,10 +726,22 @@ class plgSystemAntispambycleantalk extends JPlugin {
     	$new_config=json_decode($data->params);
 				
     	if(isset($new_config->apikey) && $new_config->apikey != $config['apikey'] && trim($new_config->apikey) != '' && $new_config->apikey != 'enter key'){
-    		
+			self::ctSendAgentVersion($new_config->apikey);
     	}
     }
+    /**
+     * This event is triggered after update extension
+     * Joomla 2.5+
+     * @access public
+     */
     
+    public function onExtensionAfterUpdate($name, $data){
+		$config = $this->getCTConfig();
+		//Sending agent version	
+		if(isset($config['apikey']) && trim($config['apikey']) != '' && $config['apikey'] != 'enter key'){
+			self::ctSendAgentVersion($config['apikey']);
+    	}
+    }
    
     /*
     exception for MijoShop ajax calls
@@ -1736,6 +1748,34 @@ class plgSystemAntispambycleantalk extends JPlugin {
      * $params - array of XML params
      * return XML RPS server response
      */
+   private function ctSendAgentVersion($apikey)
+    {
+    	self::getCleantalk();
+        $ctFbParams['feedback'] = '0:' . self::ENGINE;
+        defined('_JEXEC') or die('Restricted access');
+        if(!defined('DS')){
+            define('DS', DIRECTORY_SEPARATOR);
+        }
+        require_once(dirname(__FILE__) . DS . 'cleantalk.class.php');
+        $ct_request = new CleantalkRequest;
+        
+        foreach ($ctFbParams as $k => $v) {
+            $ct_request->$k = $v;
+        }
+        $ct_request->auth_key = $apikey;
+        $ct_request->agent = self::ENGINE; 
+        $config = self::dbGetServer();
+        $result = NULL;
+
+        self::$CT->work_url = $config['ct_work_url'];
+        self::$CT->server_ttl = $config['ct_server_ttl'];
+        self::$CT->server_changed = $config['ct_server_changed'];
+        $result = self::$CT->sendFeedback($ct_request);
+                if (self::$CT->server_change) {
+            self::dbSetServer(self::$CT->work_url, self::$CT->server_ttl, time());
+        }
+        return $result;
+    }
     private function ctSendRequest($method, $params) {
         self::getCleantalk();
 
