@@ -3,7 +3,7 @@
 /**
  * CleanTalk joomla plugin
  *
- * @version 4.4
+ * @version 4.5
  * @package Cleantalk
  * @subpackage Joomla
  * @author CleanTalk (welcome@cleantalk.org) 
@@ -22,7 +22,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
     /**
      * Plugin version string for server
      */
-    const ENGINE = 'joomla3-44';
+    const ENGINE = 'joomla3-45';
     
     /**
      * Default value for hidden field ct_checkjs 
@@ -223,12 +223,12 @@ class plgSystemAntispambycleantalk extends JPlugin {
 			    		}
 						
 						// notice_paid_till
-			    		$result = noticePaidTill(api_key);
+			    		$result = noticePaidTill($api_key);
+						$show_notice_review = 0;
 			    		if($result !== null){
 			    			$result = json_decode($result);
-			    			if(isset($result->data) && !empty($result->data->show_review)){
+			    			if(isset($result->data) && !empty($result->data->show_review))
 		    					$show_notice_review = 1;
-			    			}
 			    		}
 						
 			    		$params   = new JRegistry($table->params);
