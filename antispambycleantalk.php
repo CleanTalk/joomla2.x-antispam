@@ -914,7 +914,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 				if(is_object($user) && isset($user->id) && $user->id > 0)
 					$is_logged_in = true;
 				
-				if($show_notice_review == 1 && $is_logged_in){
+				if($show_notice_review == 1 && $is_logged_in && strpos(JFactory::getUri(), 'com_plugins&view=plugin&layout=edit&extension_id='.$id) !==false){
 					$document->addScriptDeclaration('var ct_show_feedback=true;');
 					$document->addScriptDeclaration('var ct_show_feedback_mes="'.JText::_('PLG_SYSTEM_CLEANTALK_FEEDBACKLINK').'";');
 				}else

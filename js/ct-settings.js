@@ -26,16 +26,8 @@ function ct_setCookie(name, value){
 }
 
 function animate_banner(to){
-	if(close_animate){
-		if(to==0.3){
-			jQuery('#feedback_notice').fadeTo(300,to,function(){
-				animate_banner(1)
-			});
-		}else{
-			jQuery('#feedback_notice').fadeTo(300,to,function(){
-				animate_banner(0.3)
-			});
-		}
+		if(close_animate){
+			jQuery('#feedback_notice').fadeTo(300,to);
 	}
 }
 
@@ -137,13 +129,13 @@ jQuery(document).ready(function(){
 	
 	// Handler for closing banner
 	jQuery('#feedback_notice_close').click(function(){
-		animate_banner(0.3);
+		animate_banner(0);
 		ct_setCookie('ct_notice_cookie', '1');
 		setTimeout(function(){
 			close_animate = false;
 			jQuery('#feedback_notice_close').parent().hide();
 			},
-		5000);
+		500);
 	});
 		
 	// Handler for get_auto_key button
