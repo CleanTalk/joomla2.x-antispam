@@ -11,13 +11,15 @@
     <description>PLG_CLEANTALK_DESCRIPTION</description>
     <files>
 	<filename plugin="antispambycleantalk">antispambycleantalk.php</filename>
-	<filename plugin="antispambycleantalk">cleantalk.class.php</filename>
 	<filename plugin="antispambycleantalk">js/ct-settings.js</filename>
 	<filename plugin="antispambycleantalk">css/ct-settings.css</filename>
 	<filename plugin="antispambycleantalk">jquery-1.11.2.min.js</filename>
 	<filename plugin="antispambycleantalk">preloader.gif</filename>
 	<filename plugin="antispambycleantalk">spamfirewall.html</filename>
 	<filename plugin="antispambycleantalk">error.html</filename>
+	<filename plugin="antispambycleantalk">classes/Cleantalk.php</filename>
+	<filename plugin="antispambycleantalk">classes/CleantalkRequest.php</filename>
+	<filename plugin="antispambycleantalk">classes/CleantalkResponse.php</filename>
     </files>
     <languages folder="language">
 	<language tag="en-GB">en-GB/en-GB.plg_system_antispambycleantalk.ini</language>
@@ -132,6 +134,9 @@
         
             <field name="jcomments_unpublished_nofications" type="checkbox" label="COM_PLUGINS_JCOMMENTS_NOTIFY_NEW_UNPUBLISHED" value="0" />
             <field name="relevance_test" type="checkbox" label="COM_PLUGINS_RELEVANCE_TEST" value="0" />
+			
+		</fieldset>
+		<fieldset name="checkusers">
 			
 		</fieldset>
 	</fields>
