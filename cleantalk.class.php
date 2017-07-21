@@ -11,10 +11,11 @@
  * @see https://github.com/CleanTalk/php-antispam 
  *
  */
- 
+
+defined('_JEXEC') or die();
+
 /**
 * Load JSON functions if they are not exists 
-*/
 if(!function_exists('json_encode')) {
     require_once 'JSON.php';
 
