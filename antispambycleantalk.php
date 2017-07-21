@@ -3,7 +3,7 @@
 /**
  * CleanTalk joomla plugin
  *
- * @version 4.7.1
+ * @version 4.8
  * @package Cleantalk
  * @subpackage Joomla
  * @author CleanTalk (welcome@cleantalk.org) 
@@ -16,13 +16,14 @@ defined('_JEXEC') or die('Restricted access');
 jimport('joomla.plugin.plugin');
 jimport('joomla.application.application');
 jimport('joomla.application.component.helper');
-
-
+require_once("classes\Cleantalk.php");
+require_once("classes\CleantalkRequest.php");
+require_once("classes\CleantalkResponse.php");
 class plgSystemAntispambycleantalk extends JPlugin {
     /**
      * Plugin version string for server
      */
-    const ENGINE = 'joomla3-471';
+    const ENGINE = 'joomla3-48';
     
     /**
      * Default value for hidden field ct_checkjs 
@@ -254,7 +255,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
 					
 					if($new_checked-$last_checked > 86400){
 						
-						include_once("cleantalk.class.php");
 						
 						// get_account_status
 						$url = 'https://api.cleantalk.org';
@@ -545,7 +545,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
             	if(is_array($sfw_log)&&sizeof($sfw_log)>0){
 					
             		$data=Array();
-            		include_once("cleantalk.class.php");
 			    	foreach($sfw_log as $key=>$value){
 						
 			    		if(is_object($value)){
@@ -563,7 +562,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 						'rows' => count($data),
 						'timestamp' => time()
 					);
-					$result = sendRawRequest('https://api.cleantalk.org/?method_name=sfw_logs&auth_key='.$ct_apikey,$qdata);
+					$result = cleantalk\classes\sendRawRequest('https://api.cleantalk.org/?method_name=sfw_logs&auth_key='.$ct_apikey,$qdata);
 					$result = json_decode($result);
 
 					if(isset($result->data) && isset($result->data->rows) && $result->data->rows == count($data))
@@ -734,12 +733,9 @@ class plgSystemAntispambycleantalk extends JPlugin {
 			$adminmail=$config->get('mailfrom');
 				
 			$website = $_SERVER['HTTP_HOST'];
-			$platform = 'joomla3';
-			
-			if(!function_exists('getAutoKey'))
-				include_once("cleantalk.class.php");			
+			$platform = 'joomla3';		
 				
-			$result = getAutoKey($adminmail, $website, $platform);
+			$result = cleantalk\classes\getAutoKey($adminmail, $website, $platform);
 			$result = $result ? json_decode($result, true) : false;
 							
 			if (!empty($result['data']) && is_array($result['data'])){
@@ -748,7 +744,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 				// Checks if the user token is empty, then get user token by notice_paid_till()
 				if(empty($result['user_token'])){
 					
-					$result_tmp = noticePaidTill($result['auth_key']);
+					$result_tmp = cleantalk\classes\noticePaidTill($result['auth_key']);
 					$result_tmp = $result_tmp ? json_decode($result_tmp, true) : false;
 					
 					if (!empty($result_tmp['data']) && is_array($result_tmp['data']))
@@ -896,8 +892,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
 						$key_is_ok = 0;
 					}else{
 							
-						if(!function_exists('sendRawRequest'))
-							include_once("cleantalk.class.php");
 						
 						$url='https://api.cleantalk.org';
 						$data = array(
@@ -906,7 +900,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 							"path_to_cms" => $_SERVER['HTTP_HOST']
 						);
 						
-						$result=sendRawRequest($url, $data);
+						$result=cleantalk\classes\sendRawRequest($url, $data);
 						$result = $result ? json_decode($result, true) : false;
 						
 						$key_is_ok = isset($result) ? $result['valid'] : 0;
@@ -1805,8 +1799,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
         if(!defined('DS')){
             define('DS', DIRECTORY_SEPARATOR);
         }
-        require_once(dirname(__FILE__) . DS . 'cleantalk.class.php');
-        $ct_request = new CleantalkRequest;
+        $ct_request = new cleantalk\classes\CleantalkRequest;
         
         foreach ($ctFbParams as $k => $v) {
             $ct_request->$k = $v;
@@ -1855,8 +1848,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
             define('DS', DIRECTORY_SEPARATOR);
         }
         		
-        require_once(dirname(__FILE__) . DS . 'cleantalk.class.php');
-        $ct_request = new CleantalkRequest;
+        $ct_request = new cleantalk\classes\CleantalkRequest;
         
         foreach ($params as $k => $v) {
             $ct_request->$k = $v;
@@ -1922,8 +1914,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
                 define('DS', DIRECTORY_SEPARATOR);
             }
             
-            require_once(dirname(__FILE__) . DS . 'cleantalk.class.php');
-            self::$CT = new Cleantalk;
+            self::$CT = new cleantalk\classes\Cleantalk;
             self::$CT->server_url = $config['server'];
         }
 
