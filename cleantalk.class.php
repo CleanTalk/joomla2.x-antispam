@@ -1,5 +1,4 @@
 <?php
-namespace cleantalk\classes;
 /**
  * Cleantalk base class
  *
@@ -34,6 +33,355 @@ if(!function_exists('json_decode')) {
         return( $json->decode($data) );
     }
 }
+
+/**
+* Creating apache_request_headers() if not exists
+*/
+if( !function_exists('apache_request_headers') ) {
+	function apache_request_headers() {
+	  $arh = array();
+	  $rx_http = '/\AHTTP_/';
+	  foreach($_SERVER as $key => $val) {
+		if( preg_match($rx_http, $key) ) {
+		  $arh_key = preg_replace($rx_http, '', $key);
+		  $rx_matches = array();
+		  // do some nasty string manipulations to restore the original letter case
+		  // this should work in most cases
+		  $rx_matches = explode('_', $arh_key);
+		  if( count($rx_matches) > 0 and strlen($arh_key) > 2 ) {
+			foreach($rx_matches as $ak_key => $ak_val) $rx_matches[$ak_key] = ucfirst($ak_val);
+			$arh_key = implode('-', $rx_matches);
+		  }
+		  $arh[$arh_key] = $val;
+		}
+	  }
+	  return( $arh );
+	}
+}
+
+/**
+ * Response class
+ */
+class CleantalkResponse {
+
+    /**
+     * Received feedback nubmer
+     * @var int
+     */
+    public $received = null;
+	
+    /**
+     *  Is stop words
+     * @var int
+     */
+    public $stop_words = null;
+    
+    /**
+     * Cleantalk comment
+     * @var string
+     */
+    public $comment = null;
+
+    /**
+     * Is blacklisted
+     * @var int
+     */
+    public $blacklisted = null;
+
+    /**
+     * Is allow, 1|0
+     * @var int
+     */
+    public $allow = null;
+
+    /**
+     * Request ID
+     * @var int
+     */
+    public $id = null;
+
+    /**
+     * Request errno
+     * @var int
+     */
+    public $errno = null;
+
+    /**
+     * Error string
+     * @var string
+     */
+    public $errstr = null;
+
+    /**
+     * Is fast submit, 1|0
+     * @var string
+     */
+    public $fast_submit = null;
+
+    /**
+     * Is spam comment
+     * @var string
+     */
+    public $spam = null;
+
+    /**
+     * Is JS
+     * @var type 
+     */
+    public $js_disabled = null;
+
+    /**
+     * Sms check
+     * @var type 
+     */
+    public $sms_allow = null;
+
+    /**
+     * Sms code result
+     * @var type 
+     */
+    public $sms = null;
+	
+    /**
+     * Sms error code
+     * @var type 
+     */
+    public $sms_error_code = null;
+	
+    /**
+     * Sms error code
+     * @var type 
+     */
+    public $sms_error_text = null;
+    
+	/**
+     * Stop queue message, 1|0
+     * @var int  
+     */
+    public $stop_queue = null;
+	
+    /**
+     * Account shuld by deactivated after registration, 1|0
+     * @var int  
+     */
+    public $inactive = null;
+
+    /**
+     * Account status 
+     * @var int  
+     */
+    public $account_status = -1;
+
+    /**
+     * Create server response
+     *
+     * @param type $response
+     * @param type $obj
+     */
+    function __construct($response = null, $obj = null) {
+        if ($response && is_array($response) && count($response) > 0) {
+            foreach ($response as $param => $value) {
+                $this->{$param} = $value;
+            }
+        } else {
+            $this->errno = $obj->errno;
+            $this->errstr = $obj->errstr;
+
+			$this->errstr = preg_replace("/.+(\*\*\*.+\*\*\*).+/", "$1", $this->errstr);
+
+            $this->stop_words = isset($obj->stop_words) ? utf8_decode($obj->stop_words) : null;
+            $this->comment = isset($obj->comment) ? utf8_decode($obj->comment) : null;
+            $this->blacklisted = (isset($obj->blacklisted)) ? $obj->blacklisted : null;
+            $this->allow = (isset($obj->allow)) ? $obj->allow : 0;
+            $this->id = (isset($obj->id)) ? $obj->id : null;
+            $this->fast_submit = (isset($obj->fast_submit)) ? $obj->fast_submit : 0;
+            $this->spam = (isset($obj->spam)) ? $obj->spam : 0;
+            $this->js_disabled = (isset($obj->js_disabled)) ? $obj->js_disabled : 0;
+            $this->sms_allow = (isset($obj->sms_allow)) ? $obj->sms_allow : null;
+            $this->sms = (isset($obj->sms)) ? $obj->sms : null;
+            $this->sms_error_code = (isset($obj->sms_error_code)) ? $obj->sms_error_code : null;
+            $this->sms_error_text = (isset($obj->sms_error_text)) ? $obj->sms_error_text : null;
+            $this->stop_queue = (isset($obj->stop_queue)) ? $obj->stop_queue : 0;
+            $this->inactive = (isset($obj->inactive)) ? $obj->inactive : 0;
+            $this->account_status = (isset($obj->account_status)) ? $obj->account_status : -1;
+			$this->received = (isset($obj->received)) ? $obj->received : -1;
+
+            if ($this->errno !== 0 && $this->errstr !== null && $this->comment === null)
+                $this->comment = '*** ' . $this->errstr . ' Antispam service cleantalk.org ***'; 
+        }
+    }
+
+}
+
+/**
+ * Request class
+ */
+class CleantalkRequest {
+
+     /**
+     *  All http request headers
+     * @var string
+     */
+     public $all_headers = null;
+     
+     /**
+     *  IP address of connection
+     * @var string
+     */
+     //public $remote_addr = null;
+     
+     /**
+     *  Last error number
+     * @var integer
+     */
+     public $last_error_no = null;
+     
+     /**
+     *  Last error time
+     * @var integer
+     */
+     public $last_error_time = null;
+     
+     /**
+     *  Last error text
+     * @var string
+     */
+     public $last_error_text = null;
+
+    /**
+     * User message
+     * @var string
+     */
+    public $message = null;
+
+    /**
+     * Post example with last comments
+     * @var string
+     */
+    public $example = null;
+
+    /**
+     * Auth key
+     * @var string
+     */
+    public $auth_key = null;
+
+    /**
+     * Engine
+     * @var string
+     */
+    public $agent = null;
+
+    /**
+     * Is check for stoplist,
+     * valid are 0|1
+     * @var int
+     */
+    public $stoplist_check = null;
+
+    /**
+     * Language server response,
+     * valid are 'en' or 'ru'
+     * @var string
+     */
+    public $response_lang = null;
+
+    /**
+     * User IP
+     * @var strings
+     */
+    public $sender_ip = null;
+
+    /**
+     * User email
+     * @var strings
+     */
+    public $sender_email = null;
+
+    /**
+     * User nickname
+     * @var string
+     */
+    public $sender_nickname = null;
+
+    /**
+     * Sender info JSON string
+     * @var string
+     */
+    public $sender_info = null;
+
+    /**
+     * Post info JSON string
+     * @var string
+     */
+    public $post_info = null;
+
+    /**
+     * Is allow links, email and icq,
+     * valid are 1|0
+     * @var int
+     */
+    public $allow_links = null;
+
+    /**
+     * Time form filling
+     * @var int
+     */
+    public $submit_time = null;
+    
+    public $x_forwarded_for = '';
+    public $x_real_ip = '';
+
+    /**
+     * Is enable Java Script,
+     * valid are 0|1|2
+	 * Status:
+	 *  null - JS html code not inserted into phpBB templates
+	 *  0 - JS disabled at the client browser
+	 *  1 - JS enabled at the client broswer
+     * @var int
+     */
+    public $js_on = null;
+
+    /**
+     * user time zone
+     * @var string
+     */
+    public $tz = null;
+
+    /**
+     * Feedback string,
+     * valid are 'requset_id:(1|0)'
+     * @var string
+     */
+    public $feedback = null;
+
+    /**
+     * Phone number
+     * @var type 
+     */
+    public $phone = null;
+    
+    /**
+    * Method name
+    * @var string
+    */
+    public $method_name = 'check_message'; 
+
+    /**
+     * Fill params with constructor
+     * @param type $params
+     */
+    public function __construct($params = null) {
+        if (is_array($params) && count($params) > 0) {
+            foreach ($params as $param => $value) {
+                $this->{$param} = $value;
+            }
+        }
+    }
+
+}
+
 /**
  * Cleantalk class create request
  */
