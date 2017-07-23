@@ -7,7 +7,7 @@
     <license>GNU/GPLv2</license>
     <authorEmail>welcome@cleantalk.org</authorEmail>
     <authorUrl>cleantalk.org</authorUrl>
-    <version>4.7.1</version>
+    <version>4.8</version>
     <description>PLG_CLEANTALK_DESCRIPTION</description>
     <files>
 	<filename plugin="antispambycleantalk">antispambycleantalk.php</filename>
@@ -136,7 +136,7 @@
             <field name="relevance_test" type="checkbox" label="COM_PLUGINS_RELEVANCE_TEST" value="0" />
 			
 		</fieldset>
-		<fieldset name="checkusers">
+		<fieldset name="checkuserscomments">
 			
 		</fieldset>
 	</fields>
