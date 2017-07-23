@@ -35,9 +35,9 @@ jQuery(document).ready(function(){
 	
 	var ct_auth_key = jQuery('.cleantalk_auth_key').prop('value'),
 		ct_notice_cookie = ct_getCookie('ct_notice_cookie');
-		jQuery('#attrib-checkusers').append("<center><button style=\"width:20%;\" id=\"check_spam_users\" class=\"btn btn-success \" type=\"button\"><span class=\"icon-users levels\"></span>Check users for spam</button>&nbsp;&nbsp;&nbsp;<button style=\"width:20%;\" id=\"check_spam_comments\" class=\"btn btn-success\" type=\"button\"><span class=\"icon-archive\"></span>Check comments for spam</button><br /><br />Anti-spam by <a href=https://cleantalk.org/ target=_blanl>CleanTalk</a> will check all users against blacklists <a href=https://cleantalk.org/blacklists target=_blank>database</a> and show you senders that have spam activity on other websites.</center><br/><br/>")
-		jQuery('#attrib-checkusers').append("<div id ='spam_results'></div>");
-		jQuery('#attrib-checkusers').append("<img class='display_none' id='ct_preloader_spam_results' src='../plugins/system/antispambycleantalk/preloader.gif' />");
+		jQuery('#attrib-checkuserscomments').append("<center><button style=\"width:20%;\" id=\"check_spam_users\" class=\"btn btn-success \" type=\"button\"><span class=\"icon-users levels\"></span>Check users for spam</button>&nbsp;&nbsp;&nbsp;<button style=\"width:20%;\" id=\"check_spam_comments\" class=\"btn btn-success\" type=\"button\"><span class=\"icon-archive\"></span>Check comments for spam</button><br /><br />Anti-spam by <a href=https://cleantalk.org/ target=_blanl>CleanTalk</a> will check all users against blacklists <a href=https://cleantalk.org/blacklists target=_blank>database</a> and show you senders that have spam activity on other websites.</center><br/><br/>")
+		jQuery('#attrib-checkuserscomments').append("<div id ='spam_results'></div>");
+		jQuery('#attrib-checkuserscomments').append("<img class='display_none' id='ct_preloader_spam_results' src='../plugins/system/antispambycleantalk/preloader.gif' />");
 	// Viewing button to access CP
 	if(ct_key_is_ok == 1){
 		

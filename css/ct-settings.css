@@ -58,7 +58,7 @@
 			
 	}
 
-.table th, .table td
+#spamcomments_table th, #spamcomments_table td,#spamusers_table th, #spamusers_table td
 {
 	text-align: center;
 }
