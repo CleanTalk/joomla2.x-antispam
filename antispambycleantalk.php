@@ -760,8 +760,200 @@ class plgSystemAntispambycleantalk extends JPlugin {
 			$mainframe->close();
 			die();
 		}
+		//check spam users
+		if (isset($_POST['check_users']) && $_POST['check_users'] === 'yes')
+		{
+			$db = JFactory::getDBO();$config = $this->getCTConfig();
+            $db->setQuery("SELECT * FROM `#__users`");
+            $users = $db->loadAssocList();
+            $data = array();$spam_users=array();
+            $send_result['result']=null;
+            $send_result['data']=null;
+            foreach ($users as $user)
+            	array_push($data, $user['email']);
+            $data=implode(',',$data);
+            if (count($data) == 0)
+            {
+            	$send_result['data'] = 'No users to check.';
+            	$send_result['result'] = 'error';
+            	die();
+            }
+            $request=Array();
+        	$request['method_name'] = 'spam_check_cms';
+        	$request['auth_key'] = $config['apikey'];
+        	$request['data'] = $data;
+        	$url='https://api.cleantalk.org';
+        	$result=cleantalk\classes\sendRawRequest($url, $request);
+       		$result=json_decode($result);    	
+       		if (isset($result->error_message))
+       		{
+       			$send_result['data'] = $result->error_message;
+       			$send_result['result']='error';
+       		}
+       		else
+       		{
+       			if (isset($result->data))
+       			{
+       				foreach($result->data as $mail=>$value)
+       				{
+       					if ($value->appears == '1' )
+       					{
+       						foreach ($users as $user)
+       						{
+       							if ($user['email']==$mail)
+       								$spam_users[]=$user;
+       						}
+       					}
+       				}
+       			}
+       			if (count($spam_users)>0)
+       			{
+        			$send_result['data']['spam_users']=$spam_users;
+	           		$send_result['result']='success';       				
+       			}
+       			else 
+       			{
+       				$send_result['data']='No spam users found.';
+       				$send_result['result']='error';
+       			}
+       		}        
+            print json_encode($send_result);
+			$mainframe=JFactory::getApplication();
+			$mainframe->close();
+			die();
+		}
+		//check spam comments
+		if (isset($_POST['check_comments']) && $_POST['check_comments'] === 'yes')
+		{
+			$db = JFactory::getDBO();$config = $this->getCTConfig();
+            $db->setQuery("SELECT * FROM `#__jcomments`");
+            $comments = $db->loadAssocList();
+            $data = array();$spam_comments=array();
+            $send_result['result']=null;
+            $send_result['data']=null;
+            foreach ($comments as $comment)
+            {
+            	if (!empty($comment['ip']))
+            		$data[]=$comment['ip'];
+            	if (!empty($comment['email']))
+            		$data[]=$comment['email'];
+            }
+            if (count($data)==0)
+            {
+            	$send_result['data'] = 'No comments to check.';
+            	$send_result['result'] = 'errors';
+            	die();
+            }
+            $request=Array();$data=implode(',',$data);
+        	$request['method_name'] = 'spam_check_cms';
+        	$request['auth_key'] = $config['apikey'];
+        	$request['data'] = $data;
+        	$url='https://api.cleantalk.org';
+        	$result=cleantalk\classes\sendRawRequest($url, $request);
+       		$result=json_decode($result);
+       		if (isset($result->error_message))
+       		{
+       			$send_result['data']=$result->error_message;
+       			$send_result['result']='error';
+       		}
+       		else
+       		{
+       			if (isset($result->data))
+       			{
+       				foreach($result->data as $mail=>$value)
+       				{
+       					error_log(print_r($value,true));
+       					if ($value->appears == '1' )
+       					{
+       						foreach ($comments as $comment)
+       						{
+       							if ($comment['email']==$mail || $comment['ip']==$mail)
+       								$spam_comments[]=$comment;
+       						}
+       					}
+       				}
+       			}
+       			if (count($spam_comments)>0)
+       			{
+        			$send_result['data']['spam_comments']=$spam_comments;
+	           		$send_result['result']='success';       				
+       			}
+       			else 
+       			{
+       				$send_result['data'] = 'No spam comments found.';
+ 					$send_result['result']='error';        					
+       			}     			
+       		}       		
+            print json_encode($send_result);
+			$mainframe=JFactory::getApplication();
+			$mainframe->close();
+			die();
+		}
+		if (isset($_POST['ct_del_user_ids']))
+		{
+			$spam_users = implode(',',$_POST['ct_del_user_ids']);
+			$send_result['result']=null;
+            $send_result['data']=null;
+			try {
+				$this->delete_users($spam_users);
+				$send_result['result']='success';
+				$send_result['data']='Done. '.count($_POST['ct_del_user_ids']).' users was successfuly deleted.';
+			}
+			catch (Exception $e){
+				$send_result['result']='error';
+				$send_result['data']=$e->getMessage();
+			}
+			print json_encode($send_result);
+			$mainframe=JFactory::getApplication();
+			$mainframe->close();
+			die();
+		}
+		if (isset($_POST['ct_del_comment_ids']))
+		{
+			$spam_comments = implode(',',$_POST['ct_del_comment_ids']);
+			$send_result['result']=null;
+            $send_result['data']=null;
+			try {
+				$this->delete_comments($spam_comments);
+				$send_result['result']='success';
+				$send_result['data']='Done. '.count($_POST['ct_del_comment_ids']).' comments was successfuly deleted.';
+			}
+			catch (Exception $e){
+				$send_result['result']='error';
+				$send_result['data']=$e->getMessage();
+			}
+			print json_encode($send_result);
+			$mainframe=JFactory::getApplication();
+			$mainframe->close();
+			die();			
+		}
+
     }
-    
+ private function delete_users($user_ids)
+ {
+ 	if (isset($user_ids))
+ 	{
+	 	$db = JFactory::getDBO();
+	    $db->setQuery("DELETE FROM `#__users` WHERE id IN (".$user_ids.")");
+	    $result = $db->execute();
+	    $db->setQuery("DELETE FROM `#__user_usergroup_map` WHERE user_id IN (".$user_ids.")"); 	
+	    $result=$db->execute();	
+	    $db->setQuery("DELETE FROM `#__jcomments` WHERE userid IN (".$user_ids.")"); 	
+	    $result=$db->execute();	
+ 	}
+
+ }
+
+ private function delete_comments($comment_ids)
+ {
+ 	if (isset($comment_ids))
+ 	{
+	 	$db = JFactory::getDBO();
+	    $db->setQuery("DELETE FROM `#__jcomments` WHERE id IN (".$comment_ids.")");
+	    $result = $db->execute();
+ 	}
+
+ }     
     /**
      * This event is triggered before extensions save their settings
      * Joomla 2.5+
