@@ -862,7 +862,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
        			{
        				foreach($result->data as $mail=>$value)
        				{
-       					error_log(print_r($value,true));
        					if ($value->appears == '1' )
        					{
        						foreach ($comments as $comment)
@@ -1209,12 +1208,22 @@ class plgSystemAntispambycleantalk extends JPlugin {
 				$jparam = new JRegistry($plugin->params);
 				$key_is_ok = $jparam->get('ct_key_is_ok', 0);
 				$moderate_ip = $jparam->get('moderate_ip', 0);
-
 				if (!$key_is_ok) {
 					$notice = JText::_('PLG_SYSTEM_CLEANTALK_NOTICE_APIKEY');
 					$next_notice = false;
 				}
+				else
+				{
+					$status = self::checkApiKeyStatus($config['apikey'], 'notice_paid_till');
+					if(isset($status['data']['show_notice']) && $status['data']['show_notice'] == 1 && isset($status['data']['trial']) && $status['data']['trial'] == 1) {
+							$user_token = '';
+							
+							if(isset($status['user_token'])) 
+								$user_token = 'user_token=' . $status['user_token'];
+							$notice = JText::_('PLG_SYSTEM_CLEANTALK_NOTICE_TRIAL', $user_token);
 
+						}					
+				}
 				// Notice about state of api key - trial, expired and so on.
 				if($next_notice){
 					// Short timeout before new check in hours - for bad accounts
@@ -1236,7 +1245,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 					// Default api key check timeout is small
 					$notice_check_timeout = $notice_check_timeout_short; 
 					// Good key state is stored - increase api key check timeout to long
-					if(is_array($status) && isset($status['show_notice']) && $status['show_notice'] == 0)
+					if(is_array($status) && isset($status['data']['show_notice']) && $status['data']['show_notice'] == 0)
 						$notice_check_timeout = $notice_check_timeout_long; 
 
 					// Time is greater than check timeout - need to check actual status now
@@ -1259,9 +1268,9 @@ class plgSystemAntispambycleantalk extends JPlugin {
 							$db_status['ct_status'] = serialize($status);
 							$db_status['ct_changed'] = time();
 							self::dbSetApikeyStatus($db_status['ct_status'], $db_status['ct_changed']);
+
 						}
 					}
-
 					// Time is in notice show time - need to show notice
 					if(is_array($status) && time() < strtotime("+$notice_showtime minutes", $db_status['ct_changed'])){
 						// Bad apikey status is in database - need to check actual status again,
@@ -1273,16 +1282,16 @@ class plgSystemAntispambycleantalk extends JPlugin {
 								self::dbSetApikeyStatus(serialize($new_status), $db_status['ct_changed']); // Save it with old time!
 								$status = $new_status;
 							}
-						}
 
-						if(isset($status['show_notice']) && $status['show_notice'] == 1 && isset($status['trial']) && $status['trial'] == 1) {
+						}
+					if(isset($status['data']['show_notice']) && $status['data']['show_notice'] == 1 && isset($status['data']['trial']) && $status['data']['trial'] == 1) {
 							$user_token = '';
 							
 							if(isset($status['user_token'])) 
 								$user_token = 'user_token=' . $status['user_token'];
-							
-							$notice = JText::sprintf('PLG_SYSTEM_CLEANTALK_NOTICE_TRIAL', $user_token);
+							$notice = JText::_('PLG_SYSTEM_CLEANTALK_NOTICE_TRIAL', $user_token);
 							$next_notice = false;
+
 						}
 					}
 
@@ -1794,16 +1803,13 @@ class plgSystemAntispambycleantalk extends JPlugin {
                     )
                 );
                 if (!empty($ctResponse) && is_array($ctResponse)) {
-                    if ($ctResponse['stop_queue'] == 1) {
+                    if ($ctResponse['allow'] == 0) {
                         JCommentsAJAX::showErrorMessage($ctResponse['comment'], 'comment');
-                        return false;
-                    } else if ($ctResponse['allow'] == 0) {
                         $comment->published = false;
-                        
-                        // Send notification to administrator
                         if ($config['jcomments_unpublished_nofications'] != '') {
                             JComments::sendNotification($comment, true);
                         }
+                        return false;
                     }
                 }
                 return true;
