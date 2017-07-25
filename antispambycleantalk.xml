@@ -155,6 +155,6 @@
 		</files>
 	</administration>
 	<updateservers>
-		<server type="extension" priority="1" name="CleanTalk Update Site">https://github.com/CleanTalk/joomla25-3x-antispam/blob/master/plugin-updates.xml</server>
+		<server type="extension" priority="1" name="CleanTalk Update Site">https://raw.githubusercontent.com/CleanTalk/joomla25-3x-antispam/master/plugin-updates.xml</server>
 	</updateservers>
 </extension>
