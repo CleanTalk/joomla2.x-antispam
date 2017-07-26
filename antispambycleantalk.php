@@ -16,9 +16,9 @@ defined('_JEXEC') or die('Restricted access');
 jimport('joomla.plugin.plugin');
 jimport('joomla.application.application');
 jimport('joomla.application.component.helper');
-require_once("classes\Cleantalk.php");
-require_once("classes\CleantalkRequest.php");
-require_once("classes\CleantalkResponse.php");
+require_once(dirname(__FILE__) . DS . 'classes\Cleantalk.php');
+require_once(dirname(__FILE__) . DS . 'classes\CleantalkRequest.php');
+require_once(dirname(__FILE__) . DS . 'classes\CleantalkResponse.php');
 
 class plgSystemAntispambycleantalk extends JPlugin {
     /**
