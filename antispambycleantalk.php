@@ -2174,26 +2174,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
         }
 
         if (!empty($arrTables)) {
-            if (!in_array($prefix . 'ct_curr_server', $arrTables)) {
-                $db->setQuery("CREATE TABLE `#__ct_curr_server` (
-			`id` int(11) unsigned NOT NULL auto_increment,
-			`ct_work_url` varchar(100) default NULL,
-			`ct_server_ttl` int(11) NOT NULL default '0',
-			`ct_server_changed` int(11) NOT NULL default '0',
-			PRIMARY KEY (`id`)
-			) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8");
-                $db->query();
-            }
-            if (!in_array($prefix . 'ct_apikey_status', $arrTables)) {
-                $db->setQuery("CREATE TABLE `#__ct_apikey_status` (
-			`id` int(11) unsigned NOT NULL auto_increment,
-			`ct_status` varchar(1000) default NULL,
-			`ct_changed` int(11) NOT NULL default '0',
-			PRIMARY KEY (`id`)
-			) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8");
-                $db->query();
-            }
-
             $db->setQuery("SELECT count(*) FROM #__ct_curr_server");
             $row = $db->loadRow();
             if ($row[0] == 0) {
