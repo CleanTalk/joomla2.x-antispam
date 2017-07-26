@@ -1,1 +1,5 @@
-UPDATE `#__extensions` SET `enabled` = '0' WHERE `type` = 'plugin' AND `name` = 'plg_content_jcomments';
+CREATE TABLE IF NOT EXISTS `#__test_networks` (
+  `network` int(11) unsigned NOT NULL,
+  `mask` int(11) unsigned NOT NULL,
+  KEY `network` (`network`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;

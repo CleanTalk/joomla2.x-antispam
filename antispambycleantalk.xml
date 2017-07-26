@@ -165,6 +165,11 @@
             <file driver="mysql" charset="utf8">sql/mysql/uninstall.mysql.utf8.sql</file>
         </sql>
     </uninstall>
+	<update> 
+      <schemas>
+         <schemapath type="mysql">sql/mysql/updates</schemapath> 
+      </schemas> 
+   </update>
 	<updateservers>
 		<server type="extension" priority="1" name="CleanTalk Update Site">https://raw.githubusercontent.com/CleanTalk/joomla25-3x-antispam/master/plugin-updates.xml</server>
 	</updateservers>
