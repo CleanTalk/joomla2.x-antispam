@@ -3,4 +3,4 @@ CREATE TABLE `#__sfw_networks` (
   `mask` int(11) unsigned NOT NULL,
   KEY `network` (`network`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
-DELETE FROM `jos_extensions` WHERE `name` = 'PLG_SYSTEM_CLEANTALK';
+DELETE FROM `#__extensions` WHERE `name` = 'PLG_SYSTEM_CLEANTALK';
