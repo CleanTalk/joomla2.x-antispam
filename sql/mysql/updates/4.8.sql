@@ -1,1 +1,0 @@
-UPDATE `#__extensions` set `enabled` = 0,`access`=0  WHERE `type` = 'plugin' AND `name` = 'PLG_SYSTEM_CLEANTALK';
