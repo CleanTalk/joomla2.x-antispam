@@ -262,7 +262,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 			    		$dt=Array(
 			    			'auth_key'=>$api_key,
 			    			'method_name'=> 'get_account_status');
-			    		$result = cleantalk\classes\sendRawRequest($url,$dt);
+			    		$result = sendRawRequest($url,$dt);
 						
 			    		if($result!==null){
 			    			$result=json_decode($result);
@@ -275,7 +275,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 			    		}
 						
 						// notice_paid_till
-			    		$result = cleantalk\classes\noticePaidTill($api_key);
+			    		$result = noticePaidTill($api_key);
 						$show_notice_review = 1;
 			    		if($result !== null){
 			    			$result = json_decode($result);
@@ -563,7 +563,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 						'rows' => count($data),
 						'timestamp' => time()
 					);
-					$result = cleantalk\classes\sendRawRequest('https://api.cleantalk.org/?method_name=sfw_logs&auth_key='.$ct_apikey,$qdata);
+					$result = sendRawRequest('https://api.cleantalk.org/?method_name=sfw_logs&auth_key='.$ct_apikey,$qdata);
 					$result = json_decode($result);
 
 					if(isset($result->data) && isset($result->data->rows) && $result->data->rows == count($data))
@@ -737,7 +737,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 			$platform = 'joomla3';
 					
 				
-			$result = cleantalk\classes\getAutoKey($adminmail, $website, $platform);
+			$result = getAutoKey($adminmail, $website, $platform);
 			$result = $result ? json_decode($result, true) : false;
 							
 			if (!empty($result['data']) && is_array($result['data'])){
@@ -746,7 +746,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 				// Checks if the user token is empty, then get user token by notice_paid_till()
 				if(empty($result['user_token'])){
 					
-					$result_tmp = cleantalk\classes\noticePaidTill($result['auth_key']);
+					$result_tmp = noticePaidTill($result['auth_key']);
 					$result_tmp = $result_tmp ? json_decode($result_tmp, true) : false;
 					
 					if (!empty($result_tmp['data']) && is_array($result_tmp['data']))
@@ -783,7 +783,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
         	$request['auth_key'] = $config['apikey'];
         	$request['data'] = $data;
         	$url='https://api.cleantalk.org';
-        	$result=cleantalk\classes\sendRawRequest($url, $request);
+        	$result=sendRawRequest($url, $request);
        		$result=json_decode($result);    	
        		if (isset($result->error_message))
        		{
@@ -849,7 +849,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
         	$request['auth_key'] = $config['apikey'];
         	$request['data'] = $data;
         	$url='https://api.cleantalk.org';
-        	$result=cleantalk\classes\sendRawRequest($url, $request);
+        	$result=sendRawRequest($url, $request);
        		$result=json_decode($result);
        		if (isset($result->error_message))
        		{
@@ -1093,7 +1093,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 							"path_to_cms" => $_SERVER['HTTP_HOST']
 						);
 						
-						$result= cleantalk\classes\sendRawRequest($url, $data);
+						$result= sendRawRequest($url, $data);
 						$result = $result ? json_decode($result, true) : false;
 						
 						$key_is_ok = isset($result) ? $result['valid'] : 0;
@@ -1999,7 +1999,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
         if(!defined('DS')){
             define('DS', DIRECTORY_SEPARATOR);
         }
-        $ct_request = new cleantalk\classes\CleantalkRequest;
+        $ct_request = new CleantalkRequest;
         
         foreach ($ctFbParams as $k => $v) {
             $ct_request->$k = $v;
@@ -2048,7 +2048,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
             define('DS', DIRECTORY_SEPARATOR);
         }
         		
-        $ct_request = new cleantalk\classes\CleantalkRequest;
+        $ct_request = new CleantalkRequest;
         
         foreach ($params as $k => $v) {
             $ct_request->$k = $v;
@@ -2114,7 +2114,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
                 define('DS', DIRECTORY_SEPARATOR);
             }
             
-            self::$CT = new cleantalk\classes\Cleantalk;
+            self::$CT = new Cleantalk;
             self::$CT->server_url = $config['server'];
         }
 

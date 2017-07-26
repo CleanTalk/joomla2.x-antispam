@@ -1,5 +1,4 @@
 <?
-namespace cleantalk\classes;
 /**
  * Response class
  */

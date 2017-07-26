@@ -1,5 +1,4 @@
 <?php
-namespace cleantalk\classes;
 /**
  * Cleantalk base class
  *
