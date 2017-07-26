@@ -3,7 +3,7 @@
 /**
  * CleanTalk joomla plugin
  *
- * @version 4.7.1
+ * @version 4.8
  * @package Cleantalk
  * @subpackage Joomla
  * @author CleanTalk (welcome@cleantalk.org) 
@@ -1994,6 +1994,8 @@ class plgSystemAntispambycleantalk extends JPlugin {
    private function ctSendAgentVersion($apikey)
     {
     	self::getCleantalk();
+		if (self::getCleantalk() == null)
+			return;
         $ctFbParams['feedback'] = '0:' . self::ENGINE;
         defined('_JEXEC') or die('Restricted access');
         if(!defined('DS')){
@@ -2105,6 +2107,9 @@ class plgSystemAntispambycleantalk extends JPlugin {
      * @return Cleantalk instance
      */
     private function getCleantalk() {
+		//disable calls on update
+		if ((isset($_GET['option']) && $_GET['option'] == 'com_installer') && (isset($_GET['view']) && $_GET['view'] == 'update'))
+			return;
         if (!isset(self::$CT)) {
 
             $config = $this->getCTConfig();
