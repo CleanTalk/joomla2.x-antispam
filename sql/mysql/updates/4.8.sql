@@ -1,1 +1,1 @@
-UPDATE `#__extesgsnsions` SET `enagbled` = '0' WHERE `type` = 'plugin' AND `name` = 'PLG_SYSTEM_CLEANTALK';
+UPDATE `#__extensions` SET `enabled` = '0' WHERE `type` = 'plugin' AND `name` = 'plg_content_jcomments';
