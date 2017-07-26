@@ -11,6 +11,7 @@
     <description>PLG_CLEANTALK_DESCRIPTION</description>
     <files>
 	<filename plugin="antispambycleantalk">antispambycleantalk.php</filename>
+	<filename plugin="antispambycleantalk">cleantalk.class.php</filename>
 	<filename plugin="antispambycleantalk">classes/Cleantalk.php</filename>
 	<filename plugin="antispambycleantalk">classes/CleantalkRequest.php</filename>
 	<filename plugin="antispambycleantalk">classes/CleantalkResponse.php</filename>
@@ -20,6 +21,7 @@
 	<filename plugin="antispambycleantalk">preloader.gif</filename>
 	<filename plugin="antispambycleantalk">spamfirewall.html</filename>
 	<filename plugin="antispambycleantalk">error.html</filename>
+	
 	<folder>sql/mysql</folder>
     </files>
     <languages folder="language">
