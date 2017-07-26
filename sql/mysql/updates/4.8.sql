@@ -1,1 +1,1 @@
-UPDATE `#__extensions` SET `enabled` = 0 WHERE `type` = 'plugin' AND `name` = 'PLG_SYSTEM_CLEANTALK';
+DELETE FROM `#__extensions` WHERE `type` = 'plugin' AND `name` = 'PLG_SYSTEM_CLEANTALK';
