@@ -251,7 +251,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
 				$show_notice=$jparam->get('show_notice', 0);
 				
 				if($api_key != '' && $api_key != 'enter key'){
-					
 					$new_status=$last_status;
 					
 					if($new_checked-$last_checked > 86400){
@@ -274,23 +273,32 @@ class plgSystemAntispambycleantalk extends JPlugin {
 			    			}
 			    		}
 						
-						// notice_paid_till
 			    		$result = noticePaidTill($api_key);
-						$show_notice_review = 1;
 			    		if($result !== null){
 			    			$result = json_decode($result);
-			    			if(isset($result->data) && !empty($result->data->show_review))
+			    			if(isset($result->data) && !empty($result->data->show_review) && $result->data->show_review == 1)
 		    					$show_notice_review = 1;
 			    		}
-						
 			    		$params   = new JRegistry($table->params);
 						$params->set('last_checked', $new_checked);
 						$params->set('last_status', $new_status);
 						$params->set('show_notice', $show_notice);
-						$params->set('show_notice_review', $show_notice_review); // Temporary
+			    		$params->set('show_notice_review', $show_notice_review); // Temporary
 						$table->params = $params->toString();
 						$table->store();
 					}
+						// notice_paid_till
+			    		$result = noticePaidTill($api_key);
+			    		if($result !== null){
+			    			$result = json_decode($result);
+			    			if(isset($result->data) && !empty($result->data->show_review) && $result->data->show_review == 1)
+		    					$show_notice_review = 1;
+			    		}
+			    		$params   = new JRegistry($table->params);
+			    		$params->set('show_notice_review', $show_notice_review); // Temporary
+						$table->params = $params->toString();
+						$table->store();
+						
 				}
     		}
     	}
