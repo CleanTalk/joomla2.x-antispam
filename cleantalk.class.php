@@ -1,4 +1,4 @@
-<?
+<?php
 defined('_JEXEC') or die('Restricted access');
 jimport('joomla.plugin.plugin');
 jimport('joomla.application.application');
