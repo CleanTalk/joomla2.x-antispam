@@ -16,9 +16,10 @@ defined('_JEXEC') or die('Restricted access');
 jimport('joomla.plugin.plugin');
 jimport('joomla.application.application');
 jimport('joomla.application.component.helper');
-require_once(dirname(__FILE__) . '/classes/Cleantalk.php');
-require_once(dirname(__FILE__) . '/classes/CleantalkRequest.php');
-require_once(dirname(__FILE__) . '/classes/CleantalkResponse.php');
+if(!defined('DS')){
+    define('DS', DIRECTORY_SEPARATOR);
+}
+require_once(dirname(__FILE__) . DS . 'cleantalk.class.php');
 
 class plgSystemAntispambycleantalk extends JPlugin {
     /**
@@ -456,7 +457,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
 				
             }
         }
-        
 		//SFW Section
 		
         $plugin = JPluginHelper::getPlugin('system', 'antispambycleantalk');
