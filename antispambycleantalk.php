@@ -3,7 +3,7 @@
 /**
  * CleanTalk joomla plugin
  *
- * @version 4.8
+ * @version 4.8.1
  * @package Cleantalk
  * @subpackage Joomla
  * @author CleanTalk (welcome@cleantalk.org) 
@@ -25,7 +25,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
     /**
      * Plugin version string for server
      */
-    const ENGINE = 'joomla3-48';
+    const ENGINE = 'joomla3-481';
     
     /**
      * Default value for hidden field ct_checkjs 
@@ -784,47 +784,50 @@ class plgSystemAntispambycleantalk extends JPlugin {
             {
             	$send_result['data'] = 'No users to check.';
             	$send_result['result'] = 'error';
-            	die();
             }
-            $request=Array();
-        	$request['method_name'] = 'spam_check_cms';
-        	$request['auth_key'] = $config['apikey'];
-        	$request['data'] = $data;
-        	$url='https://api.cleantalk.org';
-        	$result=sendRawRequest($url, $request);
-       		$result=json_decode($result);    	
-       		if (isset($result->error_message))
-       		{
-       			$send_result['data'] = $result->error_message;
-       			$send_result['result']='error';
-       		}
-       		else
-       		{
-       			if (isset($result->data))
-       			{
-       				foreach($result->data as $mail=>$value)
-       				{
-       					if ($value->appears == '1' )
-       					{
-       						foreach ($users as $user)
-       						{
-       							if ($user['email']==$mail)
-       								$spam_users[]=$user;
-       						}
-       					}
-       				}
-       			}
-       			if (count($spam_users)>0)
-       			{
-        			$send_result['data']['spam_users']=$spam_users;
-	           		$send_result['result']='success';       				
-       			}
-       			else 
-       			{
-       				$send_result['data']='No spam users found.';
-       				$send_result['result']='error';
-       			}
-       		}        
+            else 
+            {
+	            $request=Array();
+	        	$request['method_name'] = 'spam_check_cms';
+	        	$request['auth_key'] = $config['apikey'];
+	        	$request['data'] = $data;
+	        	$url='https://api.cleantalk.org';
+	        	$result=sendRawRequest($url, $request);
+	       		$result=json_decode($result);    	
+	       		if (isset($result->error_message))
+	       		{
+	       			$send_result['data'] = $result->error_message;
+	       			$send_result['result']='error';
+	       		}
+	       		else
+	       		{
+	       			if (isset($result->data))
+	       			{
+	       				foreach($result->data as $mail=>$value)
+	       				{
+	       					if ($value->appears == '1' )
+	       					{
+	       						foreach ($users as $user)
+	       						{
+	       							if ($user['email']==$mail)
+	       								$spam_users[]=$user;
+	       						}
+	       					}
+	       				}
+	       			}
+	       			if (count($spam_users)>0)
+	       			{
+	        			$send_result['data']['spam_users']=$spam_users;
+		           		$send_result['result']='success';       				
+	       			}
+	       			else 
+	       			{
+	       				$send_result['data']='No spam users found.';
+	       				$send_result['result']='error';
+	       			}
+	       		}             	
+            }
+       
             print json_encode($send_result);
 			$mainframe=JFactory::getApplication();
 			$mainframe->close();
@@ -836,61 +839,66 @@ class plgSystemAntispambycleantalk extends JPlugin {
 			$db = JFactory::getDBO();$config = $this->getCTConfig();
             $db->setQuery("SELECT * FROM `#__jcomments`");
             $comments = $db->loadAssocList();
-            $data = array();$spam_comments=array();
-            $send_result['result']=null;
-            $send_result['data']=null;
-            foreach ($comments as $comment)
-            {
-            	if (!empty($comment['ip']))
-            		$data[]=$comment['ip'];
-            	if (!empty($comment['email']))
-            		$data[]=$comment['email'];
-            }
-            if (count($data)==0)
+            if (empty($comments))
             {
             	$send_result['data'] = 'No comments to check.';
-            	$send_result['result'] = 'errors';
-            	die();
+            	$send_result['result'] = 'error';            	
             }
-            $request=Array();$data=implode(',',$data);
-        	$request['method_name'] = 'spam_check_cms';
-        	$request['auth_key'] = $config['apikey'];
-        	$request['data'] = $data;
-        	$url='https://api.cleantalk.org';
-        	$result=sendRawRequest($url, $request);
-       		$result=json_decode($result);
-       		if (isset($result->error_message))
-       		{
-       			$send_result['data']=$result->error_message;
-       			$send_result['result']='error';
-       		}
-       		else
-       		{
-       			if (isset($result->data))
-       			{
-       				foreach($result->data as $mail=>$value)
-       				{
-       					if ($value->appears == '1' )
-       					{
-       						foreach ($comments as $comment)
-       						{
-       							if ($comment['email']==$mail || $comment['ip']==$mail)
-       								$spam_comments[]=$comment;
-       						}
-       					}
-       				}
-       			}
-       			if (count($spam_comments)>0)
-       			{
-        			$send_result['data']['spam_comments']=$spam_comments;
-	           		$send_result['result']='success';       				
-       			}
-       			else 
-       			{
-       				$send_result['data'] = 'No spam comments found.';
- 					$send_result['result']='error';        					
-       			}     			
-       		}       		
+            else 
+            {
+	            $data = array();$spam_comments=array();
+	            $send_result['result']=null;
+	            $send_result['data']=null;
+	            foreach ($comments as $comment)
+	            {
+	            	if (!empty($comment['ip']))
+	            		$data[]=$comment['ip'];
+	            	if (!empty($comment['email']))
+	            		$data[]=$comment['email'];
+	            }
+	            if (count($data)>0)
+	            {
+		            $request=Array();$data=implode(',',$data);
+		        	$request['method_name'] = 'spam_check_cms';
+		        	$request['auth_key'] = $config['apikey'];
+		        	$request['data'] = $data;
+		        	$url='https://api.cleantalk.org';
+		        	$result=sendRawRequest($url, $request);
+		       		$result=json_decode($result);
+		       		if (isset($result->error_message))
+		       		{
+		       			$send_result['data']=$result->error_message;
+		       			$send_result['result']='error';
+		       		}
+		       		else
+		       		{
+		       			if (isset($result->data))
+		       			{
+		       				foreach($result->data as $mail=>$value)
+		       				{
+		       					if ($value->appears == '1' )
+		       					{
+		       						foreach ($comments as $comment)
+		       						{
+		       							if ($comment['email']==$mail || $comment['ip']==$mail)
+		       								$spam_comments[]=$comment;
+		       						}
+		       					}
+		       				}
+		       			}
+		       			if (count($spam_comments)>0)
+		       			{
+		        			$send_result['data']['spam_comments']=$spam_comments;
+			           		$send_result['result']='success';       				
+		       			}
+		       			else 
+		       			{
+		       				$send_result['data'] = 'No spam comments found.';
+		 					$send_result['result']='error';        					
+		       			}     			
+		       		}	            	
+	            }             	
+            }      		
             print json_encode($send_result);
 			$mainframe=JFactory::getApplication();
 			$mainframe->close();
