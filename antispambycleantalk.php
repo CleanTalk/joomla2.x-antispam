@@ -2654,7 +2654,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 	 * @return 	array|boolean Assoc array or FALSE
 	 */
         private function checkApiKeyStatus($apikey, $method){
-	    if (function_exists('curl_init') && function_exists('json_decode')) {
+	    if (function_exists('curl_init')) {
                 //$url = 'https://cleantalk.org/app_notice';
                 $url = 'https://api.cleantalk.org';
                 $server_timeout = 2;
