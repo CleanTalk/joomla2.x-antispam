@@ -51,7 +51,7 @@ jQuery(document).ready(function(){
 				.parent()
 				.append("<p class='ct_status_label green'>"+ct_key_is_ok_notice+"</p>");
 		
-		if(ct_user_token)
+		if(ct_user_token != '')
 			jQuery('.cleantalk_key_control')
 				.parent().parent()
 				.html('')
