@@ -1133,15 +1133,19 @@ class plgSystemAntispambycleantalk extends JPlugin {
 				$id = $this->getId('system','antispambycleantalk');
 				$table = JTable::getInstance('extension');
 				$table->load($id);
-				$params = new JRegistry($table->params);
-				
+				$params = new JRegistry($table->params);					
 				if(!$key_is_ok){						
 					$params->set('ct_key_is_ok', 0);
 					$params->set('user_token', '');
 				}else{
 					$params->set('ct_key_is_ok', 1);
-				}
-							
+					$status = self::checkApiKeyStatus($current_key, 'notice_paid_till');
+					if(isset($status['data']['user_token']))
+					{
+						$user_token = 'user_token=' . $status['data']['user_token'];
+						$params->set('user_token', $user_token);
+					} 
+				}	
 				$table->params = $params->toString();
 				$table->store();
 							
@@ -1259,13 +1263,12 @@ class plgSystemAntispambycleantalk extends JPlugin {
 				{
 					$status = self::checkApiKeyStatus($config['apikey'], 'notice_paid_till');
 					if(isset($status['data']['show_notice']) && $status['data']['show_notice'] == 1 && isset($status['data']['trial']) && $status['data']['trial'] == 1) {
-							$user_token = '';
-							
-							if(isset($status['user_token'])) 
-								$user_token = 'user_token=' . $status['user_token'];
+							$user_token = '';							
 							$notice = JText::_('PLG_SYSTEM_CLEANTALK_NOTICE_TRIAL', $user_token);
 
-						}					
+						}
+					if(isset($status['data']['user_token'])) 
+						$user_token = 'user_token=' . $status['data']['user_token'];					
 				}
 				// Notice about state of api key - trial, expired and so on.
 				if($next_notice){
@@ -1329,13 +1332,11 @@ class plgSystemAntispambycleantalk extends JPlugin {
 						}
 					if(isset($status['data']['show_notice']) && $status['data']['show_notice'] == 1 && isset($status['data']['trial']) && $status['data']['trial'] == 1) {
 							$user_token = '';
-							
-							if(isset($status['user_token'])) 
-								$user_token = 'user_token=' . $status['user_token'];
 							$notice = JText::_('PLG_SYSTEM_CLEANTALK_NOTICE_TRIAL', $user_token);
 							$next_notice = false;
 
 						}
+
 					}
 
 				}
