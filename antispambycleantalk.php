@@ -971,8 +971,14 @@ class plgSystemAntispambycleantalk extends JPlugin {
 	    $result = $db->execute();
 	    $db->setQuery("DELETE FROM `#__user_usergroup_map` WHERE user_id IN (".$user_ids.")"); 	
 	    $result=$db->execute();	
-	    $db->setQuery("DELETE FROM `#__jcomments` WHERE userid IN (".$user_ids.")"); 	
-	    $result=$db->execute();	
+	    $db->setQuery("SHOW TABLES LIKE '#__jcomments'");
+		$jtable = $db->loadAssocList();
+		if (!empty($jtable))
+		{
+	 	    $db->setQuery("DELETE FROM `#__jcomments` WHERE userid IN (".$user_ids.")"); 	
+		    $result=$db->execute();					
+		}
+
  	}
 
  }
