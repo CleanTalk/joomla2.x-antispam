@@ -1012,6 +1012,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 	    if(isset($new_config->apikey) && $new_config->apikey != $config['apikey'] && trim($new_config->apikey) != '' && $new_config->apikey != 'enter key'){
 			self::ctSendAgentVersion($new_config->apikey);
 	    }
+
 	}
     /**
      * This event is triggered after extension save their settings
@@ -1020,7 +1021,46 @@ class plgSystemAntispambycleantalk extends JPlugin {
      */        
 	public function onExtensionAfterSave($name, $data)
 	{
-		$this->onBeforeCompileHead();
+		$new_config=json_decode($data->params);
+		$id = $this->getId('system','antispambycleantalk');
+		$table = JTable::getInstance('extension');
+		$table->load($id);
+		$params = new JRegistry($table->params);			
+		$url='https://api.cleantalk.org';
+		$data = array(
+							"method_name" => "notice_validate_key",
+							"auth_key" => $new_config->apikey,
+							"path_to_cms" => $_SERVER['HTTP_HOST']
+						);						
+		$result= sendRawRequest($url, $data);
+		$result = $result ? json_decode($result, true) : false;						
+		$key_is_ok = isset($result) ? $result['valid'] : 0;
+		if (!$key_is_ok) {
+			$notice = JText::_('PLG_SYSTEM_CLEANTALK_NOTICE_APIKEY');
+			$params->set('ct_key_is_ok', 0);
+			$params->set('user_token', '');
+		}
+		else
+		{
+			$params->set('ct_key_is_ok', 1);			
+			$status = self::checkApiKeyStatus($new_config->apikey, 'notice_paid_till');
+			if(isset($status['data']['show_notice']) && $status['data']['show_notice'] == 1 && isset($status['data']['trial']) && $status['data']['trial'] == 1) {
+				$user_token = '';							
+				$notice = JText::_('PLG_SYSTEM_CLEANTALK_NOTICE_TRIAL', $user_token);
+				}								
+			else
+			{
+				if(isset($status['data']['user_token']))
+					$user_token = 'user_token=' . $status['data']['user_token'];
+			}
+			$params->set('user_token', $user_token);
+
+		} 
+		$table->params = $params->toString();
+		$table->store();
+		// Show notice when defined
+		if(!empty($notice) && empty($moderate_ip))
+			JError::raiseNotice(1024, $notice);	
 	}  
     /*
     exception for MijoShop ajax calls
@@ -1139,25 +1179,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
 						$key_is_ok = isset($result) ? $result['valid'] : 0;
 					}
 				}
-				
-				$id = $this->getId('system','antispambycleantalk');
-				$table = JTable::getInstance('extension');
-				$table->load($id);
-				$params = new JRegistry($table->params);					
-				if(!$key_is_ok){						
-					$params->set('ct_key_is_ok', 0);
-					$params->set('user_token', '');
-				}else{
-					$params->set('ct_key_is_ok', 1);
-					$status = self::checkApiKeyStatus($current_key, 'notice_paid_till');
-					if(isset($status['data']['user_token']))
-					{
-						$user_token = 'user_token=' . $status['data']['user_token'];
-						$params->set('user_token', $user_token);
-					} 
-				}
-				$table->params = $params->toString();
-				$table->store();
 							
 				// Passing parameters to JS
 				$document->addScriptDeclaration('
@@ -1265,20 +1286,15 @@ class plgSystemAntispambycleantalk extends JPlugin {
 				$jparam = new JRegistry($plugin->params);
 				$key_is_ok = $jparam->get('ct_key_is_ok', 0);
 				$moderate_ip = $jparam->get('moderate_ip', 0);
+				$user_token = $jparam->get('user_token','');
 				if (!$key_is_ok) {
 					$notice = JText::_('PLG_SYSTEM_CLEANTALK_NOTICE_APIKEY');
 					$next_notice = false;
 				}
 				else
 				{
-					$status = self::checkApiKeyStatus($config['apikey'], 'notice_paid_till');
-					if(isset($status['data']['show_notice']) && $status['data']['show_notice'] == 1 && isset($status['data']['trial']) && $status['data']['trial'] == 1) {
-							$user_token = '';							
-							$notice = JText::_('PLG_SYSTEM_CLEANTALK_NOTICE_TRIAL', $user_token);
-
-						}
-					if(isset($status['data']['user_token'])) 
-						$user_token = 'user_token=' . $status['data']['user_token'];					
+					if(empty($user_token))						
+						$notice = JText::_('PLG_SYSTEM_CLEANTALK_NOTICE_TRIAL', $user_token);				
 				}
 				// Notice about state of api key - trial, expired and so on.
 				if($next_notice){
