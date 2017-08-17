@@ -35,7 +35,7 @@ jQuery(document).ready(function(){
 	
 	var ct_auth_key = jQuery('.cleantalk_auth_key').prop('value'),
 		ct_notice_cookie = ct_getCookie('ct_notice_cookie');
-		if (ct_joom25)
+	if (ct_joom25)
 		{
 			jQuery('#checkuserscomments-options').append("<div id='attrib-checkuserscomments'></div>");
 		}
@@ -46,19 +46,31 @@ jQuery(document).ready(function(){
 	if(ct_key_is_ok == 1){
 		
 		jQuery("a[href='index.php?option=com_plugins&view=plugins&filter_search=cleantalk']").parents('.alert-info').hide();
-		if(ct_moderate_ip == 0)
-			jQuery('#jform_params_apikey').css('border-bottom', '2px solid green')
-				.parent()
-				.append("<p class='ct_status_label green'>"+ct_key_is_ok_notice+"</p>");
 		
 		if(ct_user_token)
-			jQuery('.cleantalk_key_control')
-				.parent().parent()
-				.html('')
-				.append("<div id='key_buttons_wrapper'></div>").children()
-					.append("<a target='_blank'></a>").children('a')
-						.attr('href', 'https://cleantalk.org/my?user_token='+ct_user_token)
-						.append("<button class='key_buttons' id='ct_cp_button' type='button'>"+ct_statlink_label+"</button>");					
+		{
+			if (ct_joom25)
+			{
+				jQuery('.cleantalk_key_control')
+					.parent().parent()
+					.html('')
+					.append("<div id='key_buttons_wrapper'></div>").children()
+						.append("<a target='_blank'></a>").children('a')
+							.attr('href', 'https://cleantalk.org/my?user_token='+ct_user_token)
+							.append("<button class='key_buttons' id='ct_cp_button' type='button'><span class='icon-bars'></span>"+ct_statlink_label+"</button>");					
+			}
+			else
+			{
+				jQuery('.cleantalk_key_control')
+					.parent().parent()
+					.html('')
+					.append("<div id='key_buttons_wrapper'></div>").children()
+						.append("<a target='_blank'></a>").children('a')
+							.attr('href', 'https://cleantalk.org/my?user_token='+ct_user_token)
+							.append("<button class='btn btn-success' id='ct_cp_button' type='button'><span class='icon-bars'></span>"+ct_statlink_label+"</button>");	
+			}
+				
+		}
 	// Viewing buttons to get key
 	}else{
 		
@@ -66,7 +78,9 @@ jQuery(document).ready(function(){
 			jQuery('#jform_params_apikey').css('border-bottom', '2px solid red')
 				.parent()
 				.append("<p class='ct_status_label red'>"+ct_key_is_bad_notice+"</p>");
-			
+		
+		if (ct_joom25)
+		{
 			jQuery('.cleantalk_key_control')
 				.parent().parent()
 				.html('')
@@ -78,7 +92,25 @@ jQuery(document).ready(function(){
 						.append("<button class='key_buttons' id='ct_manual_button' type='button'>"+ct_manualkey_label+"</button>").parents('#key_buttons_wrapper')
 					.append("<p id='ct_email_warning'>"+ct_key_notice1+cleantalk_mail+ct_key_notice2+"</p>")
 					.append("<br>")
-					.append("<a id='ct_license_agreement' href='https://cleantalk.org/publicoffer' target='_blank'>"+ct_license_notice+"</a>");
+					.append("<a id='ct_license_agreement' href='https://cleantalk.org/publicoffer' target='_blank'>"+ct_license_notice+"</a>");			
+		}
+		else
+		{
+			jQuery('.cleantalk_key_control')
+				.parent().parent()
+				.html('')
+				.append("<div id='key_buttons_wrapper'></div>").children()
+					.append("<button class='btn btn-success' id='ct_auto_button' type='button'>"+ct_autokey_label+"</button>")
+					.append("<img class='display_none' id='ct_preloader' src='../plugins/system/antispambycleantalk/preloader.gif' />")
+					.append("<a target='_blank'></a>").children('a')
+						.attr('href', 'https://cleantalk.org/register?platform=joomla3&email=' + cleantalk_mail + '&website=' + cleantalk_domain)
+						.append("<button class='btn btn-success' id='ct_manual_button' type='button'>"+ct_manualkey_label+"</button>").parents('#key_buttons_wrapper')
+					.append("<br><br>")
+					.append("<p id='ct_email_warning'>"+ct_key_notice1+cleantalk_mail+ct_key_notice2+"</p>")
+					.append("<br><br>")
+					.append("<a id='ct_license_agreement' href='https://cleantalk.org/publicoffer' target='_blank'>"+ct_license_notice+"</a>");			
+		}	
+
 		}
 	}
 	

@@ -1036,7 +1036,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 		$result = $result ? json_decode($result, true) : false;						
 		$key_is_ok = isset($result) ? $result['valid'] : 0;
 		if (!$key_is_ok) {
-			$notice = JText::_('PLG_SYSTEM_CLEANTALK_NOTICE_APIKEY');
+			$notice = JText::sprintf('PLG_SYSTEM_CLEANTALK_NOTICE_APIKEY',$id);
 			$params->set('ct_key_is_ok', 0);
 			$params->set('user_token', '');
 		}
@@ -1273,7 +1273,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
         $app = JFactory::getApplication();
         if ($app->isAdmin()){
             if ($this->ct_admin_notices == 0 && JFactory::getUser()->authorise('core.admin')) {
-				
+				$id = $this->getId('system','antispambycleantalk');
 				$this->ct_admin_notices++;
 				$this->loadLanguage();
 				$config = $this->getCTConfig();
@@ -1288,7 +1288,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 				$moderate_ip = $jparam->get('moderate_ip', 0);
 				$user_token = $jparam->get('user_token','');
 				if (!$key_is_ok) {
-					$notice = JText::_('PLG_SYSTEM_CLEANTALK_NOTICE_APIKEY');
+					$notice = JText::sprintf('PLG_SYSTEM_CLEANTALK_NOTICE_APIKEY',$id);
 					$next_notice = false;
 				}
 				else
