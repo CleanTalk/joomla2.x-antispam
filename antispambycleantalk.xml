@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <extension version="2.5" type="plugin" group="system"  method="upgrade" >
-    <name>PLG_SYSTEM_CLEANTALK</name>
+    <name>PLG_SYSTEM_CLEANTALK_NAME</name>
     <author>CleanTalk team</author>
     <creationDate>25.07.2017</creationDate>
     <copyright>(C) CleanTalk</copyright>
