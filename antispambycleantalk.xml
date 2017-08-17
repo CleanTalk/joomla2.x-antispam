@@ -64,10 +64,6 @@
 			<field name="sfw_reload_timeout" type="hidden" 
 				default="3" 
 			/>
-            <field name="pluginhomepage" type="spacer" 
-				label="PLG_SYSTEM_CLEANTALK_PARAM_HOMEPAGE" 
-				description="" 
-			/>
 			<field name="sfw_last_send_log" type="hidden" 
 				default="0" 
 			/>
