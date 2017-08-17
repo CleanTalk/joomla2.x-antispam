@@ -458,7 +458,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
             }
         }
 		//SFW Section
-		
+		$this->loadLanguage();		
         $plugin = JPluginHelper::getPlugin('system', 'antispambycleantalk');
         $jparam = new JRegistry($plugin->params);
         $sfw_enable = $jparam->get('sfw_enable', 0);
@@ -926,7 +926,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 			try {
 				$this->delete_users($spam_users);
 				$send_result['result']='success';
-				$send_result['data']='Done. '.count($_POST['ct_del_user_ids']).' users was successfuly deleted.';
+				$send_result['data']=JText::sprintf('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_USERS_DELDONE', count($_POST['ct_del_user_ids']));
 			}
 			catch (Exception $e){
 				$send_result['result']='error';
@@ -945,7 +945,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 			try {
 				$this->delete_comments($spam_comments);
 				$send_result['result']='success';
-				$send_result['data']='Done. '.count($_POST['ct_del_comment_ids']).' comments was successfuly deleted.';
+				$send_result['data']=JText::sprintf('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_COMMENTS_DELDONE', count($_POST['ct_del_user_ids']));
 			}
 			catch (Exception $e){
 				$send_result['result']='error';
@@ -1175,7 +1175,11 @@ class plgSystemAntispambycleantalk extends JPlugin {
 						ct_spamcheck_table_username = "'.JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_TABLE_USERNAME').'",
 						ct_spamcheck_table_joined = "'.JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_TABLE_JOINED').'",
 						ct_spamcheck_table_email = "'.JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_TABLE_EMAIL').'",
-						ct_spamcheck_table_lastvisit = "'.JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_TABLE_LASTVISIT').'";														
+						ct_spamcheck_table_lastvisit = "'.JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_TABLE_LASTVISIT').'",
+						ct_spamcheck_users_delconfirm = "'.JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_USERS_DELCONFIRM').'",
+						ct_spamcheck_users_delconfirm_error = "'.JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_USERS_DELCONFIRM_ERROR').'",
+						ct_spamcheck_comments_delconfirm = "'.JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_COMMENTS_DELCONFIRM').'",
+						ct_spamcheck_comments_delconfirm_error = "'.JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_COMMENTS_DELCONFIRM_ERROR').'";																
 				');
 				
 				//Admin JS and CSS

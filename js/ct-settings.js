@@ -287,7 +287,7 @@ jQuery(document).ready(function(){
 			}
 			if (data['ct_del_user_ids[]'].length>0)
 			{
-				if (confirm('Are you sure? All comments from selected users will be also deleted!')==true)
+				if (confirm(ct_spamcheck_users_delconfirm)==true)
 				{
 					jQuery("#spam_results").empty();		
 						jQuery('#ct_preloader_spam_results').show();
@@ -308,7 +308,7 @@ jQuery(document).ready(function(){
 				}
 		
 			}
-			else alert('No selected users!');			
+			else alert(ct_spamcheck_users_delconfirm_error);			
 	}
 	function delete_comment(all=false)
 	{
@@ -335,7 +335,7 @@ jQuery(document).ready(function(){
 			}
 			if (data['ct_del_comment_ids[]'].length>0)
 			{
-				if (confirm('Are you sure?')==true)
+				if (confirm(ct_spamcheck_comments_delconfirm)==true)
 				{
 					jQuery("#spam_results").empty();		
 						jQuery('#ct_preloader_spam_results').show();
@@ -356,5 +356,5 @@ jQuery(document).ready(function(){
 				}
 		
 			}
-			else alert('No selected comments!');			
+			else alert(ct_spamcheck_comments_delconfirm_error);			
 	}	
