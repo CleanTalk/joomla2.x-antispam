@@ -988,20 +988,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
 
  }     
     /**
-     * This event is triggered before extensions save their settings
-     * Joomla 2.5+
-     * @access public
-     */
-    
-    public function onExtensionBeforeSave($name, $data){
-				
-    	$config = $this->getCTConfig();
-    	$new_config=json_decode($data->params);
-    	if(isset($new_config->apikey) && $new_config->apikey != $config['apikey'] && trim($new_config->apikey) != '' && $new_config->apikey != 'enter key'){
-			self::ctSendAgentVersion($new_config->apikey);
-    	}
-    }
-    /**
      * This event is triggered after update extension
      * Joomla 2.5+
      * @access public
@@ -1014,7 +1000,28 @@ class plgSystemAntispambycleantalk extends JPlugin {
 			self::ctSendAgentVersion($config['apikey']);
     	}
     }
-   
+    /**
+     * This event is triggered before extension save their settings
+     * Joomla 2.5+
+     * @access public
+     */        
+	public function onExtensionBeforeSave($name, $data)
+	{
+	    $config = $this->getCTConfig();
+	    $new_config=json_decode($data->params);
+	    if(isset($new_config->apikey) && $new_config->apikey != $config['apikey'] && trim($new_config->apikey) != '' && $new_config->apikey != 'enter key'){
+			self::ctSendAgentVersion($new_config->apikey);
+	    }
+	}
+    /**
+     * This event is triggered after extension save their settings
+     * Joomla 2.5+
+     * @access public
+     */        
+	public function onExtensionAfterSave($name, $data)
+	{
+		$this->onBeforeCompileHead();
+	}  
     /*
     exception for MijoShop ajax calls
     */
@@ -1244,7 +1251,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
     public function onAfterDispatch() {
         $app = JFactory::getApplication();
         if ($app->isAdmin()){
-			
             if ($this->ct_admin_notices == 0 && JFactory::getUser()->authorise('core.admin')) {
 				
 				$this->ct_admin_notices++;
@@ -1291,7 +1297,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
 					}catch(Exception $e){
 
 					}
-
 					// Default api key check timeout is small
 					$notice_check_timeout = $notice_check_timeout_short; 
 					// Good key state is stored - increase api key check timeout to long
