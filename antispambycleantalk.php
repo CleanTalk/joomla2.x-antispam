@@ -457,6 +457,9 @@ class plgSystemAntispambycleantalk extends JPlugin {
 				
             }
         }
+        $app = JFactory::getApplication();
+		if($app->isAdmin() && strpos(JFactory::getUri(), 'com_plugins&view=plugin&layout=edit&extension_id='.$this->getId('system','antispambycleantalk')))
+		{
 		//SFW Section
 		$this->loadLanguage();		
         $plugin = JPluginHelper::getPlugin('system', 'antispambycleantalk');
@@ -468,7 +471,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
         $sfw_log = (array)$jparam->get('sfw_log', 0);
         $sfw_last_send_log = $jparam->get('sfw_last_send_log', 0);
     	
-        $app = JFactory::getApplication();
         $save_params = array();
         /*
             Sync to local table most spam IP networks
@@ -956,6 +958,8 @@ class plgSystemAntispambycleantalk extends JPlugin {
 			$mainframe->close();
 			die();			
 		}
+		}
+
 
     }
  private function delete_users($user_ids)
@@ -1095,8 +1099,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 				$document->addScriptDeclaration("var ct_joom25=false;");
 			}
 						
-			if($app->isAdmin()){
-				
+			if($app->isAdmin() && strpos(JFactory::getUri(), 'com_plugins&view=plugin&layout=edit&extension_id='.$this->getId('system','antispambycleantalk'))){
 				$plugin = JPluginHelper::getPlugin('system', 'antispambycleantalk');
 				$jparam = new JRegistry($plugin->params);
 				$show_notice = $jparam->get('show_notice', 0);
@@ -1145,7 +1148,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 						$user_token = 'user_token=' . $status['data']['user_token'];
 						$params->set('user_token', $user_token);
 					} 
-				}	
+				}
 				$table->params = $params->toString();
 				$table->store();
 							
@@ -1230,6 +1233,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 				}
 			}
 		}
+
     }
 
     /**

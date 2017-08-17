@@ -39,7 +39,7 @@
 				description="PLG_SYSTEM_CLEANTALK_PARAM_APIKEY_DESC" 
 				size="20" 
 				class="cleantalk_auth_key"
-				default="enter key"
+				hint="enter key"
 			/>
 			<field name="key_control" type="spacer" 
 				label="PLG_SYSTEM_CLEANTALK_PARAM_KEY_CONTROL_LABEL"
