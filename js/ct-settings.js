@@ -39,7 +39,7 @@ jQuery(document).ready(function(){
 		{
 			jQuery('#checkuserscomments-options').append("<div id='attrib-checkuserscomments'></div>");
 		}
-		jQuery('#attrib-checkuserscomments').append("<center><button style=\"width:20%;\" id=\"check_spam_users\" class=\"btn btn-success \" type=\"button\"><span class=\"icon-users levels\"></span>Check users for spam</button>&nbsp;&nbsp;&nbsp;<button style=\"width:20%;\" id=\"check_spam_comments\" class=\"btn btn-success\" type=\"button\"><span class=\"icon-archive\"></span>Check comments for spam</button><br /><br />Anti-spam by <a href=https://cleantalk.org/ target=_blanl>CleanTalk</a> will check all users and comments against blacklists <a href=https://cleantalk.org/blacklists target=_blank>database</a> and show you senders that have spam activity on other websites.</center><br/><br/>")
+		jQuery('#attrib-checkuserscomments').append("<center><button style=\"width:20%;\" id=\"check_spam_users\" class=\"btn btn-success \" type=\"button\"><span class=\"icon-users levels\"></span>"+ct_spamcheck_checksusers+"</button>&nbsp;&nbsp;&nbsp;<button style=\"width:20%;\" id=\"check_spam_comments\" class=\"btn btn-success\" type=\"button\"><span class=\"icon-archive\"></span>"+ct_spamcheck_checkscomments+"</button><br /><br />"+ct_spamcheck_notice+"</center><br/><br/>")
 		jQuery('#attrib-checkuserscomments').append("<div id ='spam_results'></div>");
 		jQuery('#attrib-checkuserscomments').append("<img class='display_none' id='ct_preloader_spam_results' src='../plugins/system/antispambycleantalk/preloader.gif' />");
 	// Viewing button to access CP
