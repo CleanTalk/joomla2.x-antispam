@@ -200,7 +200,7 @@ jQuery(document).ready(function(){
 				msg=jQuery.parseJSON(msg);
 				if (msg.result == 'success')
 				{
-					var html='<center><table id = "spamusers_table" class="table table-bordered table-hover table-striped" cellspacing=0 cellpadding=3><thead><tr><th></th><th>Username</th><th>Joined</th><th>E-mail</th><th>Last visit</th></tr></thead><tbody>';
+					var html='<center><table id = "spamusers_table" class="table table-bordered table-hover table-striped" cellspacing=0 cellpadding=3><thead><tr><th></th><th>'+ct_spamcheck_table_username+'</th><th>'+ct_spamcheck_table_joined+'</th><th>'+ct_spamcheck_table_email+'</th><th>'+ct_spamcheck_table_lastvisit+'</th></tr></thead><tbody>';
 					var spam_users = msg.data.spam_users;
 					spam_users.forEach(function(item, i,arr){
 						html+="<tr>";
@@ -212,8 +212,8 @@ jQuery(document).ready(function(){
 						html+="</tr>";
 					});
 					html+="</tbody></table></center>";
-					html+="<button id='delete_sel_spam_users' class='btn btn-danger' onclick='delete_user()' type='button'>Delete selected</button>";
-					html+="<button id='delete_all_spam_users' class='btn btn-danger' onclick='delete_user(true)' type='button'>Delete all</button>";
+					html+="<button id='delete_all_spam_users' class='btn btn-danger' onclick='delete_user(true)' type='button'>"+ct_spamcheck_delall+"</button>";
+					html+="<button id='delete_sel_spam_users' class='btn btn-danger' onclick='delete_user()' type='button'>"+ct_spamcheck_delsel+"</button>";
 				}
 				if (msg.result == 'error')
 					var html='<center><h2>'+msg.data+'</h2></center>;';
@@ -249,8 +249,8 @@ jQuery(document).ready(function(){
 						html+="</tr>";						
 					});
 					html+="</tbody></table></center>";
-					html+="<button id='delete_sel_spam_comments' class='btn btn-danger' onclick='delete_comment()' type='button'>Delete selected</button>";
-					html+="<button id='delete_all_spam_comments' class='btn btn-danger' onclick='delete_comment(true)' type='button'>Delete all</button>";
+					html+="<button id='delete_all_spam_comments' class='btn btn-danger' onclick='delete_comment(true)' type='button'>"+ct_spamcheck_delall+"</button>";
+					html+="<button id='delete_sel_spam_comments' class='btn btn-danger' onclick='delete_comment()' type='button'>"+ct_spamcheck_delsel+"</button>";
 				}
 				if (msg.result == 'error')
 					var html='<center><h2>'+msg.data+'</h2></center>;';
