@@ -1058,7 +1058,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 			if(isset($status['data']['show_notice']) && $status['data']['show_notice'] == 1 && isset($status['data']['trial']) && $status['data']['trial'] == 1) {	
 				$params->set('user_token', $status['data']['user_token']);
 				$params->set('service_id','');						
-				$notice = JText::_('PLG_SYSTEM_CLEANTALK_NOTICE_TRIAL');
+				$notice = JText::sprintf('PLG_SYSTEM_CLEANTALK_NOTICE_TRIAL',$status['data']['user_token']);
 			}								
 			else
 			{
@@ -1282,7 +1282,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 				else
 				{
 					if(empty($service_id)){
-						$notice = JText::_('PLG_SYSTEM_CLEANTALK_NOTICE_TRIAL', $user_token);	
+						$notice = JText::sprintf('PLG_SYSTEM_CLEANTALK_NOTICE_TRIAL', $user_token);	
 						$next_notice =false;						
 					}						
 			
@@ -1347,7 +1347,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 
 						}
 					if(isset($status['data']['show_notice']) && $status['data']['show_notice'] == 1 && isset($status['data']['trial']) && $status['data']['trial'] == 1) {
-							$notice = JText::_('PLG_SYSTEM_CLEANTALK_NOTICE_TRIAL', $status['data']['user_token']);
+							$notice = JText::sprintf('PLG_SYSTEM_CLEANTALK_NOTICE_TRIAL', $status['data']['user_token']);
 							$next_notice = false;
 
 						}
