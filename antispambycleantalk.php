@@ -1055,9 +1055,11 @@ class plgSystemAntispambycleantalk extends JPlugin {
 		{
 			$params->set('ct_key_is_ok', 1);			
 			$status = self::checkApiKeyStatus($new_config->apikey, 'notice_paid_till');
-			if(isset($status['data']['show_notice']) && $status['data']['show_notice'] == 1 && isset($status['data']['trial']) && $status['data']['trial'] == 1) {							
-				$notice = JText::_('PLG_SYSTEM_CLEANTALK_NOTICE_TRIAL', $status['data']['user_token']);
-				}								
+			if(isset($status['data']['show_notice']) && $status['data']['show_notice'] == 1 && isset($status['data']['trial']) && $status['data']['trial'] == 1) {	
+				$params->set('user_token', $status['data']['user_token']);
+				$params->set('service_id','');						
+				$notice = JText::_('PLG_SYSTEM_CLEANTALK_NOTICE_TRIAL');
+			}								
 			else
 			{
 				if(isset($status['data']['user_token']))
@@ -1065,7 +1067,8 @@ class plgSystemAntispambycleantalk extends JPlugin {
 				if (isset($status['data']['service_id']))
 					$params->set('service_id',$status['data']['service_id']);
 			}
-		} 
+
+		}
 		$table->params = $params->toString();
 		$table->store();
 		// Show notice when defined
@@ -1164,39 +1167,14 @@ class plgSystemAntispambycleantalk extends JPlugin {
 							
 				$config = JFactory::getConfig();
 				$adminmail=$config->get('mailfrom');
-				
-				$current_key = $jparam->get('apikey', '0');
-				$moderate_ip = $jparam->get('moderate_ip', 0);
-				if($moderate_ip){
-					$key_is_ok = true;
-				}else{
-					if(empty($current_key) || $current_key == 'enter key'){
-						$key_is_ok = 0;
-					}else{
-							
-						
-						$url='https://api.cleantalk.org';
-						$data = array(
-							"method_name" => "notice_validate_key",
-							"auth_key" => $current_key,
-							"path_to_cms" => $_SERVER['HTTP_HOST']
-						);
-						
-						$result= sendRawRequest($url, $data);
-						$result = $result ? json_decode($result, true) : false;
-						
-						$key_is_ok = isset($result) ? $result['valid'] : 0;
-					}
-				}
-							
 				// Passing parameters to JS
 				$document->addScriptDeclaration('
 					//Control params
-					var ct_key_is_ok = "'.$key_is_ok.'",
+					var ct_key_is_ok = "'.$jparam->get('ct_key_is_ok').'",
 						cleantalk_domain="'.$_SERVER['HTTP_HOST'].'",
 						cleantalk_mail="'.$adminmail.'",
 						ct_ip_license = "'.$jparam->get('ip_license', 0).'",
-						ct_moderate_ip = "'.$moderate_ip.'",
+						ct_moderate_ip = "'.$jparam->get('moderate_ip', 0).'",
 						ct_user_token="'.$jparam->get('user_token', '').'",
 						ct_service_id="'.$jparam->get('service_id', '').'",
 						ct_notice_review_done='.($jparam->get('show_notice_review_done', '') ? 'true' : 'false').';
@@ -1293,17 +1271,21 @@ class plgSystemAntispambycleantalk extends JPlugin {
 				// Notice about not entered api key
 				$plugin = JPluginHelper::getPlugin('system', 'antispambycleantalk');
 				$jparam = new JRegistry($plugin->params);
-				$key_is_ok = $jparam->get('ct_key_is_ok', 0);
-				$moderate_ip = $jparam->get('moderate_ip', 0);
-				$user_token = $jparam->get('user_token','');
+				$key_is_ok = $jparam->get('ct_key_is_ok');
+				$moderate_ip = $jparam->get('moderate_ip');
+				$user_token = $jparam->get('user_token');
+				$service_id = $jparam->get('service_id');
 				if (!$key_is_ok) {
 					$notice = JText::_('PLG_SYSTEM_CLEANTALK_NOTICE_APIKEY');
 					$next_notice = false;
 				}
 				else
 				{
-					if(empty($user_token))						
-						$notice = JText::_('PLG_SYSTEM_CLEANTALK_NOTICE_TRIAL', $user_token);				
+					if(empty($service_id)){
+						$notice = JText::_('PLG_SYSTEM_CLEANTALK_NOTICE_TRIAL', $user_token);	
+						$next_notice =false;						
+					}						
+			
 				}
 				// Notice about state of api key - trial, expired and so on.
 				if($next_notice){
@@ -1365,8 +1347,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 
 						}
 					if(isset($status['data']['show_notice']) && $status['data']['show_notice'] == 1 && isset($status['data']['trial']) && $status['data']['trial'] == 1) {
-							$user_token = '';
-							$notice = JText::_('PLG_SYSTEM_CLEANTALK_NOTICE_TRIAL', $user_token);
+							$notice = JText::_('PLG_SYSTEM_CLEANTALK_NOTICE_TRIAL', $status['data']['user_token']);
 							$next_notice = false;
 
 						}
