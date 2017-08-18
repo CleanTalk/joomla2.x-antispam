@@ -464,6 +464,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
         $jparam = new JRegistry($plugin->params);
         $sfw_enable = $jparam->get('sfw_enable', 0);
         $ct_apikey = $jparam->get('apikey', 0);
+        $sfw_log = (array)$jparam->get('sfw_log', 0);
         /*
             Do SpamFireWall actions for visitors if we have a GET request and option enabled. 
         */
@@ -498,7 +499,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
 		//SFW Section
 		$this->loadLanguage();		
         $sfw_last_check = $jparam->get('sfw_last_check', 0);        
-        $sfw_log = (array)$jparam->get('sfw_log', 0);
         $sfw_last_send_log = $jparam->get('sfw_last_send_log', 0);
         $save_params = array();
         /*

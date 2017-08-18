@@ -71,11 +71,12 @@
         }
 .key_buttons{
     text-decoration: none;
+    text-align:center;
     display: inline-block;
     font-size: 13px;
     line-height: 26px;
     height: 28px;
-    margin: 0px 10px 10px 0px;
+    margin: 0px 0px 10px 0px;
     padding: 0 10px 1px;
     cursor: pointer;
     border-width: 1px;

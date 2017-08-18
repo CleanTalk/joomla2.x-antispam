@@ -35,11 +35,12 @@ jQuery(document).ready(function(){
 	
 	var ct_auth_key = jQuery('.cleantalk_auth_key').prop('value'),
 		ct_notice_cookie = ct_getCookie('ct_notice_cookie');
-	if (ct_joom25)
+		if (ct_joom25)
 		{
-			jQuery('#checkuserscomments-options').append("<div id='attrib-checkuserscomments'></div>");
+			jQuery('#checkuserscomments-options').next().append("<div id='attrib-checkuserscomments'></div>");
+			jQuery('#attrib-checkuserscomments').append("<div id='key_buttons_wrapper'></div>").children().append("<center><button style=\"width:90%;\" id=\"check_spam_users\" class=\"key_buttons \" type=\"button\">"+ct_spamcheck_checksusers+"</button><br><button style=\"width:90%;\" id=\"check_spam_comments\" class=\"key_buttons\" type=\"button\">"+ct_spamcheck_checkscomments+"</button><br /><br />"+ct_spamcheck_notice+"</center><br/><br/>")
 		}
-		jQuery('#attrib-checkuserscomments').append("<center><button style=\"width:20%;\" id=\"check_spam_users\" class=\"btn btn-success \" type=\"button\"><span class=\"icon-users levels\"></span>"+ct_spamcheck_checksusers+"</button>&nbsp;&nbsp;&nbsp;<button style=\"width:20%;\" id=\"check_spam_comments\" class=\"btn btn-success\" type=\"button\"><span class=\"icon-archive\"></span>"+ct_spamcheck_checkscomments+"</button><br /><br />"+ct_spamcheck_notice+"</center><br/><br/>")
+		else jQuery('#attrib-checkuserscomments').append("<center><button style=\"width:20%;\" id=\"check_spam_users\" class=\"btn btn-success \" type=\"button\"><span class=\"icon-users levels\"></span>"+ct_spamcheck_checksusers+"</button>&nbsp;&nbsp;&nbsp;<button style=\"width:20%;\" id=\"check_spam_comments\" class=\"btn btn-success\" type=\"button\"><span class=\"icon-archive\"></span>"+ct_spamcheck_checkscomments+"</button><br /><br />"+ct_spamcheck_notice+"</center><br/><br/>")
 		jQuery('#attrib-checkuserscomments').append("<div id ='spam_results'></div>");
 		jQuery('#attrib-checkuserscomments').append("<img class='display_none' id='ct_preloader_spam_results' src='../plugins/system/antispambycleantalk/preloader.gif' />");
 	// Viewing button to access CP
@@ -55,7 +56,7 @@ jQuery(document).ready(function(){
 					.append("<div id='key_buttons_wrapper'></div>").children()
 						.append("<a target='_blank'></a>").children('a')
 							.attr('href', 'https://cleantalk.org/my/stat?service_id='+ct_service_id+'&user_token='+ct_user_token)
-							.append("<button class='key_buttons' id='ct_cp_button' type='button'><span class='icon-bars'></span>"+ct_statlink_label+"</button>");					
+							.append("<button class='key_buttons' id='ct_cp_button' type='button'>"+ct_statlink_label+"</button>");					
 			}
 			else
 			{
