@@ -66,7 +66,7 @@ jQuery(document).ready(function(){
 					.html('')
 					.append("<div id='key_buttons_wrapper'></div>").children()
 						.append("<a target='_blank'></a>").children('a')
-							.attr('href', 'https://cleantalk.org/my?user_token='+ct_user_token)
+							.attr('href', 'https://cleantalk.org/my/stat?service_id='+ct_service_id+'&user_token='+ct_user_token)
 							.append("<button class='btn btn-success' id='ct_cp_button' type='button'><span class='icon-bars'></span>"+ct_statlink_label+"</button>");	
 			}
 				
