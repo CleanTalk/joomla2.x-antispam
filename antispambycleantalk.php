@@ -1116,10 +1116,9 @@ class plgSystemAntispambycleantalk extends JPlugin {
     
     public function onAfterRender(){
 		
-    	$config = $this->getCTConfig();
-		
+    	$config = $this->getCTConfig();		
     	if($config['tell_about_cleantalk'] == 1 && strpos($_SERVER['REQUEST_URI'],'/administrator/') === false){
-			$code = "<div id='cleantalk_footer_link' style='width:100%;text-align:center;'><a href='https://cleantalk.org/joomla-anti-spam-plugin-without-captcha'>Joomla spam</a> blocked by CleanTalk.</div>";
+			$code = "<div id='cleantalk_footer_link' style='width:100%;text-align:center;'>".JText::_('PLG_SYSTEM_CLEANTALK_VALUE_FOOTERLINK')."</div>";
 			$documentbody = JResponse::getBody();
 			$documentbody = str_replace ("</body>", $code." </body>", $documentbody);
 			JResponse::setBody($documentbody);
