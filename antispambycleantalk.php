@@ -800,6 +800,8 @@ class plgSystemAntispambycleantalk extends JPlugin {
 	       		{
 	       			if ($result->error_message == 'Access key unset.')
 	       				$send_result['data'] = JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_BADKEY');
+	       			elseif ($result->error_message == 'Service disabled, please go to Dashboard https://cleantalk.org/my?product_id=1')
+	       				$send_result['data'] = JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_BADKEY_DISABLED');
 	       			else $send_result['data'] = $result->error_message;	       			
 	       			$send_result['result']='error';
 	       		}
@@ -878,6 +880,8 @@ class plgSystemAntispambycleantalk extends JPlugin {
 		       		{
 		       			if ($result->error_message == 'Access key unset.')
 		       				$send_result['data'] = JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_BADKEY');
+	       				elseif ($result->error_message == 'Service disabled, please go to Dashboard https://cleantalk.org/my?product_id=1')
+	       					$send_result['data'] = JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_BADKEY_DISABLED');		       			
 		       			else $send_result['data'] = $result->error_message;	       			
 		       			$send_result['result']='error';
 		       		}
@@ -1057,10 +1061,10 @@ class plgSystemAntispambycleantalk extends JPlugin {
 			else
 			{
 				if(isset($status['data']['user_token']))
-					$user_token = 'user_token=' . $status['data']['user_token'];
+					$params->set('user_token',$status['data']['user_token']);
+				if (isset($status['data']['sevice_id']))
+					$params->set('service_id',$status['data']['sevice_id']);
 			}
-			$params->set('user_token', $user_token);
-
 		} 
 		$table->params = $params->toString();
 		$table->store();
@@ -1163,7 +1167,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
 				
 				$current_key = $jparam->get('apikey', '0');
 				$moderate_ip = $jparam->get('moderate_ip', 0);
-				
 				if($moderate_ip){
 					$key_is_ok = true;
 				}else{
@@ -1195,6 +1198,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 						ct_ip_license = "'.$jparam->get('ip_license', 0).'",
 						ct_moderate_ip = "'.$moderate_ip.'",
 						ct_user_token="'.$jparam->get('user_token', '').'",
+						ct_service_id="'.$jparam->get('service_id', '').'",
 						ct_notice_review_done='.($jparam->get('show_notice_review_done', '') ? 'true' : 'false').';
 					
 					//Translation
