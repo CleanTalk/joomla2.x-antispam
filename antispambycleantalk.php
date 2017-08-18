@@ -279,6 +279,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 			    			$result = json_decode($result);
 			    			if(isset($result->data) && !empty($result->data->show_review) && $result->data->show_review == 1)
 		    					$show_notice_review = 1;
+		    				else $show_notice_review=0;
 			    		}
 			    		$params   = new JRegistry($table->params);
 						$params->set('last_checked', $new_checked);
@@ -294,6 +295,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 			    			$result = json_decode($result);
 			    			if(isset($result->data) && !empty($result->data->show_review) && $result->data->show_review == 1)
 		    					$show_notice_review = 1;
+		    				else $show_notice_review=0;
 			    		}
 			    		$params   = new JRegistry($table->params);
 			    		$params->set('show_notice_review', $show_notice_review); // Temporary
@@ -457,20 +459,47 @@ class plgSystemAntispambycleantalk extends JPlugin {
 				
             }
         }
-        $app = JFactory::getApplication();
-		if($app->isAdmin() && strpos(JFactory::getUri(), 'com_plugins&view=plugin&layout=edit&extension_id='.$this->getId('system','antispambycleantalk')))
-		{
-		//SFW Section
-		$this->loadLanguage();		
+        $app = JFactory::getApplication(); 
         $plugin = JPluginHelper::getPlugin('system', 'antispambycleantalk');
         $jparam = new JRegistry($plugin->params);
         $sfw_enable = $jparam->get('sfw_enable', 0);
         $ct_apikey = $jparam->get('apikey', 0);
-        $sfw_last_check = $jparam->get('sfw_last_check', 0);
-        
+        /*
+            Do SpamFireWall actions for visitors if we have a GET request and option enabled. 
+        */
+        if($sfw_enable == 1 && !JFactory::getUser()->id && $_SERVER['REQUEST_METHOD'] === 'GET') {
+            $sfw_test_ip = null;
+            if (isset($_GET['sfw_test_ip']) && preg_match("/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/", $_GET['sfw_test_ip'])) {
+                $sfw_test_ip = $_GET['sfw_test_ip'];
+            }
+            if ($this->swf_do_check($ct_apikey, $sfw_test_ip)) {
+                $this->swf_init($ct_apikey, $sfw_test_ip); 
+            }else{
+            	if(isset($_COOKIE['ct_sfw_passed'])){
+					
+	    			self::getCleantalk();
+	    			$sender_ip = self::$CT->ct_session_ip($_SERVER['REMOTE_ADDR']);
+			        if ($sfw_test_ip) {
+			            $sender_ip = $sfw_test_ip;
+			        }
+	    			$sfw_log[$sender_ip]->allow++;
+	    			$jparam->set('sfw_log',$sfw_log);
+		            $table = JTable::getInstance('extension');$id = $this->getId('system','antispambycleantalk');
+		            $table->load($id);
+		            $table->params = $jparam->toString();
+		            $table->store();	    			
+	    			@setcookie ('ct_sfw_passed', '0', 1, "/");
+	    		}
+            }
+            //print_r($sfw_log);
+        }
+		if($app->isAdmin() && strpos(JFactory::getUri(), 'com_plugins&view=plugin&layout=edit&extension_id='.$this->getId('system','antispambycleantalk')))
+		{
+		//SFW Section
+		$this->loadLanguage();		
+        $sfw_last_check = $jparam->get('sfw_last_check', 0);        
         $sfw_log = (array)$jparam->get('sfw_log', 0);
         $sfw_last_send_log = $jparam->get('sfw_last_send_log', 0);
-    	
         $save_params = array();
         /*
             Sync to local table most spam IP networks
@@ -486,10 +515,10 @@ class plgSystemAntispambycleantalk extends JPlugin {
 		    	$app = JFactory::getApplication();
 		        $prefix = $app->getCfg('dbprefix');
 		        $query="CREATE TABLE IF NOT EXISTS ".$sfw_table_name_full." (
-  `network` int(11) unsigned NOT NULL,
-  `mask` int(11) unsigned NOT NULL,
-  KEY `network` (`network`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;";
+					  `network` int(11) unsigned NOT NULL,
+					  `mask` int(11) unsigned NOT NULL,
+					  KEY `network` (`network`)
+					) ENGINE=MyISAM DEFAULT CHARSET=latin1;";
 		        $db->setQuery($query);
 				$db->execute();
                 
@@ -588,33 +617,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
             if ($sfw_last_check > 0)
                 $save_params['sfw_last_check'] = 0;
 			
-        }
-        /*
-            Do SpamFireWall actions for visitors if we have a GET request and option enabled. 
-        */
-        if($sfw_enable == 1 && !JFactory::getUser()->id && $_SERVER['REQUEST_METHOD'] === 'GET') {
-            $sfw_test_ip = null;
-            if (isset($_GET['sfw_test_ip']) && preg_match("/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/", $_GET['sfw_test_ip'])) {
-                $sfw_test_ip = $_GET['sfw_test_ip'];
-            }
-            if ($this->swf_do_check($ct_apikey, $sfw_test_ip)) {
-                $this->swf_init($ct_apikey, $sfw_test_ip); 
-            }else{
-            	if(isset($_COOKIE['ct_sfw_passed'])){
-					
-	    			self::getCleantalk();
-	    			$sender_ip = self::$CT->ct_session_ip($_SERVER['REMOTE_ADDR']);
-			        if ($sfw_test_ip) {
-			            $sender_ip = $sfw_test_ip;
-			        }
-	    			$sfw_log[$sender_ip]->allow++;
-	    			$save_params['sfw_log']=$sfw_log;
-	    			@setcookie ('ct_sfw_passed', '0', 1, "/");
-	    		}
-            }
-            //print_r($sfw_log);
-        }
-        
+        }        
         //
         // Save new settings
         //
@@ -848,7 +851,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 			$db = JFactory::getDBO();$config = $this->getCTConfig();
             $send_result['result']=null;
 	        $send_result['data']=null;
-			$db->setQuery("SHOW TABLES LIKE '#__jcomments'");
+			$db->setQuery("SHOW TABLES LIKE '%jcomments'");
 			$jtable = $db->loadAssocList();
 			if (empty($jtable))
 			{
@@ -2780,7 +2783,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
         if ($sfw_test_ip) {
             $sender_ip = $sfw_test_ip;
         }
-
         /*$plugin = JPluginHelper::getPlugin('system', 'antispambycleantalk');
         $jparam = new JRegistry($plugin->params);
         $sfw_min_mask = $jparam->get('sfw_min_mask', 0);
