@@ -1049,14 +1049,14 @@ class plgSystemAntispambycleantalk extends JPlugin {
 			$notice = JText::_('PLG_SYSTEM_CLEANTALK_NOTICE_APIKEY');
 			$params->set('ct_key_is_ok', 0);
 			$params->set('user_token', '');
+			$params->set('service_id','');
 		}
 		else
 		{
 			$params->set('ct_key_is_ok', 1);			
 			$status = self::checkApiKeyStatus($new_config->apikey, 'notice_paid_till');
-			if(isset($status['data']['show_notice']) && $status['data']['show_notice'] == 1 && isset($status['data']['trial']) && $status['data']['trial'] == 1) {
-				$user_token = '';							
-				$notice = JText::_('PLG_SYSTEM_CLEANTALK_NOTICE_TRIAL', $user_token);
+			if(isset($status['data']['show_notice']) && $status['data']['show_notice'] == 1 && isset($status['data']['trial']) && $status['data']['trial'] == 1) {							
+				$notice = JText::_('PLG_SYSTEM_CLEANTALK_NOTICE_TRIAL', $status['data']['user_token']);
 				}								
 			else
 			{

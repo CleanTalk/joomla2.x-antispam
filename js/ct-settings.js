@@ -47,7 +47,7 @@ jQuery(document).ready(function(){
 		
 		jQuery("a[href='index.php?option=com_plugins&view=plugins&filter_search=cleantalk']").parents('.alert-info').hide();
 		
-		if(ct_user_token)
+		if(ct_user_token && ct_service_id)
 		{
 			if (ct_joom25)
 			{
