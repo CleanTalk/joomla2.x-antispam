@@ -1062,8 +1062,8 @@ class plgSystemAntispambycleantalk extends JPlugin {
 			{
 				if(isset($status['data']['user_token']))
 					$params->set('user_token',$status['data']['user_token']);
-				if (isset($status['data']['sevice_id']))
-					$params->set('service_id',$status['data']['sevice_id']);
+				if (isset($status['data']['service_id']))
+					$params->set('service_id',$status['data']['service_id']);
 			}
 		} 
 		$table->params = $params->toString();
