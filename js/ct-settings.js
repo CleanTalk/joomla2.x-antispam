@@ -43,9 +43,7 @@ jQuery(document).ready(function(){
 		jQuery('#attrib-checkuserscomments').append("<div id ='spam_results'></div>");
 		jQuery('#attrib-checkuserscomments').append("<img class='display_none' id='ct_preloader_spam_results' src='../plugins/system/antispambycleantalk/preloader.gif' />");
 	// Viewing button to access CP
-	if(ct_key_is_ok == 1){
-		
-		jQuery("a[href='index.php?option=com_plugins&view=plugins&filter_search=cleantalk']").parents('.alert-info').hide();
+	if(ct_key_is_ok == 1){		
 		
 		if(ct_service_id)
 		{

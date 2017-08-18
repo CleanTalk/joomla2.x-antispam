@@ -1072,7 +1072,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 		$table->params = $params->toString();
 		$table->store();
 		// Show notice when defined
-		if(!empty($notice) && empty($moderate_ip))
+		if(!empty($notice))
 			JError::raiseNotice(1024, $notice);	
 	}  
     /*
@@ -1285,7 +1285,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 						$notice = JText::sprintf('PLG_SYSTEM_CLEANTALK_NOTICE_TRIAL', $user_token);	
 						$next_notice =false;						
 					}						
-			
+
 				}
 				// Notice about state of api key - trial, expired and so on.
 				if($next_notice){
@@ -1364,6 +1364,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
             }
             return;
         }
+        
         $document = JFactory::getDocument();
         // Add Javascript
         $document->addScriptDeclaration($this->getJSTest(null, null, true));
