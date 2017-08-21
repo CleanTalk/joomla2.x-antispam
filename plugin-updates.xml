@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <updates>
-		<update>
+	<update>
 		<name>Antispam by CleanTalk</name>
 		<description>Antispam plugin for Joomla registrations and contacts, for VurtueMart, Rapid Contact, VTEM Contact, JComments 2.3, 3.0.</description>
 		<element>antispambycleantalk</element>
@@ -20,8 +20,7 @@
 		<maintainerurl>https://cleantalk.org</maintainerurl>
 		<targetplatform name="joomla" version="[23].*"/>
 	</update>
-<updates>
-		<update>
+	<update>
 		<name>Antispam by CleanTalk</name>
 		<description>Antispam plugin for Joomla registrations and contacts, for VurtueMart, Rapid Contact, VTEM Contact, JComments 2.3, 3.0.</description>
 		<element>antispambycleantalk</element>
@@ -41,7 +40,7 @@
 		<maintainerurl>https://cleantalk.org</maintainerurl>
 		<targetplatform name="joomla" version="[23].*"/>
 	</update>
-		<update>
+	<update>
 		<name>Antispam by CleanTalk</name>
 		<description>Antispam plugin for Joomla registrations and contacts, for VurtueMart, Rapid Contact, VTEM Contact, JComments 2.3, 3.0.</description>
 		<element>antispambycleantalk</element>
@@ -61,7 +60,7 @@
 		<maintainerurl>https://cleantalk.org</maintainerurl>
 		<targetplatform name="joomla" version="[23].*"/>
 	</update>
-		<update>
+	<update>
 		<name>Antispam by CleanTalk</name>
 		<description>Antispam plugin for Joomla registrations and contacts, for VurtueMart, Rapid Contact, VTEM Contact, JComments 2.3, 3.0.</description>
 		<element>antispambycleantalk</element>
@@ -81,7 +80,7 @@
 		<maintainerurl>https://cleantalk.org</maintainerurl>
 		<targetplatform name="joomla" version="[23].*"/>
 	</update>
-		<update>
+	<update>
 		<name>Antispam by CleanTalk</name>
 		<description>Antispam plugin for Joomla registrations and contacts, for VurtueMart, Rapid Contact, VTEM Contact, JComments 2.3, 3.0.</description>
 		<element>antispambycleantalk</element>
