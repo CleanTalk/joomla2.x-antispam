@@ -492,21 +492,18 @@ class plgSystemAntispambycleantalk extends JPlugin {
 	    			@setcookie ('ct_sfw_passed', '0', 1, "/");
 	    		}
             }
-            //print_r($sfw_log);
         }
-		if($app->isAdmin() && strpos(JFactory::getUri(), 'com_plugins&view=plugin&layout=edit&extension_id='.$this->getId('system','antispambycleantalk')))
-		{
-		//SFW Section
-		$this->loadLanguage();		
-        $sfw_last_check = $jparam->get('sfw_last_check', 0);        
-        $sfw_last_send_log = $jparam->get('sfw_last_send_log', 0);
-        $save_params = array();
         /*
             Sync to local table most spam IP networks
         */
-        if($sfw_enable == 1) {
+        if($sfw_enable == 1) 
+        {
+	        $sfw_last_check = $jparam->get('sfw_last_check', 0);     
+	        $sfw_last_send_log = $jparam->get('sfw_last_send_log', 0);
+	        $save_params = array();        	
             $sfw_check_interval = $jparam->get('sfw_check_interval', 0);
-            if ($sfw_check_interval > 0 && ($sfw_last_check + $sfw_check_interval) < time()) {
+            if ($sfw_check_interval > 0 && ($sfw_last_check + $sfw_check_interval) < time()) 
+            {
                 $app = JFactory::getApplication();
                 $prefix = $app->getCfg('dbprefix');
                 $sfw_table_name_full = preg_replace('/^(#__)/', $prefix, $this->sfw_table_name);
@@ -541,8 +538,8 @@ class plgSystemAntispambycleantalk extends JPlugin {
                         
                     }
                 }
-
-                if ($sfw_nets) {
+                if ($sfw_nets) 
+                {
                     $db = JFactory::getDbo();
 
                     $query = $db->getQuery(true);
@@ -580,20 +577,19 @@ class plgSystemAntispambycleantalk extends JPlugin {
                 $save_params['sfw_min_mask'] = $min_mask;
                 $save_params['sfw_max_mask'] = $max_mask;
             }
-            //print $sfw_last_send_log;
-            if(time()-$sfw_last_send_log>3600){
-            	if(is_array($sfw_log)&&sizeof($sfw_log)>0){
-					
+            if(time()-$sfw_last_send_log>600)
+            {
+            	if(is_array($sfw_log)&&sizeof($sfw_log)>0)
+            	{					
             		$data=Array();
-			    	foreach($sfw_log as $key=>$value){
-						
-			    		if(is_object($value)){
-							
+			    	foreach($sfw_log as $key=>$value)
+			    	{					
+			    		if(is_object($value))
+			    		{							
 			    			if(isset($value->datetime))
 			    				$datetime=$value->datetime;
 			    			else
 			    				$datetime=time();
-
 			    			$data[]=Array($key, $value->all, $value->allow, $datetime);
 			    		}
 			    	}
@@ -604,7 +600,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
 					);
 					$result = sendRawRequest('https://api.cleantalk.org/?method_name=sfw_logs&auth_key='.$ct_apikey,$qdata);
 					$result = json_decode($result);
-
 					if(isset($result->data) && isset($result->data->rows) && $result->data->rows == count($data))
 					{
 						$save_params['sfw_log']=Array();
@@ -612,27 +607,26 @@ class plgSystemAntispambycleantalk extends JPlugin {
 					}
             	}
             }
-        } else {
-            // Reset variables to enable recheck networks on on/off event.
-            if ($sfw_last_check > 0)
-                $save_params['sfw_last_check'] = 0;
-			
-        }        
-        //
-        // Save new settings
-        //
-        if (count($save_params)) {
-            $id = $this->getId('system','antispambycleantalk');
-            $table = JTable::getInstance('extension');
-            $table->load($id);
-            
-            $params = new JRegistry($table->params);
-            foreach ($save_params as $k => $v) {
-                $params->set($k, $v);
-            }
-            $table->params = $params->toString();
-            $table->store();
-        }
+	        //
+	        // Save new settings
+	        //
+	        if (count($save_params)) {
+	            $id = $this->getId('system','antispambycleantalk');
+	            $table = JTable::getInstance('extension');
+	            $table->load($id);
+	            
+	            $params = new JRegistry($table->params);
+	            foreach ($save_params as $k => $v) {
+	                $params->set($k, $v);
+	            }
+	            $table->params = $params->toString();
+	            $table->store();
+	        }
+        }       
+		if($app->isAdmin() && strpos(JFactory::getUri(), 'com_plugins&view=plugin&layout=edit&extension_id='.$this->getId('system','antispambycleantalk')))
+		{
+		//SFW Section
+		$this->loadLanguage();		
 
     	if($app->isAdmin())		
     		$this->checkIsPaid();
@@ -1116,7 +1110,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
     
     public function onAfterRender(){
 		
-    	$config = $this->getCTConfig();$this->loadLanguage();			
+    	$config = $this->getCTConfig();	$this->loadLanguage();	
     	if($config['tell_about_cleantalk'] == 1 && strpos($_SERVER['REQUEST_URI'],'/administrator/') === false){
 			$code = "<div id='cleantalk_footer_link' style='width:100%;text-align:center;'>".JText::_('PLG_SYSTEM_CLEANTALK_VALUE_FOOTERLINK')."</div>";
 			$documentbody = JResponse::getBody();
