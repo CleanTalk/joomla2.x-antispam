@@ -35,26 +35,41 @@ jQuery(document).ready(function(){
 	
 	var ct_auth_key = jQuery('.cleantalk_auth_key').prop('value'),
 		ct_notice_cookie = ct_getCookie('ct_notice_cookie');
-		jQuery('#attrib-checkuserscomments').append("<center><button style=\"width:20%;\" id=\"check_spam_users\" class=\"btn btn-success \" type=\"button\"><span class=\"icon-users levels\"></span>Check users for spam</button>&nbsp;&nbsp;&nbsp;<button style=\"width:20%;\" id=\"check_spam_comments\" class=\"btn btn-success\" type=\"button\"><span class=\"icon-archive\"></span>Check comments for spam</button><br /><br />Anti-spam by <a href=https://cleantalk.org/ target=_blanl>CleanTalk</a> will check all users and comments against blacklists <a href=https://cleantalk.org/blacklists target=_blank>database</a> and show you senders that have spam activity on other websites.</center><br/><br/>")
+		if (ct_joom25)
+		{
+			jQuery('#checkuserscomments-options').next().append("<div id='attrib-checkuserscomments'></div>");
+			jQuery('#attrib-checkuserscomments').append("<div id='key_buttons_wrapper'></div>").children().append("<center><button style=\"width:90%;\" id=\"check_spam_users\" class=\"key_buttons \" type=\"button\">"+ct_spamcheck_checksusers+"</button><br><button style=\"width:90%;\" id=\"check_spam_comments\" class=\"key_buttons\" type=\"button\">"+ct_spamcheck_checkscomments+"</button><br /><br />"+ct_spamcheck_notice+"</center><br/><br/>")
+		}
+		else jQuery('#attrib-checkuserscomments').append("<center><button style=\"width:20%;\" id=\"check_spam_users\" class=\"btn btn-success \" type=\"button\"><span class=\"icon-users levels\"></span>"+ct_spamcheck_checksusers+"</button>&nbsp;&nbsp;&nbsp;<button style=\"width:20%;\" id=\"check_spam_comments\" class=\"btn btn-success\" type=\"button\"><span class=\"icon-archive\"></span>"+ct_spamcheck_checkscomments+"</button><br /><br />"+ct_spamcheck_notice+"</center><br/><br/>")
 		jQuery('#attrib-checkuserscomments').append("<div id ='spam_results'></div>");
 		jQuery('#attrib-checkuserscomments').append("<img class='display_none' id='ct_preloader_spam_results' src='../plugins/system/antispambycleantalk/preloader.gif' />");
 	// Viewing button to access CP
-	if(ct_key_is_ok == 1){
+	if(ct_key_is_ok == 1){		
 		
-		jQuery("a[href='index.php?option=com_plugins&view=plugins&filter_search=cleantalk']").parents('.alert-info').hide();
-		if(ct_moderate_ip == 0)
-			jQuery('#jform_params_apikey').css('border-bottom', '2px solid green')
-				.parent()
-				.append("<p class='ct_status_label green'>"+ct_key_is_ok_notice+"</p>");
-		
-		if(ct_user_token)
-			jQuery('.cleantalk_key_control')
-				.parent().parent()
-				.html('')
-				.append("<div id='key_buttons_wrapper'></div>").children()
-					.append("<a target='_blank'></a>").children('a')
-						.attr('href', 'https://cleantalk.org/my?user_token='+ct_user_token)
-						.append("<button class='key_buttons' id='ct_cp_button' type='button'>"+ct_statlink_label+"</button>");					
+		if(ct_service_id)
+		{
+			if (ct_joom25)
+			{
+				jQuery('.cleantalk_key_control')
+					.parent().parent()
+					.html('')
+					.append("<div id='key_buttons_wrapper'></div>").children()
+						.append("<a target='_blank'></a>").children('a')
+							.attr('href', 'https://cleantalk.org/my/stat?service_id='+ct_service_id+'&user_token='+ct_user_token)
+							.append("<button class='key_buttons' id='ct_cp_button' type='button'>"+ct_statlink_label+"</button>");					
+			}
+			else
+			{
+				jQuery('.cleantalk_key_control')
+					.parent().parent()
+					.html('')
+					.append("<div id='key_buttons_wrapper'></div>").children()
+						.append("<a target='_blank'></a>").children('a')
+							.attr('href', 'https://cleantalk.org/my/stat?service_id='+ct_service_id+'&user_token='+ct_user_token)
+							.append("<button class='btn btn-success' id='ct_cp_button' type='button'><span class='icon-bars'></span>"+ct_statlink_label+"</button>");	
+			}
+				
+		}
 	// Viewing buttons to get key
 	}else{
 		
@@ -62,7 +77,9 @@ jQuery(document).ready(function(){
 			jQuery('#jform_params_apikey').css('border-bottom', '2px solid red')
 				.parent()
 				.append("<p class='ct_status_label red'>"+ct_key_is_bad_notice+"</p>");
-			
+		
+		if (ct_joom25)
+		{
 			jQuery('.cleantalk_key_control')
 				.parent().parent()
 				.html('')
@@ -74,7 +91,25 @@ jQuery(document).ready(function(){
 						.append("<button class='key_buttons' id='ct_manual_button' type='button'>"+ct_manualkey_label+"</button>").parents('#key_buttons_wrapper')
 					.append("<p id='ct_email_warning'>"+ct_key_notice1+cleantalk_mail+ct_key_notice2+"</p>")
 					.append("<br>")
-					.append("<a id='ct_license_agreement' href='https://cleantalk.org/publicoffer' target='_blank'>"+ct_license_notice+"</a>");
+					.append("<a id='ct_license_agreement' href='https://cleantalk.org/publicoffer' target='_blank'>"+ct_license_notice+"</a>");			
+		}
+		else
+		{
+			jQuery('.cleantalk_key_control')
+				.parent().parent()
+				.html('')
+				.append("<div id='key_buttons_wrapper'></div>").children()
+					.append("<button class='btn btn-success' id='ct_auto_button' type='button'>"+ct_autokey_label+"</button>")
+					.append("<img class='display_none' id='ct_preloader' src='../plugins/system/antispambycleantalk/preloader.gif' />")
+					.append("<a target='_blank'></a>").children('a')
+						.attr('href', 'https://cleantalk.org/register?platform=joomla3&email=' + cleantalk_mail + '&website=' + cleantalk_domain)
+						.append("<button class='btn btn-success' id='ct_manual_button' type='button'>"+ct_manualkey_label+"</button>").parents('#key_buttons_wrapper')
+					.append("<br><br>")
+					.append("<p id='ct_email_warning'>"+ct_key_notice1+cleantalk_mail+ct_key_notice2+"</p>")
+					.append("<br><br>")
+					.append("<a id='ct_license_agreement' href='https://cleantalk.org/publicoffer' target='_blank'>"+ct_license_notice+"</a>");			
+		}	
+
 		}
 	}
 	
@@ -196,7 +231,7 @@ jQuery(document).ready(function(){
 				msg=jQuery.parseJSON(msg);
 				if (msg.result == 'success')
 				{
-					var html='<center><table id = "spamusers_table" class="table table-bordered table-hover table-striped" cellspacing=0 cellpadding=3><thead><tr><th></th><th>Username</th><th>Joined</th><th>E-mail</th><th>Last visit</th></tr></thead><tbody>';
+					var html='<center><table id = "spamusers_table" class="table table-bordered table-hover table-striped" cellspacing=0 cellpadding=3><thead><tr><th></th><th>'+ct_spamcheck_table_username+'</th><th>'+ct_spamcheck_table_joined+'</th><th>'+ct_spamcheck_table_email+'</th><th>'+ct_spamcheck_table_lastvisit+'</th></tr></thead><tbody>';
 					var spam_users = msg.data.spam_users;
 					spam_users.forEach(function(item, i,arr){
 						html+="<tr>";
@@ -208,8 +243,8 @@ jQuery(document).ready(function(){
 						html+="</tr>";
 					});
 					html+="</tbody></table></center>";
-					html+="<button id='delete_sel_spam_users' class='btn btn-danger' onclick='delete_user()' type='button'>Delete selected</button>";
-					html+="<button id='delete_all_spam_users' class='btn btn-danger' onclick='delete_user(true)' type='button'>Delete all</button>";
+					html+="<button id='delete_all_spam_users' class='btn btn-danger' onclick='delete_user(true)' type='button'>"+ct_spamcheck_delall+"</button>";
+					html+="<button id='delete_sel_spam_users' class='btn btn-danger' onclick='delete_user()' type='button'>"+ct_spamcheck_delsel+"</button>";
 				}
 				if (msg.result == 'error')
 					var html='<center><h2>'+msg.data+'</h2></center>;';
@@ -245,8 +280,8 @@ jQuery(document).ready(function(){
 						html+="</tr>";						
 					});
 					html+="</tbody></table></center>";
-					html+="<button id='delete_sel_spam_comments' class='btn btn-danger' onclick='delete_comment()' type='button'>Delete selected</button>";
-					html+="<button id='delete_all_spam_comments' class='btn btn-danger' onclick='delete_comment(true)' type='button'>Delete all</button>";
+					html+="<button id='delete_all_spam_comments' class='btn btn-danger' onclick='delete_comment(true)' type='button'>"+ct_spamcheck_delall+"</button>";
+					html+="<button id='delete_sel_spam_comments' class='btn btn-danger' onclick='delete_comment()' type='button'>"+ct_spamcheck_delsel+"</button>";
 				}
 				if (msg.result == 'error')
 					var html='<center><h2>'+msg.data+'</h2></center>;';
@@ -283,7 +318,7 @@ jQuery(document).ready(function(){
 			}
 			if (data['ct_del_user_ids[]'].length>0)
 			{
-				if (confirm('Are you sure? All comments from selected users will be also deleted!')==true)
+				if (confirm(ct_spamcheck_users_delconfirm)==true)
 				{
 					jQuery("#spam_results").empty();		
 						jQuery('#ct_preloader_spam_results').show();
@@ -304,7 +339,7 @@ jQuery(document).ready(function(){
 				}
 		
 			}
-			else alert('No selected users!');			
+			else alert(ct_spamcheck_users_delconfirm_error);			
 	}
 	function delete_comment(all=false)
 	{
@@ -331,7 +366,7 @@ jQuery(document).ready(function(){
 			}
 			if (data['ct_del_comment_ids[]'].length>0)
 			{
-				if (confirm('Are you sure?')==true)
+				if (confirm(ct_spamcheck_comments_delconfirm)==true)
 				{
 					jQuery("#spam_results").empty();		
 						jQuery('#ct_preloader_spam_results').show();
@@ -352,5 +387,5 @@ jQuery(document).ready(function(){
 				}
 		
 			}
-			else alert('No selected comments!');			
+			else alert(ct_spamcheck_comments_delconfirm_error);			
 	}	

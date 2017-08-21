@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <extension version="2.5" type="plugin" group="system"  method="upgrade" >
-    <name>PLG_SYSTEM_CLEANTALK</name>
+    <name>PLG_SYSTEM_CLEANTALK_NAME</name>
     <author>CleanTalk team</author>
     <creationDate>25.07.2017</creationDate>
     <copyright>(C) CleanTalk</copyright>
     <license>GNU/GPLv2</license>
     <authorEmail>welcome@cleantalk.org</authorEmail>
     <authorUrl>cleantalk.org</authorUrl>
-    <version>4.8</version>
+    <version>4.8.1</version>
     <description>PLG_CLEANTALK_DESCRIPTION</description>
     <files>
 	<filename plugin="antispambycleantalk">antispambycleantalk.php</filename>
@@ -39,7 +39,7 @@
 				description="PLG_SYSTEM_CLEANTALK_PARAM_APIKEY_DESC" 
 				size="20" 
 				class="cleantalk_auth_key"
-				default="enter key"
+				hint="PLG_SYSTEM_CLEANTALK_PARAM_APIKEY_HINT"
 			/>
 			<field name="key_control" type="spacer" 
 				label="PLG_SYSTEM_CLEANTALK_PARAM_KEY_CONTROL_LABEL"
@@ -63,10 +63,6 @@
 			/>
 			<field name="sfw_reload_timeout" type="hidden" 
 				default="3" 
-			/>
-            <field name="pluginhomepage" type="spacer" 
-				label="PLG_SYSTEM_CLEANTALK_PARAM_HOMEPAGE" 
-				description="" 
 			/>
 			<field name="sfw_last_send_log" type="hidden" 
 				default="0" 
