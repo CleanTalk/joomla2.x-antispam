@@ -1067,11 +1067,14 @@ class plgSystemAntispambycleantalk extends JPlugin {
 			}
 
 		}
+
 		$table->params = $params->toString();
 		$table->store();
 		// Show notice when defined
 		if(!empty($notice))
 			JError::raiseNotice(1024, $notice);	
+					print_r($status);
+			die();
 	}  
     /*
     exception for MijoShop ajax calls
@@ -2697,7 +2700,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 	    if (function_exists('curl_init')) {
                 //$url = 'https://cleantalk.org/app_notice';
                 $url = 'https://api.cleantalk.org';
-                $server_timeout = 2;
+                $server_timeout = 10;
 
                 $data = array();
                 $data['auth_key'] = $apikey;
