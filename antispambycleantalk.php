@@ -1067,14 +1067,11 @@ class plgSystemAntispambycleantalk extends JPlugin {
 			}
 
 		}
-
 		$table->params = $params->toString();
 		$table->store();
 		// Show notice when defined
 		if(!empty($notice))
 			JError::raiseNotice(1024, $notice);	
-					print_r($status);
-			die();
 	}  
     /*
     exception for MijoShop ajax calls
@@ -1280,7 +1277,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 				}
 				else
 				{
-					if(empty($service_id)){
+					if(empty($service_id) && !empty($user_token)){
 						$notice = JText::sprintf('PLG_SYSTEM_CLEANTALK_NOTICE_TRIAL', $user_token);	
 						$next_notice =false;						
 					}						
