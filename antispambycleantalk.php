@@ -993,6 +993,8 @@ class plgSystemAntispambycleantalk extends JPlugin {
 				if (isset($status['data']['service_id']))
 					$params->set('service_id',$status['data']['service_id']);
 			}
+			if (isset($status['data']['spam_count']))
+				$params->set('spam_count',$status['data']['spam_count']);
 			if ($sfw_enable ==1)
 				self::update_sfw_db_networks($access_key);
 
@@ -1043,7 +1045,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 		
     	$config = $this->getCTConfig();	$this->loadLanguage();	
     	if($config['tell_about_cleantalk'] == 1 && strpos($_SERVER['REQUEST_URI'],'/administrator/') === false){
-			$code = "<div id='cleantalk_footer_link' style='width:100%;text-align:center;'>".JText::_('PLG_SYSTEM_CLEANTALK_VALUE_FOOTERLINK')."</div>";
+			$code = "<div id='cleantalk_footer_link' style='width:100%;text-align:center;'>".JText::sprintf('PLG_SYSTEM_CLEANTALK_VALUE_FOOTERLINK',$config['spam_count'])."</div>";
 			$documentbody = JResponse::getBody();
 			$documentbody = str_replace ("</body>", $code." </body>", $documentbody);
 			JResponse::setBody($documentbody);
@@ -2125,14 +2127,18 @@ class plgSystemAntispambycleantalk extends JPlugin {
         $config['general_contact_forms_test'] = '';
         $config['relevance_test'] = '';
         $config['user_token'] = '';
+        $config['service_id'] ='';
         $config['js_keys'] = '';
-		$jreg = new JRegistry($plugin->params);
+        $config['spam_count'] = 0;
+  		$jreg = new JRegistry($plugin->params);
 		$config['apikey'] = trim($jreg->get('apikey', ''));
 		$config['server'] = $jreg->get('server', '');
 		$config['jcomments_unpublished_nofications'] = $jreg->get('jcomments_unpublished_nofications', '');
 		$config['general_contact_forms_test'] = $jreg->get('general_contact_forms_test', '');
 		$config['relevance_test'] = $jreg->get('relevance_test', '');
 		$config['user_token'] = $jreg->get('user_token', '');
+		$config['service_id'] = $jreg->get('service_id','');
+		$config['spam_count'] = $jreg->get('spam_count',0);
 		$config['tell_about_cleantalk'] = $jreg->get('tell_about_cleantalk', '');
 		$config['js_keys'] = $jreg->get('js_keys','');
 
@@ -2845,7 +2851,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
         if ($sfw_nets) 
         {
             $db = JFactory::getDbo();
-            error_log(print_r($sfw_nets[0],true));
             $query = $db->getQuery(true);
             $query->delete($db->quoteName($this->sfw_table_name));
             $db->setQuery($query);
