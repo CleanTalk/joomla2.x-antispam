@@ -251,7 +251,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 				$api_key=$jparam->get('apikey', '');
 				$show_notice=$jparam->get('show_notice', 0);
 				
-				if($api_key != '' && $api_key != 'enter key'){
+				if($api_key != ''){
 					$new_status=$last_status;
 					
 					if($new_checked-$last_checked > 86400){
@@ -1017,7 +1017,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 	{
 	    $config = $this->getCTConfig();
 	    $new_config=json_decode($data->params);
-	    if(isset($new_config->apikey) && $new_config->apikey != $config['apikey'] && trim($new_config->apikey) != '' && $new_config->apikey != 'enter key'){
+	    if(isset($new_config->apikey) && $new_config->apikey != $config['apikey'] && trim($new_config->apikey) != ''){
 			self::ctSendAgentVersion($new_config->apikey);
 	    }
 
@@ -1033,11 +1033,12 @@ class plgSystemAntispambycleantalk extends JPlugin {
 		$id = $this->getId('system','antispambycleantalk');
 		$table = JTable::getInstance('extension');
 		$table->load($id);
-		$params = new JRegistry($table->params);			
+		$params = new JRegistry($table->params);	
+		$access_key = trim($new_config->apikey);		
 		$url='https://api.cleantalk.org';
 		$data = array(
 							"method_name" => "notice_validate_key",
-							"auth_key" => $new_config->apikey,
+							"auth_key" => $access_key,
 							"path_to_cms" => $_SERVER['HTTP_HOST']
 						);						
 		$result= sendRawRequest($url, $data);
@@ -1052,7 +1053,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 		else
 		{
 			$params->set('ct_key_is_ok', 1);			
-			$status = self::checkApiKeyStatus($new_config->apikey, 'notice_paid_till');
+			$status = self::checkApiKeyStatus($access_key, 'notice_paid_till');
 			if(isset($status['data']['show_notice']) && $status['data']['show_notice'] == 1 && isset($status['data']['trial']) && $status['data']['trial'] == 1) {	
 				$params->set('user_token', $status['data']['user_token']);
 				$params->set('service_id','');						
