@@ -3,7 +3,7 @@
 /**
  * CleanTalk joomla plugin
  *
- * @version 4.9
+ * @version 4.8.1
  * @package Cleantalk
  * @subpackage Joomla
  * @author CleanTalk (welcome@cleantalk.org) 
@@ -25,7 +25,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
     /**
      * Plugin version string for server
      */
-    const ENGINE = 'joomla3-49';
+    const ENGINE = 'joomla3-481';
     
     /**
      * Default value for hidden field ct_checkjs 
@@ -2198,7 +2198,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
         $config['user_token'] = '';
         $config['js_keys'] = '';
 		$jreg = new JRegistry($plugin->params);
-		$config['apikey'] = $jreg->get('apikey', '');
+		$config['apikey'] = trim($jreg->get('apikey', ''));
 		$config['server'] = $jreg->get('server', '');
 		$config['jcomments_unpublished_nofications'] = $jreg->get('jcomments_unpublished_nofications', '');
 		$config['general_contact_forms_test'] = $jreg->get('general_contact_forms_test', '');
