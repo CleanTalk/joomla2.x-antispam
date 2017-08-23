@@ -248,7 +248,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 				$last_checked=$jparam->get('last_checked', 0);
 				$new_checked=time();
 				$last_status=intval($jparam->get('last_status', -1));
-				$api_key=$jparam->get('apikey', '');
+				$api_key=trim($jparam->get('apikey', ''));
 				$show_notice=$jparam->get('show_notice', 0);
 				
 				if($api_key != ''){
@@ -438,8 +438,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 		}
 
 		return $value;
-	}
-	
+	}	
     /**
      * This event is triggered after Joomla initialization
      * Joomla 1.5
@@ -463,7 +462,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
         $plugin = JPluginHelper::getPlugin('system', 'antispambycleantalk');
         $jparam = new JRegistry($plugin->params);
         $sfw_enable = $jparam->get('sfw_enable', 0);
-        $ct_apikey = $jparam->get('apikey', 0);
+        $ct_apikey = trim($jparam->get('apikey', 0));
         $sfw_log = (array)$jparam->get('sfw_log', 0);
         /*
             Do SpamFireWall actions for visitors if we have a GET request and option enabled. 
@@ -503,80 +502,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 	        $save_params = array();        	
             $sfw_check_interval = $jparam->get('sfw_check_interval', 0);
             if ($sfw_check_interval > 0 && ($sfw_last_check + $sfw_check_interval) < time()) 
-            {
-                $app = JFactory::getApplication();
-                $prefix = $app->getCfg('dbprefix');
-                $sfw_table_name_full = preg_replace('/^(#__)/', $prefix, $this->sfw_table_name);
-                
-                $db = JFactory::getDbo();
-		    	$app = JFactory::getApplication();
-		        $prefix = $app->getCfg('dbprefix');
-		        $query="CREATE TABLE IF NOT EXISTS ".$sfw_table_name_full." (
-					  `network` int(11) unsigned NOT NULL,
-					  `mask` int(11) unsigned NOT NULL,
-					  KEY `network` (`network`)
-					) ENGINE=MyISAM DEFAULT CHARSET=latin1;";
-		        $db->setQuery($query);
-				$db->execute();
-                
-                $tables = JFactory::getDbo()->getTableList();
-                
-                $sfw_nets = null;
-                $ct_r = null;
-                $ct_rd = null;
-                $min_mask = pow(2, 32); 
-                $max_mask = 0;
-                if (in_array($sfw_table_name_full, $tables)) {
-                    self::getCleantalk(); 
-                    $ct_r = self::$CT->get_2s_blacklists_db($jparam->get('apikey', ''));
-                    if ($ct_r) {
-                       $ct_rd = json_decode($ct_r, true); 
-                    }
-                    if (isset($ct_rd['data'])) {
-                        $sfw_nets = $ct_rd['data'];
-                    } else {
-                        
-                    }
-                }
-                if ($sfw_nets) 
-                {
-                    $db = JFactory::getDbo();
-
-                    $query = $db->getQuery(true);
-
-                    $query->delete($db->quoteName($this->sfw_table_name));
-
-                    $db->setQuery($query);
-                    $result = $db->execute();
-                    if ($result === true) {
-                        // Create a new query object.
-                        $query = $db->getQuery(true);
-                         
-                        // Insert columns.
-                        $columns = array('network', 'mask');
-                         
-                        // Prepare the insert query.
-                        $query->insert($db->quoteName($this->sfw_table_name));
-                        $query->columns($db->quoteName($columns));
-                        $values = null;
-                        foreach ($sfw_nets as $v) {
-                            $values[] = implode(',', $v);  
-                            if ($v[1] <= $min_mask) {
-                                $min_mask = $v[1];
-                            }
-                            if ($v[1] >= $max_mask) {
-                                $max_mask = $v[1];
-                            }
-                        }
-                        $query->values($values);
-                        $db->setQuery($query);
-                        $result = $db->execute();
-                    }
-                }
-                $save_params['sfw_last_check'] = time();
-                $save_params['sfw_min_mask'] = $min_mask;
-                $save_params['sfw_max_mask'] = $max_mask;
-            }
+                self::update_sfw_db_networks($ct_apikey);
             if(time()-$sfw_last_send_log>3600)
             {
             	if(is_array($sfw_log)&&sizeof($sfw_log)>0)
@@ -1034,7 +960,8 @@ class plgSystemAntispambycleantalk extends JPlugin {
 		$table = JTable::getInstance('extension');
 		$table->load($id);
 		$params = new JRegistry($table->params);	
-		$access_key = trim($new_config->apikey);		
+		$access_key = trim($new_config->apikey);
+        $sfw_enable = $params->get('sfw_enable', 0);		
 		$url='https://api.cleantalk.org';
 		$data = array(
 							"method_name" => "notice_validate_key",
@@ -1066,6 +993,8 @@ class plgSystemAntispambycleantalk extends JPlugin {
 				if (isset($status['data']['service_id']))
 					$params->set('service_id',$status['data']['service_id']);
 			}
+			if ($sfw_enable ==1)
+				self::update_sfw_db_networks($access_key);
 
 		}
 		$table->params = $params->toString();
@@ -2880,4 +2809,83 @@ class plgSystemAntispambycleantalk extends JPlugin {
         return null;
     }
     
+    private function update_sfw_db_networks($ct_apikey)
+    {
+        $app = JFactory::getApplication();             
+        $save_params = array();
+        $plugin = JPluginHelper::getPlugin('system', 'antispambycleantalk');
+        $jparam = new JRegistry($plugin->params);
+        $sfw_last_check = $jparam->get('sfw_last_check', 0);  
+        $prefix = $app->getCfg('dbprefix');
+        $sfw_table_name_full = preg_replace('/^(#__)/', $prefix, $this->sfw_table_name);               
+        $db = JFactory::getDbo();
+		$query="CREATE TABLE IF NOT EXISTS ".$sfw_table_name_full." (
+					  `network` int(11) unsigned NOT NULL,
+					  `mask` int(11) unsigned NOT NULL,
+					  KEY `network` (`network`)
+					) ENGINE=MyISAM DEFAULT CHARSET=latin1;";
+		$db->setQuery($query);
+		$db->execute();
+        $tables = JFactory::getDbo()->getTableList();                
+        $sfw_nets = null;
+        $ct_r = null;
+        $ct_rd = null;
+        $min_mask = pow(2, 32); 
+        $max_mask = 0;
+        if (in_array($sfw_table_name_full, $tables)) {
+            self::getCleantalk(); 
+            $ct_r = self::$CT->get_2s_blacklists_db($ct_apikey);
+            if ($ct_r) {
+                $ct_rd = json_decode($ct_r, true); 
+            }
+            if (isset($ct_rd['data'])) {
+                $sfw_nets = $ct_rd['data'];
+            }                         
+        }
+        if ($sfw_nets) 
+        {
+            $db = JFactory::getDbo();
+            error_log(print_r($sfw_nets[0],true));
+            $query = $db->getQuery(true);
+            $query->delete($db->quoteName($this->sfw_table_name));
+            $db->setQuery($query);
+            $result = $db->execute();
+            if ($result === true) {
+              	// Create a new query object.
+                $query = $db->getQuery(true);                        
+                // Insert columns.
+                $columns = array('network', 'mask');                         
+                // Prepare the insert query.
+                $query->insert($db->quoteName($this->sfw_table_name));
+				$query->columns($db->quoteName($columns));
+                $values = null;
+                foreach ($sfw_nets as $v) {
+                    $values[] = implode(',', $v);  
+                    if ($v[1] <= $min_mask) {
+                        $min_mask = $v[1];
+                    }
+                    if ($v[1] >= $max_mask) {
+                        $max_mask = $v[1];
+                    }
+                }
+                $query->values($values);
+                $db->setQuery($query);
+                $result = $db->execute();
+            }
+        }                                
+        $save_params['sfw_last_check'] = time();
+        $save_params['sfw_min_mask'] = $min_mask;
+        $save_params['sfw_max_mask'] = $max_mask;
+	    if (count($save_params)) {
+	        $id = $this->getId('system','antispambycleantalk');
+	        $table = JTable::getInstance('extension');
+	        $table->load($id);	            
+	        $params = new JRegistry($table->params);
+	        foreach ($save_params as $k => $v) {
+	            $params->set($k, $v);
+	        }
+	        $table->params = $params->toString();
+	        $table->store();
+	    }        
+	}   
 }
