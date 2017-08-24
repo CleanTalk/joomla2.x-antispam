@@ -2198,7 +2198,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
         $config['user_token'] = '';
         $config['js_keys'] = '';
 		$jreg = new JRegistry($plugin->params);
-		$config['apikey'] = $jreg->get('apikey', '');
+		$config['apikey'] = trim($jreg->get('apikey', ''));
 		$config['server'] = $jreg->get('server', '');
 		$config['jcomments_unpublished_nofications'] = $jreg->get('jcomments_unpublished_nofications', '');
 		$config['general_contact_forms_test'] = $jreg->get('general_contact_forms_test', '');
