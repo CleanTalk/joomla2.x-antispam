@@ -25,7 +25,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
     /**
      * Plugin version string for server
      */
-    const ENGINE = 'joomla3-481';
+    const ENGINE = 'joomla3-49';
     
     /**
      * Default value for hidden field ct_checkjs 
@@ -756,18 +756,18 @@ class plgSystemAntispambycleantalk extends JPlugin {
 		       					}
 		       				}
 		       			}
-		       			if (count($spam_users)>0)
-		       			{
-		        			$send_result['data']['spam_users']=$spam_users;
-			           		$send_result['result']='success';       				
-		       			}
-		       			else 
-		       			{
-	            			$send_result['data'] = JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_NOUSERSFOUND');
-		       				$send_result['result']='error';
-		       			}
 		       		}	           		
-            	}             	
+            	}
+		       	if (count($spam_users)>0)
+		       	{
+		        	$send_result['data']['spam_users']=$spam_users;
+			        $send_result['result']='success';       				
+		       	}
+		       	else 
+		       	{
+	            	$send_result['data'] = JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_NOUSERSFOUND');
+		       		$send_result['result']='error';
+		       	}            	             	
             }      
             print json_encode($send_result);
 			$mainframe=JFactory::getApplication();
@@ -842,19 +842,19 @@ class plgSystemAntispambycleantalk extends JPlugin {
 			       						}
 			       					}
 			       				}
-			       			}
-			       			if (count($spam_comments)>0)
-			       			{
-			        			$send_result['data']['spam_comments']=$spam_comments;
-				           		$send_result['result']='success';       				
-			       			}
-			       			else 
-			       			{
-			       				$send_result['data'] = JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_NOCOMMENTSFOUND');
-			 					$send_result['result']='error';        					
-			       			}     			
+			       			}    			
 			       		}
-	            	}	            	
+	            	}
+			       	if (count($spam_comments)>0)
+			       	{
+			        	$send_result['data']['spam_comments']=$spam_comments;
+				        $send_result['result']='success';       				
+			       	}
+			       	else 
+			       	{
+			       		$send_result['data'] = JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_NOCOMMENTSFOUND');
+			 			$send_result['result']='error';        					
+			       	} 	            	
 	            }           	
             }      		
             print json_encode($send_result);
