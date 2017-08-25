@@ -703,9 +703,12 @@ class plgSystemAntispambycleantalk extends JPlugin {
             $data = array();$spam_users=array();
             $send_result['result']=null;
             $send_result['data']=null;
-            foreach ($users as $user)
-            	array_push($data, $user['email']);
-            $data=implode(',',$data);
+            foreach ($users as $user_index => $user)
+            {
+            	$curr_date = (substr($user['registerDate'], 0, 10) ? substr($user['registerDate'], 0, 10) : '');
+            	if (!empty($user['email']))
+  		          	$data[$curr_date][] = $user['email'];
+            }
             if (count($data) == 0)
             {
             	$send_result['data'] = JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_NOUSERSTOCHECK');
@@ -713,53 +716,58 @@ class plgSystemAntispambycleantalk extends JPlugin {
             }
             else 
             {
-	            $request=Array();
-	        	$request['method_name'] = 'spam_check_cms';
-	        	$request['auth_key'] = $config['apikey'];
-	        	$request['data'] = $data;
-	        	$url='https://api.cleantalk.org';
-	        	$result=sendRawRequest($url, $request);
-	       		$result=json_decode($result);    	
-	       		if (isset($result->error_message))
-	       		{
-	       			if ($result->error_message == 'Access key unset.')
-	       				$send_result['data'] = JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_BADKEY');
-	       			elseif ($result->error_message == 'Service disabled, please go to Dashboard https://cleantalk.org/my?product_id=1')
-	       				$send_result['data'] = JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_BADKEY_DISABLED');
-	       			else $send_result['data'] = $result->error_message;	       			
-	       			$send_result['result']='error';
-	       		}
-	       		else
-	       		{
-	       			if (isset($result->data))
-	       			{
-	       				foreach($result->data as $mail=>$value)
-	       				{
-	       					if ($value->appears == '1' )
-	       					{
-	       						foreach ($users as $user)
-	       						{
-	       							if ($user['email']==$mail)
-	       							{
-	       								if ($user['lastvisitDate'] == '0000-00-00 00:00:00')
-	       									$user['lastvisitDate'] = '-';
-	       								$spam_users[]=$user;
-	       							}
-	       						}
-	       					}
-	       				}
-	       			}
-	       			if (count($spam_users)>0)
-	       			{
-	        			$send_result['data']['spam_users']=$spam_users;
-		           		$send_result['result']='success';       				
-	       			}
-	       			else 
-	       			{
-            			$send_result['data'] = JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_NOUSERSFOUND');
-	       				$send_result['result']='error';
-	       			}
-	       		}             	
+            	foreach ($data as $date=>$values)
+            	{
+            		$values=implode(',',$values);
+ 				    $request=Array();
+		        	$request['method_name'] = 'spam_check_cms';
+		        	$request['auth_key'] = $config['apikey'];
+		        	$request['data'] = $values;
+		        	$request['date'] = $date;
+		        	$url='https://api.cleantalk.org';
+		        	$result=sendRawRequest($url, $request);
+		       		$result=json_decode($result);   	
+		       		if (isset($result->error_message))
+		       		{
+		       			if ($result->error_message == 'Access key unset.')
+		       				$send_result['data'] = JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_BADKEY');
+		       			elseif ($result->error_message == 'Service disabled, please go to Dashboard https://cleantalk.org/my?product_id=1')
+		       				$send_result['data'] = JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_BADKEY_DISABLED');
+		       			else $send_result['data'] = $result->error_message;	       			
+		       			$send_result['result']='error';
+		       		}
+		       		else
+		       		{
+		       			if (isset($result->data))
+		       			{
+		       				foreach($result->data as $mail=>$value)
+		       				{
+		       					if ($value->appears == '1' )
+		       					{
+		       						foreach ($users as $user)
+		       						{
+		       							if ($user['email']==$mail && substr($user['registerDate'], 0, 10) == $date)
+		       							{
+		       								if ($user['lastvisitDate'] == '0000-00-00 00:00:00')
+		       									$user['lastvisitDate'] = '-';
+		       								$spam_users[]=$user;
+		       							}
+		       						}
+		       					}
+		       				}
+		       			}
+		       			if (count($spam_users)>0)
+		       			{
+		        			$send_result['data']['spam_users']=$spam_users;
+			           		$send_result['result']='success';       				
+		       			}
+		       			else 
+		       			{
+	            			$send_result['data'] = JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_NOUSERSFOUND');
+		       				$send_result['result']='error';
+		       			}
+		       		}	           		
+            	}             	
             }      
             print json_encode($send_result);
 			$mainframe=JFactory::getApplication();
@@ -786,62 +794,68 @@ class plgSystemAntispambycleantalk extends JPlugin {
 	            $data = array();$spam_comments=array();
 	            foreach ($comments as $comment)
 	            {
+	            	$curr_date = (substr($comment['date'], 0, 10) ? substr($comment['date'], 0, 10) : '');
 	            	if (!empty($comment['ip']))
-	            		$data[]=$comment['ip'];
+	            		$data[$curr_date][]=$comment['ip'];
 	            	if (!empty($comment['email']))
-	            		$data[]=$comment['email'];
+	            		$data[$curr_date][]=$comment['email'];
 	            }
-	            if (count($data)>0)
+	            if (count($data) == 0)
 	            {
-		            $request=Array();$data=implode(',',$data);
-		        	$request['method_name'] = 'spam_check_cms';
-		        	$request['auth_key'] = $config['apikey'];
-		        	$request['data'] = $data;
-		        	$url='https://api.cleantalk.org';
-		        	$result=sendRawRequest($url, $request);
-		       		$result=json_decode($result);
-		       		if (isset($result->error_message))
-		       		{
-		       			if ($result->error_message == 'Access key unset.')
-		       				$send_result['data'] = JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_BADKEY');
-	       				elseif ($result->error_message == 'Service disabled, please go to Dashboard https://cleantalk.org/my?product_id=1')
-	       					$send_result['data'] = JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_BADKEY_DISABLED');		       			
-		       			else $send_result['data'] = $result->error_message;	       			
-		       			$send_result['result']='error';
-		       		}
-		       		else
-		       		{
-		       			if (isset($result->data))
-		       			{
-		       				foreach($result->data as $mail=>$value)
-		       				{
-		       					if ($value->appears == '1' )
-		       					{
-		       						foreach ($comments as $comment)
-		       						{
-		       							if ($comment['email']==$mail || $comment['ip']==$mail)
-		       								$spam_comments[]=$comment;
-		       						}
-		       					}
-		       				}
-		       			}
-		       			if (count($spam_comments)>0)
-		       			{
-		        			$send_result['data']['spam_comments']=$spam_comments;
-			           		$send_result['result']='success';       				
-		       			}
-		       			else 
-		       			{
-		       				$send_result['data'] = JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_NOCOMMENTSFOUND');
-		 					$send_result['result']='error';        					
-		       			}     			
-		       		}	            	
+	            	$send_result['data'] = JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_NOCOMMENTSTOCHECK');
+	            	$send_result['result'] = 'error';  	            	  
 	            }
 	            else
 	            {
-	            	$send_result['data'] = JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_NOCOMMENTSTOCHECK');
-	            	$send_result['result'] = 'error';  	            	
-	            }             	
+	            	foreach ($data as $date => $values)
+	            	{
+	            		$values=implode(',',$values);
+	            		$request=Array();
+			        	$request['method_name'] = 'spam_check_cms';
+			        	$request['auth_key'] = $config['apikey'];
+			        	$request['data'] = $values;
+			        	$request['date'] = $date;
+			        	$url='https://api.cleantalk.org';
+			        	$result=sendRawRequest($url, $request);
+			       		$result=json_decode($result);
+			       		if (isset($result->error_message))
+			       		{
+			       			if ($result->error_message == 'Access key unset.')
+			       				$send_result['data'] = JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_BADKEY');
+		       				elseif ($result->error_message == 'Service disabled, please go to Dashboard https://cleantalk.org/my?product_id=1')
+		       					$send_result['data'] = JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_BADKEY_DISABLED');		       			
+			       			else $send_result['data'] = $result->error_message;	       			
+			       			$send_result['result']='error';
+			       		}
+			       		else
+			       		{
+			       			if (isset($result->data))
+			       			{
+			       				foreach($result->data as $mail=>$value)
+			       				{
+			       					if ($value->appears == '1' )
+			       					{
+			       						foreach ($comments as $comment)
+			       						{
+			       							if (($comment['email']==$mail || $comment['ip']==$mail) && substr($comment['date'], 0, 10) == $date )
+			       								$spam_comments[]=$comment;
+			       						}
+			       					}
+			       				}
+			       			}
+			       			if (count($spam_comments)>0)
+			       			{
+			        			$send_result['data']['spam_comments']=$spam_comments;
+				           		$send_result['result']='success';       				
+			       			}
+			       			else 
+			       			{
+			       				$send_result['data'] = JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_NOCOMMENTSFOUND');
+			 					$send_result['result']='error';        					
+			       			}     			
+			       		}
+	            	}	            	
+	            }           	
             }      		
             print json_encode($send_result);
 			$mainframe=JFactory::getApplication();
