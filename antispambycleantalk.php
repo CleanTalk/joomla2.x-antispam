@@ -949,20 +949,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
     	}
     }
     /**
-     * This event is triggered before extension save their settings
-     * Joomla 2.5+
-     * @access public
-     */        
-	public function onExtensionBeforeSave($name, $data)
-	{
-	    $config = $this->getCTConfig();
-	    $new_config=json_decode($data->params);
-	    if(isset($new_config->apikey) && $new_config->apikey != $config['apikey'] && trim($new_config->apikey) != ''){
-			self::ctSendAgentVersion($new_config->apikey);
-	    }
-
-	}
-    /**
      * This event is triggered after extension save their settings
      * Joomla 2.5+
      * @access public
@@ -1011,6 +997,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 				$params->set('spam_count',$status['data']['spam_count']);
 			if ($sfw_enable ==1)
 				self::update_sfw_db_networks($access_key);
+			self::ctSendAgentVersion($access_key);
 
 		}
 		$table->params = $params->toString();
