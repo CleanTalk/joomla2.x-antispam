@@ -1045,7 +1045,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
     public function onAfterRender(){
 		
     	$config = $this->getCTConfig();	$this->loadLanguage();	
-    	if($config['tell_about_cleantalk'] == 1 && strpos($_SERVER['REQUEST_URI'],'/administrator/') === false &&){
+    	if($config['tell_about_cleantalk'] == 1 && strpos($_SERVER['REQUEST_URI'],'/administrator/') === false){
     		if ((int)$config['spam_count']>0)
 				$code = "<div id='cleantalk_footer_link' style='width:100%;text-align:center;'><a href='https://cleantalk.org/joomla-anti-spam-plugin-without-captcha'>Anti-spam by CleanTalk</a> for Joomla!<br>".$config['spam_count']." spam blocked</div>";
 			else
