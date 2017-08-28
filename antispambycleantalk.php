@@ -1207,8 +1207,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
      * @since 1.5
      */
     public function onAfterDispatch() {
-        $app = JFactory::getApplication();					
-			
+        $app = JFactory::getApplication();								
         if ($app->isAdmin() && JPluginHelper::isEnabled('system', 'antispambycleantalk')){
             if ($this->ct_admin_notices == 0 && JFactory::getUser()->authorise('core.admin')) {
 				$this->ct_admin_notices++;
@@ -1218,7 +1217,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
 
 				// Notice about not entered api key
 				$plugin = JPluginHelper::getPlugin('system', 'antispambycleantalk');
-				print_r($plugin);
 				$jparam = new JRegistry($plugin->params);
 				$key_is_ok = $jparam->get('ct_key_is_ok');
 				$moderate_ip = $jparam->get('moderate_ip');
