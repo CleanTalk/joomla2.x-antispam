@@ -1045,8 +1045,11 @@ class plgSystemAntispambycleantalk extends JPlugin {
     public function onAfterRender(){
 		
     	$config = $this->getCTConfig();	$this->loadLanguage();	
-    	if($config['tell_about_cleantalk'] == 1 && strpos($_SERVER['REQUEST_URI'],'/administrator/') === false){
-			$code = "<div id='cleantalk_footer_link' style='width:100%;text-align:center;'>".JText::sprintf('PLG_SYSTEM_CLEANTALK_VALUE_FOOTERLINK',$config['spam_count'])."</div>";
+    	if($config['tell_about_cleantalk'] == 1 && strpos($_SERVER['REQUEST_URI'],'/administrator/') === false &&){
+    		if ((int)$config['spam_count']>0)
+				$code = "<div id='cleantalk_footer_link' style='width:100%;text-align:center;'><a href='https://cleantalk.org/joomla-anti-spam-plugin-without-captcha'>Anti-spam by CleanTalk</a> for Joomla!<br>".$config['spam_count']." spam blocked</div>";
+			else
+				$code = "<div id='cleantalk_footer_link' style='width:100%;text-align:center;'><a href='https://cleantalk.org/joomla-anti-spam-plugin-without-captcha'>Anti-spam by CleanTalk</a> for Joomla!<br></div>";
 			$documentbody = JResponse::getBody();
 			$documentbody = str_replace ("</body>", $code." </body>", $documentbody);
 			JResponse::setBody($documentbody);
@@ -1192,8 +1195,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
             if ($this->ct_admin_notices == 0 && JFactory::getUser()->authorise('core.admin')) {
 				$this->ct_admin_notices++;
 				$this->loadLanguage();
-				$config = $this->getCTConfig();
-
 				$next_notice = true; // Flag to show one notice per time
 				$notice = '';
 
@@ -1204,7 +1205,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 				$moderate_ip = $jparam->get('moderate_ip');
 				$user_token = $jparam->get('user_token');
 				$service_id = $jparam->get('service_id');
-				if (!$key_is_ok) {
+				if ($key_is_ok == 0) {
 					$notice = JText::_('PLG_SYSTEM_CLEANTALK_NOTICE_APIKEY');
 					$next_notice = false;
 				}
