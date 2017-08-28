@@ -128,7 +128,7 @@
 				default="" 
 			/>
 			<field name="ct_key_is_ok" type="hidden" 
-				default="0" 
+				default="" 
 			/>
  			<field name="js_keys" type="hidden" 
 				default="0" 
