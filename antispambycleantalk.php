@@ -1219,6 +1219,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 				}
 				// Notice about state of api key - trial, expired and so on.
 				if($next_notice){
+					$config = $this->getCTConfig();
 					// Short timeout before new check in hours - for bad accounts
 					$notice_check_timeout_short = 1;
 					// Long timeout before new check in hours - for good accounts
@@ -1234,12 +1235,13 @@ class plgSystemAntispambycleantalk extends JPlugin {
 					}catch(Exception $e){
 
 					}
+
 					// Default api key check timeout is small
 					$notice_check_timeout = $notice_check_timeout_short; 
-					// Good key state is stored - increase api key check timeout to long
-					if(is_array($status) && isset($status['data']['show_notice']) && $status['data']['show_notice'] == 0)
-						$notice_check_timeout = $notice_check_timeout_long; 
 
+					// Good key state is stored - increase api key check timeout to long
+					if(is_array($status) && isset($status['show_notice']) && $status['show_notice'] == 0)
+						$notice_check_timeout = $notice_check_timeout_long; 
 					// Time is greater than check timeout - need to check actual status now
 					if(time() > strtotime("+$notice_check_timeout hours", $db_status['ct_changed'])){
 						$status = self::checkApiKeyStatus($config['apikey'], 'notice_paid_till');
@@ -1268,16 +1270,17 @@ class plgSystemAntispambycleantalk extends JPlugin {
 						// Bad apikey status is in database - need to check actual status again,
 						//  because admin could change key from bad to good since last notice
 						//  before api key check timeout.
+
 						if(isset($status['show_notice']) && $status['show_notice'] == 1) {
 							$new_status = self::checkApiKeyStatus($config['apikey'], 'notice_paid_till');
 							if(isset($new_status) && $new_status !== FALSE){
+								$status = $new_status['data'];
 								self::dbSetApikeyStatus(serialize($new_status), $db_status['ct_changed']); // Save it with old time!
-								$status = $new_status;
 							}
 
 						}
-					if(isset($status['data']['show_notice']) && $status['data']['show_notice'] == 1 && isset($status['data']['trial']) && $status['data']['trial'] == 1) {
-							$notice = JText::sprintf('PLG_SYSTEM_CLEANTALK_NOTICE_TRIAL', $status['data']['user_token']);
+					if(isset($status['show_notice']) && $status['show_notice'] == 1 && isset($status['trial']) && $status['trial'] == 1) {
+							$notice = JText::sprintf('PLG_SYSTEM_CLEANTALK_NOTICE_TRIAL', $status['user_token']);
 							$next_notice = false;
 
 						}
