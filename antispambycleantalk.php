@@ -1190,7 +1190,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
      * @since 1.5
      */
     public function onAfterDispatch() {
-        $app = JFactory::getApplication();	
+        $app = JFactory::getApplication();					
         if ($app->isAdmin() && JPluginHelper::isEnabled('system', 'antispambycleantalk')){
             if ($this->ct_admin_notices == 0 && JFactory::getUser()->authorise('core.admin')) {
 				$this->ct_admin_notices++;
@@ -1205,7 +1205,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 				$moderate_ip = $jparam->get('moderate_ip');
 				$user_token = $jparam->get('user_token');
 				$service_id = $jparam->get('service_id');
-				if ($key_is_ok == 0) {
+				if (!$key_is_ok) {
 					$notice = JText::_('PLG_SYSTEM_CLEANTALK_NOTICE_APIKEY');
 					$next_notice = false;
 				}
