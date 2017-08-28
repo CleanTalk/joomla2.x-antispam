@@ -248,19 +248,19 @@ class plgSystemAntispambycleantalk extends JPlugin {
 				$new_checked=time();
 				$last_status=intval($jparam->get('last_status', -1));
 				$api_key=trim($jparam->get('apikey', ''));
-				$show_notice=$jparam->get('show_notice', 0);				
-				if($api_key != ''){
+				$show_notice=$jparam->get('show_notice', 0);			
+
+				if(!empty($api_key)){
 					$new_status=$last_status;
 					
 					if($new_checked-$last_checked > 86400){
-						
 						$url='https://api.cleantalk.org';
 						$dt = array(
 							"method_name" => "notice_validate_key",
 							"auth_key" => $api_key,
 							"path_to_cms" => $_SERVER['HTTP_HOST']
 						);						
-						$result= sendRawRequest($url, $data);
+						$result= sendRawRequest($url, $dt);
 						$result = $result ? json_decode($result, true) : false;						
 						$key_is_ok = isset($result) ? $result['valid'] : 0;
 						$params   = new JRegistry($table->params);
@@ -306,18 +306,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
 						$table->params = $params->toString();
 						$table->store();
 					}
-						// notice_paid_till
-			    		$result = noticePaidTill($api_key);
-			    		if($result !== null){
-			    			$result = json_decode($result);
-			    			if(isset($result->data) && !empty($result->data->show_review) && $result->data->show_review == 1)
-		    					$show_notice_review = 1;
-		    				else $show_notice_review=0;
-			    		}
-			    		$params   = new JRegistry($table->params);
-			    		$params->set('show_notice_review', $show_notice_review); // Temporary
-						$table->params = $params->toString();
-						$table->store();
 						
 				}
     		}
@@ -1222,7 +1210,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
 				$moderate_ip = $jparam->get('moderate_ip');
 				$user_token = $jparam->get('user_token');
 				$service_id = $jparam->get('service_id');
-				print_r($service_id);
 				if (!$key_is_ok) {
 					$notice = JText::_('PLG_SYSTEM_CLEANTALK_NOTICE_APIKEY');
 					$next_notice = false;
