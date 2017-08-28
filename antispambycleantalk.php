@@ -1190,8 +1190,8 @@ class plgSystemAntispambycleantalk extends JPlugin {
      * @since 1.5
      */
     public function onAfterDispatch() {
-        $app = JFactory::getApplication();
-        if ($app->isAdmin()){
+        $app = JFactory::getApplication();	
+        if ($app->isAdmin() && JPluginHelper::isEnabled('system', 'antispambycleantalk')){
             if ($this->ct_admin_notices == 0 && JFactory::getUser()->authorise('core.admin')) {
 				$this->ct_admin_notices++;
 				$this->loadLanguage();

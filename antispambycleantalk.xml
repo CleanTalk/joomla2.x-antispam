@@ -79,6 +79,18 @@
 				size="50" 
 				default="" 
 			/>
+			<field name ="service_id" type="hidden"
+				label="service_id"
+				description="service_id"
+				size="50"
+				default=""
+			/>
+			<field name ="spam_count" type="hidden"
+				label="spam_count"
+				description="spam_count"
+				size="50"
+				default=""
+			/>
 			<field name="last_status" type="hidden" 
 				label="last_status" 
 				description="last_status" 
