@@ -231,7 +231,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 	* Checks if auth_key is paid or not
 	*/
     
-	private function checkIsPaid(){
+	private function checkIsPaid($ct_api_key=null, $force_check = false){
 		
     	$id=0;
     	$id=$this->getId('system','antispambycleantalk');
@@ -246,27 +246,27 @@ class plgSystemAntispambycleantalk extends JPlugin {
 				$last_checked=$jparam->get('last_checked', 0);
 				$new_checked=time();
 				$last_status=intval($jparam->get('last_status', -1));
-				$api_key=trim($jparam->get('apikey', ''));		
-				$notice = '';
-				$new_status=$last_status;
-				$service_id = $jparam->get('service_id','');
-				$user_token = $jparam->get('user_token','');
-				$spam_count = $jparam->get('spam_count',0);	
-				$key_is_ok = $jparam->get('ct_key_is_ok',0);		
-				$moderate_ip = $jparam->get('moderate_ip',0);
+				$sfw_enable = $jparam->get('sfw_enable',0);
+				$api_key = trim($ct_api_key);	
+				$new_status=$last_status;	
+				if($new_checked-$last_checked > 86400  || $force_check)
+				{
+					if (empty($api_key))
+						$key_is_ok=false;
+					else
+					{
+						$url='https://api.cleantalk.org';
+						$dt = array(
+							"method_name" => "notice_validate_key",
+							"auth_key" => $api_key,
+							"path_to_cms" => $_SERVER['HTTP_HOST']
+						);						
+						$result= sendRawRequest($url, $dt);
+						$result = $result ? json_decode($result, true) : false;						
+						$key_is_ok = isset($result) ? $result['valid'] : 0;	
 
-				if($new_checked-$last_checked > 86400 && !empty($api_key)){
-					$url='https://api.cleantalk.org';
-					$dt = array(
-						"method_name" => "notice_validate_key",
-						"auth_key" => $api_key,
-						"path_to_cms" => $_SERVER['HTTP_HOST']
-					);						
-					$result= sendRawRequest($url, $dt);
-					$result = $result ? json_decode($result, true) : false;						
-					$key_is_ok = isset($result) ? $result['valid'] : 0;
+					}
 					$params   = new JRegistry($table->params);
-
 					if ($key_is_ok)
 					{
 						// get_account_status
@@ -297,6 +297,9 @@ class plgSystemAntispambycleantalk extends JPlugin {
 							$service_id = (isset($result->data->show_notice) && $result->data->show_notice == 1 && isset($result->data->trial) && $result->data->trial == 1)?'':$result->data->service_id;
 							$spam_count = (isset($result->data->spam_count))?$result->data->spam_count:0;
 							$moderate_ip = (isset($result->data->moderate_ip) && $result->data->moderate_ip == 1)?1:0;
+							if ($sfw_enable ==1)
+								self::update_sfw_db_networks($api_key);
+							self::ctSendAgentVersion($api_key);
 				    	}
 						$params->set('last_checked', $new_checked);
 						$params->set('last_status', $new_status);
@@ -314,23 +317,13 @@ class plgSystemAntispambycleantalk extends JPlugin {
 						$params->set('user_token', '');
 						$params->set('service_id','');
 						$params->set('spam_count',0);
+						$params->set('last_checked', time());
 					}
-					$table->params = $params->toString();
-					$table->store();
-				}
-			if (!$key_is_ok)
-				$notice = JText::_('PLG_SYSTEM_CLEANTALK_NOTICE_APIKEY');
-			else
-			{
-				if(empty($service_id))
-					$notice = JText::sprintf('PLG_SYSTEM_CLEANTALK_NOTICE_TRIAL', $user_token);					
-			}	
+				}	
 						
     		}
-
-    	if(!empty($notice))
-			JError::raiseNotice(1024, $notice);
     	}
+    	return $params;
     }
     
     /*
@@ -754,10 +747,12 @@ class plgSystemAntispambycleantalk extends JPlugin {
 		       		$result=json_decode($result);   	
 		       		if (isset($result->error_message))
 		       		{
-		       			if ($result->error_message == 'Access key unset.')
+		       			if ($result->error_message == 'Access key unset.' || $result->error_message == 'Unknown access key.')
 		       				$send_result['data'] = JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_BADKEY');
 		       			elseif ($result->error_message == 'Service disabled, please go to Dashboard https://cleantalk.org/my?product_id=1')
 		       				$send_result['data'] = JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_BADKEY_DISABLED');
+		       			elseif ($result->error_message == 'Calls limit exceeded, method name spam_check_cms().')
+		       				$send_result['data'] = JText::_('PLG_SYSTEM_CLEANTALK_CALLS_LIMIT_EXCEEDED');
 		       			else $send_result['data'] = $result->error_message;	       			
 		       			$send_result['result']='error';
 		       		}
@@ -849,10 +844,12 @@ class plgSystemAntispambycleantalk extends JPlugin {
 			       		$result=json_decode($result);
 			       		if (isset($result->error_message))
 			       		{
-			       			if ($result->error_message == 'Access key unset.')
+			       			if ($result->error_message == 'Access key unset.' || $result->error_message == 'Unknown access key.')
 			       				$send_result['data'] = JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_BADKEY');
 		       				elseif ($result->error_message == 'Service disabled, please go to Dashboard https://cleantalk.org/my?product_id=1')
-		       					$send_result['data'] = JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_BADKEY_DISABLED');		       			
+		       					$send_result['data'] = JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_BADKEY_DISABLED');
+		       				elseif ($result->error_message == 'Calls limit exceeded, method name spam_check_cms().')
+		       					$send_result['data'] = JText::_('PLG_SYSTEM_CLEANTALK_CALLS_LIMIT_EXCEEDED');		       			
 			       			else $send_result['data'] = $result->error_message;	       			
 			       			$send_result['result']='error';
 			       		}
@@ -989,61 +986,15 @@ class plgSystemAntispambycleantalk extends JPlugin {
 	public function onExtensionAfterSave($name, $data)
 	{
 		$enabled = $data->enabled;
-					$id = $this->getId('system','antispambycleantalk');
+			$id = $this->getId('system','antispambycleantalk');
 			$table = JTable::getInstance('extension');
 			$table->load($id);
 			$params = new JRegistry($table->params);
 		if ($enabled == 1)
 		{
 			$new_config=json_decode($data->params);	
-	
 			$access_key = trim($new_config->apikey);
-	        $sfw_enable = $params->get('sfw_enable', 0);		
-			$url='https://api.cleantalk.org';
-			$data = array(
-								"method_name" => "notice_validate_key",
-								"auth_key" => $access_key,
-								"path_to_cms" => $_SERVER['HTTP_HOST']
-							);						
-			$result= sendRawRequest($url, $data);
-			$result = $result ? json_decode($result, true) : false;						
-			$key_is_ok = isset($result) ? $result['valid'] : 0;
-			if (!$key_is_ok)
-			{
-				$notice = JText::_('PLG_SYSTEM_CLEANTALK_NOTICE_APIKEY');
-				$params->set('ct_key_is_ok',0);
-				$params->set('service_id','');
-				$params->set('spam_count',0);
-				$params->set('user_token','');
-				$params->set('last_checked','');
-			}
-			else
-			{
-				$params->set('ct_key_is_ok', 1);			
-				$status = self::checkApiKeyStatus($access_key, 'notice_paid_till');
-				if(isset($status['data']['show_notice']) && $status['data']['show_notice'] == 1 && isset($status['data']['trial']) && $status['data']['trial'] == 1) {	
-					$params->set('user_token', $status['data']['user_token']);
-					$params->set('service_id','');						
-					$notice = JText::sprintf('PLG_SYSTEM_CLEANTALK_NOTICE_TRIAL',$status['data']['user_token']);
-				}								
-				else
-				{
-					if(isset($status['data']['user_token']))
-						$params->set('user_token',$status['data']['user_token']);
-					if (isset($status['data']['service_id']))
-						$params->set('service_id',$status['data']['service_id']);
-				}
-				$params->set('spam_count',(isset($status['data']['spam_count']))?$status['data']['spam_count']:0);
-				if ($sfw_enable ==1)
-					self::update_sfw_db_networks($access_key);
-				self::ctSendAgentVersion($access_key);
-				$params->set('last_checked',time());
-
-			}
-
-			// Show notice when defined
-			if(!empty($notice))
-				JError::raiseNotice(1024, $notice);	
+	        $params = $this->checkIsPaid($access_key, true);	
 		}
 		else
 		{
@@ -1053,7 +1004,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 				$params->set('user_token','');
 				$params->set('last_checked','');
 		}
-					$table->params = $params->toString();
+			$table->params = $params->toString();
 			$table->store();
 		
 	}  
@@ -1117,51 +1068,67 @@ class plgSystemAntispambycleantalk extends JPlugin {
 		
 		$user = JFactory::getUser();
 
-    	if($user->get('isRoot')){
+    	if($user->get('isRoot'))
+    	{
 		
 			$document = JFactory::getDocument();
 			$app = JFactory::getApplication();	
 			
 			// Version comparsion
-			if(!version_compare(JVERSION, '3', 'ge')){
+			if(!version_compare(JVERSION, '3', 'ge'))
+			{
 				
 				$buf=$document->getHeadData();
 				$is_jquery=false;
-				foreach($buf['scripts'] as $key=>$value ){
-					
+				foreach($buf['scripts'] as $key=>$value )				
 					if(stripos($key,'jquery')!==false)
-						$is_jquery=true;
-				
-				}
+						$is_jquery=true;				
 				if(!$is_jquery)
 					$document->addScript(Juri::root()."plugins/system/antispambycleantalk/jquery-1.11.2.min.js");
 				
 				$document->addScriptDeclaration("jQuery.noConflict();");
 				$document->addScriptDeclaration("var ct_joom25=true;");
 				
-			}else{
+			}
+			else
+			{
 				JHtml::_('jquery.framework');
 				$document->addScriptDeclaration("var ct_joom25=false;");
 			}
-
-			if($app->isAdmin() && strpos(JFactory::getUri(), 'com_plugins&view=plugin&layout=edit&extension_id='.$this->getId('system','antispambycleantalk'))){
-				$plugin = JPluginHelper::getPlugin('system', 'antispambycleantalk');
-				$jparam = new JRegistry($plugin->params);
-				$show_notice = $jparam->get('show_notice', 0);
-				$show_notice_review = $jparam->get('show_notice_review', 0);				
-				$config = JFactory::getConfig();
-				$adminmail=$config->get('mailfrom');
+			if($app->isAdmin())
+			{
+				if (!empty($this->checkIsPaid($this->getCTConfig()['apikey'])))
+				{
+					$id = $this->getId('system','antispambycleantalk');
+					$table = JTable::getInstance('extension');
+					$table->load($id);
+					$params = new JRegistry($table->params);
+					$params = $this->checkIsPaid($this->getCTConfig()['apikey']);
+					$table->params = $params->toString();
+					$table->store();
+					$config = $params;
+				}
+				else
+					$config = $this->getCTConfig();
+				if (!$config['ct_key_is_ok'])
+					$notice = JText::_('PLG_SYSTEM_CLEANTALK_NOTICE_APIKEY');	
+				else
+				{
+					if(empty($config['service_id']) && !empty($config['user_token']))
+						$notice = JText::sprintf('PLG_SYSTEM_CLEANTALK_NOTICE_TRIAL', $user_token);												
+				}
+				$adminmail=JFactory::getConfig()->get('mailfrom');
 				// Passing parameters to JS
 				$document->addScriptDeclaration('
 					//Control params
-					var ct_key_is_ok = "'.$jparam->get('ct_key_is_ok').'",
+					var ct_key_is_ok = "'.$config['ct_key_is_ok'].'",
 						cleantalk_domain="'.$_SERVER['HTTP_HOST'].'",
 						cleantalk_mail="'.$adminmail.'",
-						ct_ip_license = "'.$jparam->get('ip_license', 0).'",
-						ct_moderate_ip = "'.$jparam->get('moderate_ip', 0).'",
-						ct_user_token="'.$jparam->get('user_token', '').'",
-						ct_service_id="'.$jparam->get('service_id', '').'",
-						ct_notice_review_done='.($jparam->get('show_notice_review_done', '') ? 'true' : 'false').';
+						ct_ip_license = "'.$config['ip_license'].'",
+						ct_moderate_ip = "'.$config['moderate_ip'].'",
+						ct_user_token="'.$config['user_token'].'",
+						ct_service_id="'.$config['service_id'].'",
+						ct_notice_review_done='.($config['show_notice_review_done'] == 1 ? 'true' : 'false').';
 					
 					//Translation
 					var ct_autokey_label = "'    .JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_AUTOKEY_LABEL').'",
@@ -1171,8 +1138,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 						ct_license_notice = "'   .JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_LICENSE_NOTICE').'",
 						ct_statlink_label = "'   .JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_STATLINK_LABEL').'",
 						ct_register_message="'   .JText::_('PLG_SYSTEM_CLEANTALK_REGISTER_MESSAGE').$adminmail.'",
-						ct_key_is_ok_notice = "' .JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_KEY_IS_OK').'",
-						ct_moderate_ip = "'.JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_KEY_IS_BAD').'",
+						ct_key_is_bad_notice = "' .JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_KEY_IS_BAD').'",
 						ct_register_error="'.addslashes(JText::_('PLG_SYSTEM_CLEANTALK_ERROR_AUTO_GET_KEY')).'",
 						ct_spamcheck_checksusers = "'.JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_CHECKUSERS_LABEL').'",
 						ct_spamcheck_checkscomments = "'.JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_CHECKCOMMENTS_LABEL').'",
@@ -1200,14 +1166,17 @@ class plgSystemAntispambycleantalk extends JPlugin {
 				if(is_object($user) && isset($user->id) && $user->id > 0)
 					$is_logged_in = true;
 				
-				if($show_notice_review == 1 && $is_logged_in && strpos(JFactory::getUri(), 'com_plugins&view=plugin&layout=edit&extension_id='.$id) !==false){
+				if($config['show_notice_review'] == 1 && $is_logged_in && strpos(JFactory::getUri(), 'com_plugins&view=plugin&layout=edit&extension_id='.$id) !==false)
+				{
 					$document->addScriptDeclaration('var ct_show_feedback=true;');
 					$document->addScriptDeclaration('var ct_show_feedback_mes="'.JText::_('PLG_SYSTEM_CLEANTALK_FEEDBACKLINK').'";');
-				}else
+				}
+				else
 					$document->addScriptDeclaration('var ct_show_feedback=false;');
 				
 			}
-
+			if(isset($notice))
+					JError::raiseNotice(1024, $notice);
 			if ($app->isAdmin())
 				return;
 
@@ -1248,27 +1217,15 @@ class plgSystemAntispambycleantalk extends JPlugin {
             if ($this->ct_admin_notices == 0 && JFactory::getUser()->authorise('core.admin')) {
 				$this->ct_admin_notices++;
 				$this->loadLanguage();
-    			$this->checkIsPaid();
 				$next_notice = true; // Flag to show one notice per time
 				$notice = '';
-
-				// Notice about not entered api key
-				$plugin = JPluginHelper::getPlugin('system', 'antispambycleantalk');
-				$jparam = new JRegistry($plugin->params);
-				$key_is_ok = $jparam->get('ct_key_is_ok');
-				$moderate_ip = $jparam->get('moderate_ip');
-				$user_token = $jparam->get('user_token');
-				$service_id = $jparam->get('service_id');
-				if (!$key_is_ok)
+				$key_is_ok = $config['ct_key_is_ok'];
+				$user_token = $config['user_token'];
+				$service_id = $config['service_id'];
+				if (!$key_is_ok || (empty($service_id) && !empty($user_token)))
 					$next_notice = false;
-				else
-				{
-					if(empty($service_id) && !empty($user_token))
-						$next_notice =false;											
-				}
 				// Notice about state of api key - trial, expired and so on.
 				if($next_notice){
-					$config = $this->getCTConfig();
 					// Short timeout before new check in hours - for bad accounts
 					$notice_check_timeout_short = 1;
 					// Long timeout before new check in hours - for good accounts
@@ -2177,6 +2134,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
         $plugin = JPluginHelper::getPlugin('system', 'antispambycleantalk');
             
         $config['apikey'] = ''; 
+        $config['ct_key_is_ok'] = 0;
         $config['server'] = '';
         $config['jcomments_unpublished_nofications'] = '';
         $config['general_contact_forms_test'] = '';
@@ -2185,8 +2143,14 @@ class plgSystemAntispambycleantalk extends JPlugin {
         $config['service_id'] ='';
         $config['js_keys'] = '';
         $config['spam_count'] = 0;
+        $config['moderate_ip'] =0;
+        $config['ip_license'] =0;
+        $config['show_notice_review'] = 0;
+        $config['show_notice_review_done'] = 0;
+        $config['last_checked'] = 0;
   		$jreg = new JRegistry($plugin->params);
 		$config['apikey'] = trim($jreg->get('apikey', ''));
+		$config['ct_key_is_ok'] = $jreg->get('ct_key_is_ok',0);
 		$config['server'] = $jreg->get('server', '');
 		$config['jcomments_unpublished_nofications'] = $jreg->get('jcomments_unpublished_nofications', '');
 		$config['general_contact_forms_test'] = $jreg->get('general_contact_forms_test', '');
@@ -2194,9 +2158,13 @@ class plgSystemAntispambycleantalk extends JPlugin {
 		$config['user_token'] = $jreg->get('user_token', '');
 		$config['service_id'] = $jreg->get('service_id','');
 		$config['spam_count'] = $jreg->get('spam_count',0);
+		$config['moderate_ip'] = $jreg->get('moderate_ip',0);
+		$config['ip_license'] = $jreg->get('ip_license',0);
 		$config['tell_about_cleantalk'] = $jreg->get('tell_about_cleantalk', '');
 		$config['js_keys'] = $jreg->get('js_keys','');
-
+		$config['show_notice_review_done'] = $jreg->get('show_notice_review_done',0);
+		$config['show_notice_review'] = $jreg->get('show_notice_review',0);
+		$config['last_checked'] = $jreg->get('last_checked',0);
         return $config;
     }
 

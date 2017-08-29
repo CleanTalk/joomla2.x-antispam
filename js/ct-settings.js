@@ -72,7 +72,6 @@ jQuery(document).ready(function(){
 		}
 	// Viewing buttons to get key
 	}else{
-		
 		if(ct_moderate_ip == 0){
 			jQuery('#jform_params_apikey').css('border-bottom', '2px solid red')
 				.parent()
@@ -124,12 +123,10 @@ jQuery(document).ready(function(){
 		
 		if(jQuery('#system-message').length==0)
 			jQuery('#system-message-container').append('<dl id="system-message"></dl>');
-		
 		if(ct_show_feedback && ct_notice_cookie == undefined && !ct_notice_review_done)
 			jQuery('#system-message').prepend('<dt class="notice">Error</dt><dd class="notice message" id="feedback_notice"><a href="#" style="font-size:15px;float:right;margin:6px;text-decoration:none;" id="feedback_notice_close">X</a><ul><li style="text-align:center;">'+ct_show_feedback_mes+'</li></ul></dd>');
 		
 	}else{
-		
 		if(ct_show_feedback && ct_notice_cookie == undefined && !ct_notice_review_done)
 			jQuery('#system-message-container').prepend('<div class="alert alert-notice" style="text-align:center;padding-right:10px;" id="feedback_notice"><a href="#" style="font-size:15px;float:right;text-decoration:none;" id="feedback_notice_close">X</a><p style="margin-top:8px;">'+ct_show_feedback_mes+'</p></div>');
 		
