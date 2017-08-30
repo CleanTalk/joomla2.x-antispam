@@ -303,7 +303,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 				    	}
 						$params->set('last_checked', $new_checked);
 						$params->set('last_status', $new_status);
-						$params->set('show_notice', $show_notice);
+						$params->set('show_notice', (isset($show_notice)?$show_notice:0));
 				    	$params->set('show_notice_review', $show_notice_review); // Temporary
 				    	$params->set('user_token',$user_token);
 				    	$params->set('service_id',$service_id);
@@ -323,7 +323,8 @@ class plgSystemAntispambycleantalk extends JPlugin {
 						
     		}
     	}
-    	return $params;
+    	if (isset($params))
+    		return $params;
     }
     
     /*
@@ -1128,7 +1129,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 						ct_moderate_ip = "'.$config['moderate_ip'].'",
 						ct_user_token="'.$config['user_token'].'",
 						ct_service_id="'.$config['service_id'].'",
-						ct_notice_review_done='.($config['show_notice_review_done'] == 1 ? 'true' : 'false').';
+						ct_notice_review_done='.(($config['show_notice_review_done'] == 1 && isset($show_notice_review_done)) ? 'true' : 'false').';
 					
 					//Translation
 					var ct_autokey_label = "'    .JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_AUTOKEY_LABEL').'",
