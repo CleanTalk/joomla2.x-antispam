@@ -7,7 +7,7 @@
     <license>GNU/GPLv2</license>
     <authorEmail>welcome@cleantalk.org</authorEmail>
     <authorUrl>cleantalk.org</authorUrl>
-    <version>4.8.1</version>
+    <version>4.9</version>
     <description>PLG_CLEANTALK_DESCRIPTION</description>
     <files>
 	<filename plugin="antispambycleantalk">antispambycleantalk.php</filename>
@@ -78,6 +78,18 @@
 				description="user_token" 
 				size="50" 
 				default="" 
+			/>
+			<field name ="service_id" type="hidden"
+				label="service_id"
+				description="service_id"
+				size="50"
+				default=""
+			/>
+			<field name ="spam_count" type="hidden"
+				label="spam_count"
+				description="spam_count"
+				size="50"
+				default="0"
 			/>
 			<field name="last_status" type="hidden" 
 				label="last_status" 

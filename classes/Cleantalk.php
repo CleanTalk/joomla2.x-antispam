@@ -861,7 +861,7 @@ if(!function_exists('getAntispamReportBreif'))
  * @return type
  */
 
-function sendRawRequest($url,$data,$isJSON=false,$timeout=3)
+function sendRawRequest($url,$data,$isJSON=false,$timeout=6)
 {
 	$result=null;
 	if(!$isJSON)
