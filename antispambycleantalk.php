@@ -1102,11 +1102,11 @@ class plgSystemAntispambycleantalk extends JPlugin {
 					$id = $this->getId('system','antispambycleantalk');
 					$table = JTable::getInstance('extension');
 					$table->load($id);
-					$params = new JRegistry($table->params);
 					$params = $this->checkIsPaid($this->getCTConfig()['apikey']);
 					$table->params = $params->toString();
 					$table->store();
-					$config = $params;
+					$params = $params->toString();
+					$config = json_decode($params,true);
 				}
 				else
 					$config = $this->getCTConfig();
@@ -1217,6 +1217,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
             if ($this->ct_admin_notices == 0 && JFactory::getUser()->authorise('core.admin')) {
 				$this->ct_admin_notices++;
 				$this->loadLanguage();
+				$config = $this->getCTConfig();
 				$next_notice = true; // Flag to show one notice per time
 				$notice = '';
 				$key_is_ok = $config['ct_key_is_ok'];
