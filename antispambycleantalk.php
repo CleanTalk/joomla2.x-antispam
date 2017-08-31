@@ -1098,9 +1098,9 @@ class plgSystemAntispambycleantalk extends JPlugin {
 			}
 			if($app->isAdmin())
 			{
+				$id = $this->getId('system','antispambycleantalk');
 				if (!empty($this->checkIsPaid($this->getCTConfig()['apikey'])))
 				{
-					$id = $this->getId('system','antispambycleantalk');
 					$table = JTable::getInstance('extension');
 					$table->load($id);
 					$params = $this->checkIsPaid($this->getCTConfig()['apikey']);
