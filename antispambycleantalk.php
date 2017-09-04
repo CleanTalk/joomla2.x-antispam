@@ -323,8 +323,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 						
     		}
     	}
-    	if (isset($params))
-    		return $params;
+    	return (isset($params)?$params:null);
     }
     
     /*
@@ -1099,11 +1098,12 @@ class plgSystemAntispambycleantalk extends JPlugin {
 			if($app->isAdmin())
 			{
 				$id = $this->getId('system','antispambycleantalk');
-				if (!empty($this->checkIsPaid($this->getCTConfig()['apikey'])))
+				$temp_config = $this->checkIsPaid($this->getCTConfig()['apikey']);
+				if (!empty($temp_config))
 				{
 					$table = JTable::getInstance('extension');
 					$table->load($id);
-					$params = $this->checkIsPaid($this->getCTConfig()['apikey']);
+					$params = $temp_config;
 					$table->params = $params->toString();
 					$table->store();
 					$params = $params->toString();
