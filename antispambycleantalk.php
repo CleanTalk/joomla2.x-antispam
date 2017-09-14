@@ -769,7 +769,9 @@ class plgSystemAntispambycleantalk extends JPlugin {
 		       						foreach ($users as $user)
 		       						{
 		       							if ($user['email']==$mail && substr($user['registerDate'], 0, 10) == $date)
-		       							{	
+		       							{
+		       								$db->setQuery("UPDATE `#__users` SET ct_marked_as_spam = 1 WHERE id = ".$user['id']);
+		       								$db->query();	
 		       								if ($user['lastvisitDate'] == '0000-00-00 00:00:00')
 		       									$user['lastvisitDate'] = '-';
 		       								$spam_users[]=$user;
