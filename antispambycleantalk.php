@@ -3,7 +3,7 @@
 /**
  * CleanTalk joomla plugin
  *
- * @version 4.8.1
+ * @version 4.9.1
  * @package Cleantalk
  * @subpackage Joomla
  * @author CleanTalk (welcome@cleantalk.org) 
@@ -25,7 +25,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
     /**
      * Plugin version string for server
      */
-    const ENGINE = 'joomla3-49';
+    const ENGINE = 'joomla3-491';
     
     /**
      * Default value for hidden field ct_checkjs 
@@ -313,6 +313,8 @@ class plgSystemAntispambycleantalk extends JPlugin {
 					}
 					else 
 					{
+						if (isset($result['error_no']) && $result['error_message']=='Calls limit exceeded, method name notice_validate_key().')
+							JError::raiseNotice(1024, JText::_('PLG_SYSTEM_CLEANTALK_CALLS_LIMIT_EXCEEDED'));
 						$params->set('ct_key_is_ok', 0);
 						$params->set('user_token', '');
 						$params->set('service_id','');
@@ -768,6 +770,8 @@ class plgSystemAntispambycleantalk extends JPlugin {
 		       						{
 		       							if ($user['email']==$mail && substr($user['registerDate'], 0, 10) == $date)
 		       							{
+		       								$db->setQuery("UPDATE `#__users` SET ct_marked_as_spam = 1 WHERE id = ".$user['id']);
+		       								$db->query();	
 		       								if ($user['lastvisitDate'] == '0000-00-00 00:00:00')
 		       									$user['lastvisitDate'] = '-';
 		       								$spam_users[]=$user;
@@ -1098,7 +1102,8 @@ class plgSystemAntispambycleantalk extends JPlugin {
 			if($app->isAdmin())
 			{
 				$id = $this->getId('system','antispambycleantalk');
-				$temp_config = $this->checkIsPaid($this->getCTConfig()['apikey']);
+				$config = $this->getCTConfig();
+				$temp_config = $this->checkIsPaid($config['apikey']);
 				if (!empty($temp_config))
 				{
 					$table = JTable::getInstance('extension');
@@ -1109,8 +1114,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
 					$params = $params->toString();
 					$config = json_decode($params,true);
 				}
-				else
-					$config = $this->getCTConfig();
 				if (!$config['ct_key_is_ok'])
 					$notice = JText::_('PLG_SYSTEM_CLEANTALK_NOTICE_APIKEY');	
 				else
@@ -2185,13 +2188,15 @@ class plgSystemAntispambycleantalk extends JPlugin {
         $field_presence = false;
 
         foreach ($users_columns as $column) {
-            if ($column[0] == 'ct_request_id') {
+            if ($column[0] == 'ct_request_id' || $column[0] == 'ct_marked_as_spam') {
                 $field_presence = true;
             }
         }
 
         if (!$field_presence) {
             $db->setQuery("ALTER TABLE `#__users` ADD ct_request_id char(32) NOT NULL DEFAULT ''");
+            $db->query();
+            $db->setQuery("ALTER TABLE `#__users` ADD ct_marked_as_spam int NOT NULL DEFAULT 0");
             $db->query();
         }
 
