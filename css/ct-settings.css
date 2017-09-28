@@ -95,14 +95,21 @@
         color: #fff;
 }
     .key_buttons:hover{color: #000 !important;}
-    #ct_auto_button, #ct_manual_button
+    #ct_auto_button, #ct_manual_button, #ct_cp_button, #ct_support_button
     {
         margin-right: 10px;
     }
         #ct_preloader{
             width: 20px; height: 20px;
             margin: 4px 8px 0 0;
-        }         
+        } 
+        input[name=ct_impspamcheck_checkbox]   
+        {
+             display: inline-block;
+             position: relative;
+             top: -5px;
+    margin: 10px 5px 2px 0;
+        }     
 #ct_email_warning{
     display: inline-block;
     margin: 10px 0 2px 0;

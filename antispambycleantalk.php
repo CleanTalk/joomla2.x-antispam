@@ -3,7 +3,7 @@
 /**
  * CleanTalk joomla plugin
  *
- * @version 4.9.1
+ * @version 4.9.2
  * @package Cleantalk
  * @subpackage Joomla
  * @author CleanTalk (welcome@cleantalk.org) 
@@ -25,7 +25,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
     /**
      * Plugin version string for server
      */
-    const ENGINE = 'joomla3-491';
+    const ENGINE = 'joomla3-492';
     
     /**
      * Default value for hidden field ct_checkjs 
@@ -722,6 +722,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
             $data = array();$spam_users=array();
             $send_result['result']=null;
             $send_result['data']=null;
+            $improved_check = ($_POST['improved_check'] == 'true')?true:false;
             foreach ($users as $user_index => $user)
             {
             	$curr_date = (substr($user['registerDate'], 0, 10) ? substr($user['registerDate'], 0, 10) : '');
@@ -742,9 +743,9 @@ class plgSystemAntispambycleantalk extends JPlugin {
 		        	$request['method_name'] = 'spam_check_cms';
 		        	$request['auth_key'] = $config['apikey'];
 		        	$request['data'] = $values;
-		        	$request['date'] = $date;
+		        	if ($improved_check)
+		        		$request['date'] = $date;
 		        	$url='https://api.cleantalk.org';
-
 		        	$result=sendRawRequest($url, $request);
 		       		$result=json_decode($result);   	
 		       		if (isset($result->error_message))
@@ -809,6 +810,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
             $send_result['result']=null;
 	        $send_result['data']=null;
 			$db->setQuery("SHOW TABLES LIKE '%jcomments'");
+			$improved_check = ($_POST['improved_check'] == 'true')?true:false;
 			$jtable = $db->loadAssocList();
 			if (empty($jtable))
 			{
@@ -842,7 +844,8 @@ class plgSystemAntispambycleantalk extends JPlugin {
 			        	$request['method_name'] = 'spam_check_cms';
 			        	$request['auth_key'] = $config['apikey'];
 			        	$request['data'] = $values;
-			        	$request['date'] = $date;
+			        	if ($improved_check)
+			        		$request['date'] = $date;
 			        	$url='https://api.cleantalk.org';
 			        	$result=sendRawRequest($url, $request);
 			       		$result=json_decode($result);
@@ -1141,6 +1144,8 @@ class plgSystemAntispambycleantalk extends JPlugin {
 						ct_key_notice2 = "'      .JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_NOTICE2').'",
 						ct_license_notice = "'   .JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_LICENSE_NOTICE').'",
 						ct_statlink_label = "'   .JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_STATLINK_LABEL').'",
+						ct_impspamcheck_label = "'   .JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_IMPSPAMCHECK_LABEL').'",
+						ct_supportbtn_label = "'   .JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SUPPORTBTN_LABEL').'",
 						ct_register_message="'   .JText::_('PLG_SYSTEM_CLEANTALK_REGISTER_MESSAGE').$adminmail.'",
 						ct_key_is_bad_notice = "' .JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_KEY_IS_BAD').'",
 						ct_register_error="'.addslashes(JText::_('PLG_SYSTEM_CLEANTALK_ERROR_AUTO_GET_KEY')).'",
