@@ -7,7 +7,7 @@
     <license>GNU/GPLv2</license>
     <authorEmail>welcome@cleantalk.org</authorEmail>
     <authorUrl>cleantalk.org</authorUrl>
-    <version>4.9.2</version>
+    <version>4.9.3</version>
     <description>PLG_CLEANTALK_DESCRIPTION</description>
     <files>
 	<filename plugin="antispambycleantalk">antispambycleantalk.php</filename>
@@ -16,6 +16,7 @@
 	<filename plugin="antispambycleantalk">classes/CleantalkRequest.php</filename>
 	<filename plugin="antispambycleantalk">classes/CleantalkResponse.php</filename>
 	<filename plugin="antispambycleantalk">js/ct-settings.js</filename>
+	<filename plugin="antispambycleantalk">js/ct-functions.js</filename>	
 	<filename plugin="antispambycleantalk">css/ct-settings.css</filename>
 	<filename plugin="antispambycleantalk">jquery-1.11.2.min.js</filename>
 	<filename plugin="antispambycleantalk">preloader.gif</filename>
