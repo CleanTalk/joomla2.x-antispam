@@ -310,7 +310,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 				    	$params->set('spam_count',$spam_count);	
 				    	$params->set('moderate_ip',$moderate_ip);
 				    	$params->set('ct_key_is_ok', 1);	
-				    	$params->set('show_notice_review_done',0);	    									
+				    	$params->set('show_notice_review_done',$jparam->get('show_notice_review_done', 0));	    									
 					}
 					else 
 					{
