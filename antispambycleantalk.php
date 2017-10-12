@@ -309,7 +309,8 @@ class plgSystemAntispambycleantalk extends JPlugin {
 				    	$params->set('service_id',$service_id);
 				    	$params->set('spam_count',$spam_count);	
 				    	$params->set('moderate_ip',$moderate_ip);
-				    	$params->set('ct_key_is_ok', 1);		    									
+				    	$params->set('ct_key_is_ok', 1);	
+				    	$params->set('show_notice_review_done',0);	    									
 					}
 					else 
 					{
@@ -1117,7 +1118,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 					$params = $params->toString();
 					$config = json_decode($params,true);
 				}
-				if (!$config['ct_key_is_ok'])
+				if ($config['ct_key_is_ok'] === 0)
 					$notice = JText::_('PLG_SYSTEM_CLEANTALK_NOTICE_APIKEY');	
 				else
 				{
@@ -1135,7 +1136,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 						ct_moderate_ip = "'.$config['moderate_ip'].'",
 						ct_user_token="'.$config['user_token'].'",
 						ct_service_id="'.$config['service_id'].'",
-						ct_notice_review_done='.((isset($config['show_notice_review_done']) && $config['show_notice_review_done'] == 1) ? 'true' : 'false').';
+						ct_notice_review_done='.(($config['show_notice_review_done'] === 1)?'true':'false').';
 					
 					//Translation
 					var ct_autokey_label = "'    .JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_AUTOKEY_LABEL').'",
@@ -1633,7 +1634,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
                 'sender_nickname' => $data[$user_name_key],
                 'sender_email' => $data[$user_email_key],
                 'sender_ip' => self::$CT->ct_session_ip($_SERVER['REMOTE_ADDR']),
-                'message' => $data[$subject_key] . "\n" . $data[$message_key],
+                'message' => $data[$subject_key] . "\n " . $data[$message_key],
                 'js_on' => $checkjs,
                 'submit_time' => $submit_time,
                 'post_info' => $post_info,
