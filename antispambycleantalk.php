@@ -2359,7 +2359,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
         */
         if ($cookie_check) {
             $field_name = 'ct_checkjs';
-        $get_funcs = file_get_contents(JURI::root()."/plugins/system/antispambycleantalk/js/ct-functions.js?".time());
+        $get_funcs = file_get_contents(dirname(__FILE__) . DS. "js". DS. "ct-functions.js");
         $html = str_replace("{value}", $value, $get_funcs);
 		$html = sprintf($html, $field_name, $ct_checkjs_key);
             return $html;
