@@ -1803,7 +1803,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
                 $ctResponse = self::ctSendRequest(
                     'check_message', array(
                         'example' => $example,
-                        'message' => $comment->comment,
+                        'message' =>preg_replace('/\s+/', ' ',str_replace("<br />", " ", $comment->comment)),
                         'sender_nickname' => $comment->name,
                         'sender_email' => $comment->email,
                         'sender_ip' => self::$CT->ct_session_ip($_SERVER['REMOTE_ADDR']),
@@ -2347,7 +2347,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
      */
     private function getJSTest($needle = null, $after = false, $cookie_check = false) {
         try {
-            $ct_checkjs_key = $this->getJSCode();
+            $ct_checkjs_key = $this->cleantalk_get_checkjs_code();
         } catch (Exception $e) {
             $ct_checkjs_key = 1;
         }
@@ -2390,20 +2390,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
         $document->setBuffer($newContent, 'component');
         
         return null;
-    }
-    
-    /**
-     * Returns JavaScript secure code for ct_checkjs 
-     * @return string HTML code
-     * @since 1.5
-     */
-    private function getJSCode() {
-        $config = $this->getCTConfig();
-        $app = JFactory::getApplication();
-        
-        return md5($config['apikey'] . time());
-    }
-    
+    } 
     /**
      * Valids email 
      * @return bool 
@@ -2476,7 +2463,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
      */
     private function ct_cookies_test ($test = false) {
         $cookie_label = 'ct_cookies_test';
-        $secret_hash = $this->getJSCode();
+        $secret_hash = $this->cleantalk_get_checkjs_code();
 
         $result = null;
         if (isset($_COOKIE[$cookie_label])) {
