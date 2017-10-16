@@ -3,7 +3,7 @@
 /**
  * CleanTalk joomla plugin
  *
- * @version 4.9.3
+ * @version 4.9.4
  * @package Cleantalk
  * @subpackage Joomla
  * @author CleanTalk (welcome@cleantalk.org) 
@@ -25,7 +25,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
     /**
      * Plugin version string for server
      */
-    const ENGINE = 'joomla3-493';
+    const ENGINE = 'joomla3-494';
     
     /**
      * Default value for hidden field ct_checkjs 
@@ -326,6 +326,24 @@ class plgSystemAntispambycleantalk extends JPlugin {
 						
     		}
     	}
+    	if ($result!=null)
+    	{
+			$file = dirname(__FILE__) . DS. "cleantalk_api_calls.log";								
+			$calls_log = "CLEANTALK_PAID_CHECK_CALL".PHP_EOL."Date: [".date("Y-m-d H:i:s")."]".PHP_EOL."Result:".PHP_EOL.print_r($result,true);
+			if (!file_exists($file)) {
+				$fp = fopen($file, "w"); 
+				fwrite($fp, $calls_log.PHP_EOL.PHP_EOL);
+				fclose($fp);
+			}
+			else
+			{
+				$fp = fopen($file, "a"); 
+				fwrite($fp, $calls_log.PHP_EOL.PHP_EOL);
+				fclose($fp);			        	
+			}	    		
+    	}
+    		
+    	
     	return (isset($params)?$params:null);
     }
     
@@ -501,7 +519,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
             	if(isset($_COOKIE['ct_sfw_passed'])){
 					
 	    			self::getCleantalk();
-	    			$sender_ip = self::$CT->ct_session_ip($_SERVER['REMOTE_ADDR']);
+	    			$sender_ip = cleantalk_get_real_ip();
 			        if ($sfw_test_ip) {
 			            $sender_ip = $sfw_test_ip;
 			        }
@@ -1119,7 +1137,9 @@ class plgSystemAntispambycleantalk extends JPlugin {
 					$config = json_decode($params,true);
 				}
 				if ($config['ct_key_is_ok'] === 0)
-					$notice = JText::_('PLG_SYSTEM_CLEANTALK_NOTICE_APIKEY');	
+				{
+					$notice = JText::_('PLG_SYSTEM_CLEANTALK_NOTICE_APIKEY');					
+				}
 				else
 				{
 					if(empty($config['service_id']) && !empty($config['user_token']))
@@ -1189,7 +1209,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
 					JError::raiseNotice(1024, $notice);
 			if ($app->isAdmin())
 				return;
-
 			$session = JFactory::getSession();
 			$username = $session->get("register_username");
 			$email = $session->get("register_email");
@@ -1633,7 +1652,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
                 'example' => null, 
                 'sender_nickname' => $data[$user_name_key],
                 'sender_email' => $data[$user_email_key],
-                'sender_ip' => self::$CT->ct_session_ip($_SERVER['REMOTE_ADDR']),
+                'sender_ip' => cleantalk_get_real_ip(),
                 'message' => $data[$subject_key] . "\n " . $data[$message_key],
                 'js_on' => $checkjs,
                 'submit_time' => $submit_time,
@@ -1806,7 +1825,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
                         'message' =>preg_replace('/\s+/', ' ',str_replace("<br />", " ", $comment->comment)),
                         'sender_nickname' => $comment->name,
                         'sender_email' => $comment->email,
-                        'sender_ip' => self::$CT->ct_session_ip($_SERVER['REMOTE_ADDR']),
+                        'sender_ip' => cleantalk_get_real_ip(),
                         'js_on' => $checkjs,
                         'submit_time' => $submit_time,
                         'sender_info' => $sender_info,
@@ -1933,7 +1952,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
         self::getCleantalk();
         $ctResponse = self::ctSendRequest(
                 'check_newuser', array(
-                    'sender_ip' => self::$CT->ct_session_ip($_SERVER['REMOTE_ADDR']),
+                    'sender_ip' => cleantalk_get_real_ip(),
                     'sender_email' => $post_email,
                     'sender_nickname' => $post_username,
                     'submit_time' => $submit_time,
@@ -2547,7 +2566,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 				'check_message', array(
 						'message' => $obj->get('message'),
 						'sender_email' => $obj->get('sender_email'),
-						'sender_ip' => self::$CT->ct_session_ip($_SERVER['REMOTE_ADDR']),
+						'sender_ip' => cleantalk_get_real_ip(),
 						'sender_nickname' => $obj->get('sender_nickname'),
 						'js_on' => $checkjs,
 						'post_info' => $post_info,
@@ -2625,7 +2644,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
         $do_check = true;
 
         self::getCleantalk(); 
-        $sender_ip = self::$CT->ct_session_ip($_SERVER['REMOTE_ADDR']);
+        $sender_ip = cleantalk_get_real_ip();
         if ($sfw_test_ip) {
             $sender_ip = $sfw_test_ip;
         }
@@ -2646,7 +2665,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 	 */
     private function swf_init($ct_apikey, $sfw_test_ip = null) {
         self::getCleantalk();
-        $sender_ip = self::$CT->ct_session_ip($_SERVER['REMOTE_ADDR']); 
+        $sender_ip = cleantalk_get_real_ip();
         if (!$sender_ip) {
             return false;
         }

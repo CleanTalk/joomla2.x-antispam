@@ -940,28 +940,31 @@ if( !function_exists('apache_request_headers') )
 
 function cleantalk_get_real_ip()
 {
-	if ( function_exists( 'apache_request_headers' ) )
-	{
-		$headers = apache_request_headers();
-	}
-	else
-	{
-		$headers = $_SERVER;
-	}
-	if ( array_key_exists( 'X-Forwarded-For', $headers ) )
-	{
-		$the_ip=explode(",", trim($headers['X-Forwarded-For']));
-		$the_ip = trim($the_ip[0]);
-	}
-	elseif ( array_key_exists( 'HTTP_X_FORWARDED_FOR', $headers ))
-	{
-		$the_ip=explode(",", trim($headers['HTTP_X_FORWARDED_FOR']));
-		$the_ip = trim($the_ip[0]);
-	}
-	else
-	{
-		$the_ip = filter_var( $_SERVER['REMOTE_ADDR'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 );
-	}
+  // Getting headers
+  $headers = function_exists('apache_request_headers') ? apache_request_headers() : $_SERVER;
+
+  // Getting IP for validating
+  if (array_key_exists( 'X-Forwarded-For', $headers )){
+    $ip = explode(",", trim($headers['X-Forwarded-For']));
+    $ip = trim($ip[0]);
+  }elseif(array_key_exists( 'HTTP_X_FORWARDED_FOR', $headers)){
+    $ip = explode(",", trim($headers['HTTP_X_FORWARDED_FOR']));
+    $ip = trim($ip[0]);
+  }else{
+    $ip = $_SERVER['REMOTE_ADDR'];
+  }
+
+    // Validating IP
+    // IPv4
+  if(filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)){
+    $the_ip = $ip;
+    // IPv6
+  }elseif(filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)){
+    $the_ip = $ip;
+    // Unknown
+  }else{
+    $the_ip = null;
+  }
 	return $the_ip;
 }
 
