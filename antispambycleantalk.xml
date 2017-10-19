@@ -146,6 +146,9 @@
         
             <field name="jcomments_unpublished_nofications" type="checkbox" label="COM_PLUGINS_JCOMMENTS_NOTIFY_NEW_UNPUBLISHED" value="0" />
             <field name="relevance_test" type="checkbox" label="COM_PLUGINS_RELEVANCE_TEST" value="0" />
+			<field name="key_control" type="spacer" 
+				label="COM_PLUGINS_JCOMMENTS_NOTIFY_ENABLED"
+			/>            
 			
 		</fieldset>
 		<fieldset name="checkuserscomments">
