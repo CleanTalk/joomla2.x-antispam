@@ -326,7 +326,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 						
     		}
     	}
-    	if ($result!=null)
+    	if ($result)
     	{
 			$file = dirname(__FILE__) . DS. "cleantalk_api_calls.log";								
 			$calls_log = "CLEANTALK_PAID_CHECK_CALL".PHP_EOL."Date: [".date("Y-m-d H:i:s")."]".PHP_EOL."Result:".PHP_EOL.print_r($result,true);
