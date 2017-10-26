@@ -1659,7 +1659,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
                 'sender_info' => $sender_info,
             )
         );
-        
         $app = JFactory::getApplication();
         if (!empty($ctResponse) && is_array($ctResponse)) {
             if ($ctResponse['errno'] != 0) {
@@ -2514,7 +2513,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 		}
 		// Converts $data Array into an Object
 		$obj = new JObject($data);
-        
+   		$app = JFactory::getApplication();     
         $ver = new JVersion();
         if (strcmp($ver->RELEASE, '1.5') <= 0) {
             foreach ($data as $k => $v) {
@@ -2573,12 +2572,16 @@ class plgSystemAntispambycleantalk extends JPlugin {
                         'sender_info' => $sender_info 
 				)
 		);
-
 		if (!empty($ctResponse['allow']) AND $ctResponse['allow'] == 1 || $ctResponse['errno']!=0 && $checkjs==1) {
 			return true;
 		} else {
-			// records error message in dispatcher (and let the event caller handle)
-			$this->_subject->setError($ctResponse['comment']);
+			if (strpos($_SERVER['REQUEST_URI'], 'com_rsform'))
+			{
+				  $app->enqueueMessage($ctResponse['comment'],'error');
+				  $app->redirect('/index.php?option=com_rsform&view=rsform&formId='.$_POST['form']['formId']);
+			}
+			else 
+				$this->_subject->setError($ctResponse['comment']);
 			return false;
 		}
 	}
