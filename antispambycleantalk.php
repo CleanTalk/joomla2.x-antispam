@@ -2576,10 +2576,10 @@ class plgSystemAntispambycleantalk extends JPlugin {
 		if (!empty($ctResponse['allow']) AND $ctResponse['allow'] == 1 || $ctResponse['errno']!=0 && $checkjs==1) {
 			return true;
 		} else {
-			if (strpos($_SERVER['REQUEST_URI'], 'com_rsform'))
+			if ($app->input->get('option') === 'com_rsform')
 			{
 				  $app->enqueueMessage($ctResponse['comment'],'error');
-				  $app->redirect('/index.php?option=com_rsform&view=rsform&formId='.$_POST['form']['formId']);
+				  $app->redirect($_SERVER['REQUEST_URI']);
 			}
 			else 
 				$this->_subject->setError($ctResponse['comment']);
