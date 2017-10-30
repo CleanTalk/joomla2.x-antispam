@@ -3,7 +3,7 @@
 /**
  * CleanTalk joomla plugin
  *
- * @version 4.9.4
+ * @version 4.9.5
  * @package Cleantalk
  * @subpackage Joomla
  * @author CleanTalk (welcome@cleantalk.org) 
@@ -25,7 +25,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
     /**
      * Plugin version string for server
      */
-    const ENGINE = 'joomla3-494';
+    const ENGINE = 'joomla3-495';
     
     /**
      * Default value for hidden field ct_checkjs 
@@ -82,7 +82,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
     private $skip_coms = array(
         'com_jcomments',
         'com_contact',
-        'com_virtuemart',
         'com_users',
         'com_user',
         'com_login',
@@ -1659,7 +1658,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
                 'sender_info' => $sender_info,
             )
         );
-        
         $app = JFactory::getApplication();
         if (!empty($ctResponse) && is_array($ctResponse)) {
             if ($ctResponse['errno'] != 0) {
@@ -2514,8 +2512,9 @@ class plgSystemAntispambycleantalk extends JPlugin {
 		}
 		// Converts $data Array into an Object
 		$obj = new JObject($data);
-        
+   		$app = JFactory::getApplication();     
         $ver = new JVersion();
+
         if (strcmp($ver->RELEASE, '1.5') <= 0) {
             foreach ($data as $k => $v) {
                 $obj->set($k, $v);
@@ -2527,8 +2526,9 @@ class plgSystemAntispambycleantalk extends JPlugin {
             $obj->def('sender_nickname',$obj->get('name',null));
             // sets 'message' ONLY if not already set. Also checks to see if 'comment' was not provided instead
             $obj->def('message',$obj->get('comment',null));
+            if ($_POST['option'] === 'com_virtuemart')
+            	$obj->def('comment_type','order');
         }
-
 		$session = JFactory::getSession();
 		$submit_time = $this->submit_time_test();
 	
@@ -2573,12 +2573,16 @@ class plgSystemAntispambycleantalk extends JPlugin {
                         'sender_info' => $sender_info 
 				)
 		);
-
 		if (!empty($ctResponse['allow']) AND $ctResponse['allow'] == 1 || $ctResponse['errno']!=0 && $checkjs==1) {
 			return true;
 		} else {
-			// records error message in dispatcher (and let the event caller handle)
-			$this->_subject->setError($ctResponse['comment']);
+			if ($app->input->get('option') === 'com_rsform')
+			{
+				  $app->enqueueMessage($ctResponse['comment'],'error');
+				  $app->redirect($_SERVER['REQUEST_URI']);
+			}
+			else 
+				$this->_subject->setError($ctResponse['comment']);
 			return false;
 		}
 	}
