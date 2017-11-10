@@ -2733,14 +2733,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
 			$table->store();
             exit; 
         }
-        else
-        {
-        	//$sfw_log[$sender_ip]->all++;
-        	//
-	        // Setup secret key if the visitor doesn't exit in sfw_networks.
-	        //
-	        setcookie($this->sfw_cookie_lable, $sfw_key, 0, '/');
-        }
         
         $params   = new JRegistry($table->params);
 		$params->set('sfw_log',$sfw_log);
