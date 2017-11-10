@@ -782,8 +782,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
 		       						{
 		       							if ($user['email']==$mail && substr($user['registerDate'], 0, 10) == $date)
 		       							{
-		       								$db->setQuery("UPDATE `#__users` SET ct_marked_as_spam = 1 WHERE id = ".$user['id']);
-		       								$db->query();	
 		       								if ($user['lastvisitDate'] == '0000-00-00 00:00:00')
 		       									$user['lastvisitDate'] = '-';
 		       								$spam_users[]=$user;
@@ -2187,15 +2185,13 @@ class plgSystemAntispambycleantalk extends JPlugin {
         $field_presence = false;
 
         foreach ($users_columns as $column) {
-            if ($column[0] == 'ct_request_id' || $column[0] == 'ct_marked_as_spam') {
+            if ($column[0] == 'ct_request_id') {
                 $field_presence = true;
             }
         }
 
         if (!$field_presence) {
             $db->setQuery("ALTER TABLE `#__users` ADD ct_request_id char(32) NOT NULL DEFAULT ''");
-            $db->query();
-            $db->setQuery("ALTER TABLE `#__users` ADD ct_marked_as_spam int NOT NULL DEFAULT 0");
             $db->query();
         }
 
