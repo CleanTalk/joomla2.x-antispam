@@ -25,7 +25,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
     /**
      * Plugin version string for server
      */
-    const ENGINE = 'joomla3-495';
+    const ENGINE = 'joomla3-496';
     
     /**
      * Default value for hidden field ct_checkjs 
@@ -55,12 +55,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
      * Flag marked JComments form initilization. 
      */
     private $JCReady = false;
-
-    /*
-     * Page load label
-     */
-    private $form_load_label = 'formtime';
-    
+   
     /*
      * Page load label
      */
@@ -491,8 +486,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
         }else{
            if(!(isset($_GET['option']) && $_GET['option'] == 'com_extrawatch') && !(isset($_GET['checkCaptcha']) && $_GET['checkCaptcha'] == 'true') && strpos($_SERVER['REQUEST_URI'],'securimage_show.php')===false){
 			   
-            	$session->set($this->form_load_label, time());
-            	$session->set('cleantalk_current_page', JURI::current());
+           		$this->apbct_cookie();
 				
             }
         }
@@ -788,8 +782,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
 		       						{
 		       							if ($user['email']==$mail && substr($user['registerDate'], 0, 10) == $date)
 		       							{
-		       								$db->setQuery("UPDATE `#__users` SET ct_marked_as_spam = 1 WHERE id = ".$user['id']);
-		       								$db->query();	
 		       								if ($user['lastvisitDate'] == '0000-00-00 00:00:00')
 		       									$user['lastvisitDate'] = '-';
 		       								$spam_users[]=$user;
@@ -1438,21 +1430,11 @@ class plgSystemAntispambycleantalk extends JPlugin {
         $submit_time = NULL;
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $checkjs = $this->get_ct_checkjs();
-            $val = $session->get($this->form_load_label);
-            if ($val) {
-                $submit_time = time() - (int) $val;
-            }
 
             if (!$val && session_id() != '') {
                 $this->ct_direct_post = 1;
             }
-        } else {
-        	if(!(isset($_GET['option']) && $_GET['option'] == 'com_extrawatch') && !(isset($_GET['checkCaptcha']) && $_GET['checkCaptcha'] == 'true') && strpos($_SERVER['REQUEST_URI'],'securimage_show.php')===false)
-        	{
-            	$session->set($this->form_load_label, time());
-            	$session->set('cleantalk_current_page', JURI::current());
-            }
-        }
+        } 
         /*
             Contact forms anti-spam code
         */
@@ -1664,7 +1646,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
                 $this->sendAdminEmail("CleanTalk. Can't verify feedback message!", $ctResponse['comment']);
             } else {
                 if ($ctResponse['allow'] == 0) {
-                    $session->set($this->form_load_label, time()); // update session 'formtime'
                     $res_str = $ctResponse['comment'];
                     $app->setUserState('com_contact.contact.data', $data);  // not used in 1.5 :(
                     $stub = JRequest::getString('id');
@@ -1676,11 +1657,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
                 }
             }
         }
-        if(!(isset($_POST['itemName']) && $_POST['itemName'] == 'reginfo') && !(isset($_POST['option']) && $_POST['option'] == 'com_breezingforms'))
-        {
-        	$session->clear($this->form_load_label); // clear session 'formtime'
-        }
-
     }
 
     ////////////////////////////
@@ -1733,7 +1709,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
 
         // set new time because onJCommentsFormAfterDisplay worked only once
         // and formtime in session need to be renewed between ajax posts
-        $session->set($this->form_load_label, time());
 
         $checkjs = $this->get_ct_checkjs();
 
@@ -2210,15 +2185,13 @@ class plgSystemAntispambycleantalk extends JPlugin {
         $field_presence = false;
 
         foreach ($users_columns as $column) {
-            if ($column[0] == 'ct_request_id' || $column[0] == 'ct_marked_as_spam') {
+            if ($column[0] == 'ct_request_id') {
                 $field_presence = true;
             }
         }
 
         if (!$field_presence) {
             $db->setQuery("ALTER TABLE `#__users` ADD ct_request_id char(32) NOT NULL DEFAULT ''");
-            $db->query();
-            $db->setQuery("ALTER TABLE `#__users` ADD ct_marked_as_spam int NOT NULL DEFAULT 0");
             $db->query();
         }
 
@@ -2426,15 +2399,11 @@ class plgSystemAntispambycleantalk extends JPlugin {
      *
      */
     private function submit_time_test() {
-        $session = JFactory::getSession();
-        $val = $session->get($this->form_load_label);
-        if ($val) {
-            $submit_time = time() - (int) $val;
-        } else {
-            $submit_time = NULL;
-        }
-
-        return $submit_time;
+		if($this->apbct_cookies_test() == 1){
+			return time() - $_COOKIE['apbct_timestamp'];
+		}else{
+			return null;
+		}
     }
     
     /**
@@ -2760,14 +2729,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
 			$table->store();
             exit; 
         }
-        else
-        {
-        	//$sfw_log[$sender_ip]->all++;
-        	//
-	        // Setup secret key if the visitor doesn't exit in sfw_networks.
-	        //
-	        setcookie($this->sfw_cookie_lable, $sfw_key, 0, '/');
-        }
         
         $params   = new JRegistry($table->params);
 		$params->set('sfw_log',$sfw_log);
@@ -2778,7 +2739,58 @@ class plgSystemAntispambycleantalk extends JPlugin {
 
         return null;
     }
-    
+	/*
+	 * Set Cookies test for cookie test
+	 * Sets cookies with pararms timestamp && landing_timestamp && pervious_referer
+	 * Sets test cookie with all other cookies
+	 */
+	function apbct_cookie(){
+		
+		$config = $this->getCTConfig();
+		
+		// Cookie names to validate
+		$cookie_test_value = array(
+			'cookies_names' => array(),
+			'check_value' => $config['apikey'],
+		);
+			
+		// Submit time
+		$apbct_timestamp = time();
+		setcookie('apbct_timestamp', $apbct_timestamp, 0, '/');
+		$cookie_test_value['cookies_names'][] = 'apbct_timestamp';
+		$cookie_test_value['check_value'] .= $apbct_timestamp;
+
+		// Cookies test
+		$cookie_test_value['check_value'] = md5($cookie_test_value['check_value']);
+		setcookie('apbct_cookies_test', json_encode($cookie_test_value), 0, '/');
+	}
+	/**
+	 * Cookies test for sender 
+	 * Also checks for valid timestamp in $_COOKIE['apbct_timestamp'] and other apbct_ COOKIES
+	 * @return null|0|1;
+	 */
+	function apbct_cookies_test()
+	{
+		$config = $this->getCTConfig();
+		
+		if(isset($_COOKIE['apbct_cookies_test'])){
+			
+			$cookie_test = json_decode(stripslashes($_COOKIE['apbct_cookies_test']), true);
+			
+			$check_srting = $config['apikey'];
+			foreach($cookie_test['cookies_names'] as $cookie_name){
+				$check_srting .= isset($_COOKIE[$cookie_name]) ? $_COOKIE[$cookie_name] : '';
+			} unset($cokie_name);
+			
+			if($cookie_test['check_value'] == md5($check_srting)){
+				return 1;
+			}else{
+				return 0;
+			}
+		}else{
+			return null;
+		}
+	}    
     private function update_sfw_db_networks($ct_apikey)
     {
         $app = JFactory::getApplication();             
