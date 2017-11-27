@@ -25,7 +25,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
     /**
      * Plugin version string for server
      */
-    const ENGINE = 'joomla3-496';
+    const ENGINE = 'joomla3-497';
     
     /**
      * Default value for hidden field ct_checkjs 
@@ -1001,27 +1001,30 @@ class plgSystemAntispambycleantalk extends JPlugin {
      */        
 	public function onExtensionAfterSave($name, $data)
 	{
-		$enabled = $data->enabled;
-			$id = $this->getId('system','antispambycleantalk');
+		$id = $this->getId('system','antispambycleantalk');
+		if (strpos(JFactory::getUri(), 'com_plugins&layout=edit&extension_id='.$id) !== false)
+		{
 			$table = JTable::getInstance('extension');
 			$table->load($id);
 			$params = new JRegistry($table->params);
-		if ($enabled == 1)
-		{
-			$new_config=json_decode($data->params);	
-			$access_key = trim($new_config->apikey);
-	        $params = $this->checkIsPaid($access_key, true);	
-		}
-		else
-		{
-				$params->set('ct_key_is_ok',0);
-				$params->set('service_id','');
-				$params->set('spam_count',0);
-				$params->set('user_token','');
-				$params->set('last_checked','');
-		}
+			if ($enabled == 1)
+			{
+				$new_config=json_decode($data->params);	
+				$access_key = trim($new_config->apikey);
+		        $params = $this->checkIsPaid($access_key, true);	
+			}
+			else
+			{
+					$params->set('ct_key_is_ok',0);
+					$params->set('service_id','');
+					$params->set('spam_count',0);
+					$params->set('user_token','');
+					$params->set('last_checked','');
+
+			}
 			$table->params = $params->toString();
 			$table->store();
+		}
 		
 	}  
     /*
@@ -1146,7 +1149,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 						ct_moderate_ip = "'.$config['moderate_ip'].'",
 						ct_user_token="'.$config['user_token'].'",
 						ct_service_id="'.$config['service_id'].'",
-						ct_notice_review_done='.(($config['show_notice_review_done'] === 1)?'true':'false').';
+						ct_notice_review_done ="'.(($config['show_notice_review_done'] === 1)?'true':'false').'";
 					
 					//Translation
 					var ct_autokey_label = "'    .JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_AUTOKEY_LABEL').'",
@@ -1430,10 +1433,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
         $submit_time = NULL;
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $checkjs = $this->get_ct_checkjs();
-
-            if (!$val && session_id() != '') {
-                $this->ct_direct_post = 1;
-            }
+            $this->ct_direct_post = 1;
         } 
         /*
             Contact forms anti-spam code
@@ -2086,21 +2086,33 @@ class plgSystemAntispambycleantalk extends JPlugin {
 
         // Result should be an associative array 
         $result = json_decode(json_encode($result), true);
-
-
-        if(isset($result['errno']) && intval($result['errno'])!=0 && intval($ct_request->js_on)==1)
+        $id = $this->getId('system','antispambycleantalk');
+		$table = JTable::getInstance('extension');
+		$table->load($id);
+		$params = new JRegistry($table->params);        
+        $connection_reports = $params->get('connection_reports');
+        if(isset($result['errno']) && intval($result['errno']) !== 0 && intval($ct_request->js_on)==1)
         {
         	$result['allow'] = 1;
         	$result['errno'] = 0;
+        	$connection_reports->negative++;
+        	if (isset($result['errstr']))
+        		$connection_reports->negative_report[] = array('date'=>date("Y-m-d H:i:s"),'page_url'=>$_SERVER['REQUEST_URI'],'lib_report'=>$result['errstr']);
         }
-        if(isset($result['errno']) && intval($result['errno'])!=0 && intval($ct_request->js_on)!=1)
+        if(isset($result['errno']) && intval($result['errno']) !== 0 && intval($ct_request->js_on)!=1)
         {
         	$result['allow'] = 0;
         	$result['spam'] = 1;
         	$result['stop_queue'] = 1;
         	$result['comment']='Forbidden. Please, enable Javascript.';
         	$result['errno'] = 0;
+        	$connection_reports->negative++;
         }
+        if (isset($result['errno']) && intval($result['errno']) === 0 && $result['errstr'] == '')
+        	$connection_reports->success++;
+		$params->set('connection_reports',$connection_reports);
+		$table->params = $params->toString();
+		$table->store();
         return $result;
     }
 
@@ -2150,6 +2162,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
         $config['show_notice_review'] = 0;
         $config['show_notice_review_done'] = 0;
         $config['last_checked'] = 0;
+        $config['connection_reports'] = array('success' => 0, 'negative'=> 0,'negative_report' => null);
   		$jreg = new JRegistry($plugin->params);
 		$config['apikey'] = trim($jreg->get('apikey', ''));
 		$config['ct_key_is_ok'] = $jreg->get('ct_key_is_ok',0);
@@ -2167,6 +2180,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 		$config['show_notice_review_done'] = $jreg->get('show_notice_review_done',0);
 		$config['show_notice_review'] = $jreg->get('show_notice_review',0);
 		$config['last_checked'] = $jreg->get('last_checked',0);
+		$config['connection_reports']= $jreg->get('connection_reports',array('success' => 0, 'negative'=> 0,'negative_report' => null));
         return $config;
     }
 
