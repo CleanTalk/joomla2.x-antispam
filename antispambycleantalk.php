@@ -304,7 +304,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 				    	$params->set('moderate_ip',$moderate_ip);
 				    	$params->set('ct_key_is_ok', 1);	
 				    	$params->set('show_notice_review_done',$jparam->get('show_notice_review_done', 0));	 
-				    	$params->set('connection_reports',$jreg->get('connection_reports',array('success' => 0, 'negative'=> 0,'negative_report' => null)));  									
+				    	$params->set('connection_reports',array('success' => 0, 'negative'=> 0,'negative_report' => null)); 									
 					}
 					else 
 					{
