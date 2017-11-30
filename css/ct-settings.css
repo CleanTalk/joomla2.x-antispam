@@ -15,7 +15,7 @@
 #key_buttons_wrapper{
     margin: 10px 0 0 0;
 }
-#spam_results h2, #spam_results table, #spam_results button {
+#spam_results h2, #spam_results table, #spam_results button, #connection_reports h2, #connection_reports table, #connection_reports button {
     -webkit-animation: fadein 1s; /* Safari, Chrome and Opera > 12.1 */
        -moz-animation: fadein 1s; /* Firefox < 16 */
         -ms-animation: fadein 1s; /* Internet Explorer */
@@ -51,11 +51,11 @@
     from { opacity: 0; }
     to   { opacity: 1; }
 }
-#spamcomments_table th, #spamcomments_table td,#spamusers_table th, #spamusers_table td
+#spamcomments_table th, #spamcomments_table td,#spamusers_table th, #spamusers_table td, #connection_reports_table th, #connection_reports_table td, #connection_reports_table th, #connection_reports_table td
 {
     text-align: center;
 }
-#delete_sel_spam_users, #delete_all_spam_users, #delete_sel_spam_comments, #delete_all_spam_comments
+#delete_sel_spam_users, #delete_all_spam_users, #delete_sel_spam_comments, #delete_all_spam_comments, #send_connection_report
 {
     margin: 15px 0 0 15px;
     float:right;
