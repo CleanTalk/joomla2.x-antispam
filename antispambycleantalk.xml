@@ -2,12 +2,12 @@
 <extension version="2.5" type="plugin" group="system"  method="upgrade" >
     <name>PLG_SYSTEM_CLEANTALK_NAME</name>
     <author>CleanTalk team</author>
-    <creationDate>25.07.2017</creationDate>
+    <creationDate>01.12.2017</creationDate>
     <copyright>(C) CleanTalk</copyright>
     <license>GNU/GPLv2</license>
     <authorEmail>welcome@cleantalk.org</authorEmail>
     <authorUrl>cleantalk.org</authorUrl>
-    <version>4.9.6</version>
+    <version>4.9.7</version>
     <description>PLG_CLEANTALK_DESCRIPTION</description>
     <files>
 	<filename plugin="antispambycleantalk">antispambycleantalk.php</filename>
@@ -152,6 +152,9 @@
 			
 		</fieldset>
 		<fieldset name="checkuserscomments">
+			
+		</fieldset>
+		<fieldset name="connectionreports">
 			
 		</fieldset>
 	</fields>

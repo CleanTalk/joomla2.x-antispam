@@ -39,10 +39,17 @@ jQuery(document).ready(function(){
 		{
 			jQuery('#checkuserscomments-options').next().append("<div id='attrib-checkuserscomments'></div>");
 			jQuery('#attrib-checkuserscomments').append("<div id='key_buttons_wrapper'></div>").children().append("<center><button style=\"width:90%;\" id=\"check_spam_users\" class=\"key_buttons \" type=\"button\">"+ct_spamcheck_checksusers+"</button><br><button style=\"width:90%;\" id=\"check_spam_comments\" class=\"key_buttons\" type=\"button\">"+ct_spamcheck_checkscomments+"</button><br /><br />"+ct_spamcheck_notice+"<br/><br/><input type='checkbox' name ='ct_impspamcheck_checkbox' value='0'>"+ct_impspamcheck_label+"</center><br/><br/>")
+			jQuery('#connectionreports-options').next().append("<div id='attrib-connectionreports'></div>");
+			jQuery('#attrib-connectionreports').append("<div id = 'connection_reports'></div>");
 		}
-		else jQuery('#attrib-checkuserscomments').append("<center><button style=\"width:20%;\" id=\"check_spam_users\" class=\"btn btn-success \" type=\"button\"><span class=\"icon-users levels\"></span>"+ct_spamcheck_checksusers+"</button>&nbsp;&nbsp;&nbsp;<button style=\"width:20%;\" id=\"check_spam_comments\" class=\"btn btn-success\" type=\"button\"><span class=\"icon-archive\"></span>"+ct_spamcheck_checkscomments+"</button><br /><br />"+ct_spamcheck_notice+"<br/><br/><input type='checkbox' name ='ct_impspamcheck_checkbox' value='0'>"+ct_impspamcheck_label+"</center><br/><br/>")
+		else 
+		{
+			jQuery('#attrib-checkuserscomments').append("<center><button style=\"width:20%;\" id=\"check_spam_users\" class=\"btn btn-success \" type=\"button\"><span class=\"icon-users levels\"></span>"+ct_spamcheck_checksusers+"</button>&nbsp;&nbsp;&nbsp;<button style=\"width:20%;\" id=\"check_spam_comments\" class=\"btn btn-success\" type=\"button\"><span class=\"icon-archive\"></span>"+ct_spamcheck_checkscomments+"</button><br /><br />"+ct_spamcheck_notice+"<br/><br/><input type='checkbox' name ='ct_impspamcheck_checkbox' value='0'>"+ct_impspamcheck_label+"</center><br/><br/>")
+			jQuery('#attrib-connectionreports').append("<div id = 'connection_reports'></div>");	
+		}
 		jQuery('#attrib-checkuserscomments').append("<div id ='spam_results'></div>");
-		jQuery('#attrib-checkuserscomments').append("<img class='display_none' id='ct_preloader_spam_results' src='../plugins/system/antispambycleantalk/preloader.gif' />");
+		jQuery('#attrib-checkuserscomments,#attrib-connectionreports').append("<img class='display_none' id='ct_preloader_spam_results' src='../plugins/system/antispambycleantalk/preloader.gif' />");
+
 	// Viewing button to access CP
 	if(ct_key_is_ok == 1){		
 		
@@ -125,7 +132,23 @@ jQuery(document).ready(function(){
 
 		}
 	}
-	
+	if (ct_connection_reports_negative>0 && ct_connection_reports_negative_report)
+	{
+		var html='<center><table id = "connection_reports_table" class="table table-bordered table-hover table-striped" cellspacing=0 cellpadding=3><thead><tr><th>Date</th><th>Page URL</th><th>Library report</th></tr></thead><tbody>';
+		var negative_report = JSON.parse(ct_connection_reports_negative_report);
+		negative_report.forEach(function(item,i,arr){
+			html+='<tr>';
+			html+='<td>'+negative_report[i].date+'</td>';
+			html+='<td>'+negative_report[i].page_url+'</td>';
+			html+='<td>'+negative_report[i].lib_report+'</td>';
+			html+='</tr>';
+		});
+		html+='</tbody></table></center>';	
+		html+="<button id='send_connection_report' class='btn btn-success' type='button'>Send report</button>";
+		jQuery('#connection_reports').append(html);
+	}
+	else
+		jQuery("#connection_reports").append("<center><h2>There are no failed connections to CleanTalk servers.</h2></center>")	
 	// Appereance fix
 	if(!ct_joom25){
 		jQuery('#key_buttons_wrapper').parents('.control-group').css('margin-bottom', 0);
@@ -304,8 +327,29 @@ jQuery(document).ready(function(){
 
 		});
 	});
+	jQuery('#send_connection_report').click(function(){
+		var data = {
+			'send_connection_report': 'yes'
+		};
+		jQuery("#connection_reports").empty();		
+		jQuery('#ct_preloader_spam_results').show();
+		jQuery.ajax({
+			type: "POST",
+			url: location.href,
+			data: data,
+			// dataType: 'json',
+			success: function(msg){
+				msg=jQuery.parseJSON(msg);
+				var html='<center><h2>'+msg.data+'</h2></center>;'
+				jQuery('#connection_reports').append(html);
+				jQuery('#ct_preloader_spam_results').hide();
+				setTimeout(function() { location.reload();}, 2000)
+			}
 
+		});
+	});
 });
+
 	function delete_user(all=false)
 	{
 		    var data = { 'ct_del_user_ids[]' : []};
@@ -402,4 +446,4 @@ jQuery(document).ready(function(){
 		
 			}
 			else alert(ct_spamcheck_comments_delconfirm_error);			
-	}	
+	}
