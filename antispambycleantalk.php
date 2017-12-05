@@ -1198,8 +1198,8 @@ class plgSystemAntispambycleantalk extends JPlugin {
 						ct_moderate_ip = "'.$config['moderate_ip'].'",
 						ct_user_token="'.$config['user_token'].'",
 						ct_service_id="'.$config['service_id'].'",
-						ct_connection_reports_success ="'.$config['connection_reports']->success.'",
-						ct_connection_reports_negative ="'.$config['connection_reports']->negative.'",
+						ct_connection_reports_success ="'.(isset($config['connection_reports']->success)?$config['connection_reports']->success:0).'",
+						ct_connection_reports_negative ="'.(isset($config['connection_reports']->negative)?$config['connection_reports']->negative:0).'",
 						ct_connection_reports_negative_report = "'.addslashes(($config['connection_reports']->negative_report !== null)?json_encode($config['connection_reports']->negative_report):'').'",
 						ct_notice_review_done ='.(($config['show_notice_review_done'] === 1)?'true':'false').';
 					
