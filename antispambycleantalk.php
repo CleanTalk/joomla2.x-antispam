@@ -1051,7 +1051,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 	public function onExtensionAfterSave($name, $data)
 	{
 		$id = $this->getId('system','antispambycleantalk');
-		if (strpos(JFactory::getUri(), 'com_plugins&layout=edit&extension_id='.$id) !== false)
+		if (strpos(JFactory::getUri(), 'extension_id='.$id) !== false)
 		{
 			$table = JTable::getInstance('extension');
 			$table->load($id);
