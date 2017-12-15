@@ -516,7 +516,7 @@ class Cleantalk {
             return $response;
 
         if (function_exists('dns_get_record')) {
-            $records = dns_get_record($host, DNS_A);
+            $records = @dns_get_record($host, DNS_A);
 
             if ($records !== FALSE) {
                 foreach ($records as $server) {
