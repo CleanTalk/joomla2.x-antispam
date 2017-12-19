@@ -3,7 +3,7 @@
 /**
  * CleanTalk joomla plugin
  *
- * @version 4.9.7
+ * @version 4.9.8
  * @package Cleantalk
  * @subpackage Joomla
  * @author CleanTalk (welcome@cleantalk.org) 
@@ -25,7 +25,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
     /**
      * Plugin version string for server
      */
-    const ENGINE = 'joomla3-497';
+    const ENGINE = 'joomla3-498';
     
     /**
      * Default value for hidden field ct_checkjs 
@@ -953,7 +953,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 			$CTconfig = $this->getCTConfig();
 			$send_result['result']=null;
             $send_result['data']=null;
-			if ($CTconfig['connection_reports']->negative_report !== null)
+			if ($CTconfig['connection_reports']['negative_report'] !== null)
 			{
 				$to  = "welcome@cleantalk.org" ; 
 				$subject = "Connection report for ".$_SERVER['HTTP_HOST']; 
@@ -963,7 +963,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 				        <title></title> 
 				    </head> 
 				    <body> 
-				        <p>From '.date('d M',$CTconfig['connection_reports']->negative_report[0]->date).' to '.date('d M').' has been made '.($CTconfig['connection_reports']->success+$CTconfig['connection_reports']->negative).' calls, where '.$CTconfig['connection_reports']->success.' were success and '.$CTconfig['connection_reports']->negative.' were negative</p> 
+				        <p>From '.date('d M',$CTconfig['connection_reports']['negative_report'][0]->date).' to '.date('d M').' has been made '.($CTconfig['connection_reports']['success']+$CTconfig['connection_reports']['negative']).' calls, where '.$CTconfig['connection_reports']['success'].' were success and '.$CTconfig['connection_reports']['negative'].' were negative</p> 
 				        <p>Negative report:</p>
 				        <table>  <tr>
 				    <td>&nbsp;</td>
@@ -973,7 +973,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 				  </tr>
 				';
 			}
-			foreach ($CTconfig['connection_reports']->negative_report as $key=>$report)
+			foreach ($CTconfig['connection_reports']['negative_report'] as $key=>$report)
 			{
 				$message.= "<tr><td>".($key+1).".</td><td>".$report->date."</td><td>".$report->page_url."</td><td>".$report->lib_report."</td></tr>";
 			}  
@@ -1051,7 +1051,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 	public function onExtensionAfterSave($name, $data)
 	{
 		$id = $this->getId('system','antispambycleantalk');
-		if (strpos(JFactory::getUri(), 'com_plugins&layout=edit&extension_id='.$id) !== false)
+		if (strpos(JFactory::getUri(), 'extension_id='.$id) !== false)
 		{
 			$table = JTable::getInstance('extension');
 			$table->load($id);
@@ -1198,9 +1198,9 @@ class plgSystemAntispambycleantalk extends JPlugin {
 						ct_moderate_ip = "'.$config['moderate_ip'].'",
 						ct_user_token="'.$config['user_token'].'",
 						ct_service_id="'.$config['service_id'].'",
-						ct_connection_reports_success ="'.(isset($config['connection_reports']->success)?$config['connection_reports']->success:0).'",
-						ct_connection_reports_negative ="'.(isset($config['connection_reports']->negative)?$config['connection_reports']->negative:0).'",
-						ct_connection_reports_negative_report = "'.addslashes(($config['connection_reports']->negative_report !== null)?json_encode($config['connection_reports']->negative_report):'').'",
+						ct_connection_reports_success ="'.$config['connection_reports']['success'].'",
+						ct_connection_reports_negative ="'.$config['connection_reports']['negative'].'",
+						ct_connection_reports_negative_report = "'.addslashes(json_encode($config['connection_reports']['negative_report'])).'",
 						ct_notice_review_done ='.(($config['show_notice_review_done'] === 1)?'true':'false').';
 					
 					//Translation
@@ -1858,12 +1858,16 @@ class plgSystemAntispambycleantalk extends JPlugin {
                 );
                 if (!empty($ctResponse) && is_array($ctResponse)) {
                     if ($ctResponse['allow'] == 0) {
-                        JCommentsAJAX::showErrorMessage($ctResponse['comment'], 'comment');
-                        $comment->published = false;
                         if ($config['jcomments_unpublished_nofications'] != '') {
                             JComments::sendNotification($comment, true);
                         }
-                        return false;
+                    	if ($ctResponse['stop_queue'] === 1)
+                    	{
+                         	JCommentsAJAX::showErrorMessage($ctResponse['comment'], 'comment');
+                        	return false;                 		
+                    	}
+                    	$comment->published = false;  
+
                     }
                 }
                 return true;
@@ -2148,9 +2152,9 @@ class plgSystemAntispambycleantalk extends JPlugin {
         {
         	$result['allow'] = 1;
         	$result['errno'] = 0;
-        	$connection_reports->negative++;
+        	$connection_reports['negative']++;
         	if (isset($result['errstr']))
-        		$connection_reports->negative_report[] = array('date'=>date("Y-m-d H:i:s"),'page_url'=>$_SERVER['REQUEST_URI'],'lib_report'=>$result['errstr']);
+        		$connection_reports['negative_report'][] = array('date'=>date("Y-m-d H:i:s"),'page_url'=>$_SERVER['REQUEST_URI'],'lib_report'=>$result['errstr']);
         }
         if(isset($result['errno']) && intval($result['errno']) !== 0 && intval($ct_request->js_on)!=1)
         {
@@ -2159,10 +2163,10 @@ class plgSystemAntispambycleantalk extends JPlugin {
         	$result['stop_queue'] = 1;
         	$result['comment']='Forbidden. Please, enable Javascript.';
         	$result['errno'] = 0;
-        	$connection_reports->negative++;
+        	$connection_reports['negative']++;
         }
         if (isset($result['errno']) && intval($result['errno']) === 0 && $result['errstr'] == '')
-        	$connection_reports->success++;
+        	$connection_reports['success']++;
 		$params->set('connection_reports',$connection_reports);
 		$table->params = $params->toString();
 		$table->store();
@@ -2233,7 +2237,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 		$config['show_notice_review_done'] = $jreg->get('show_notice_review_done',0);
 		$config['show_notice_review'] = $jreg->get('show_notice_review',0);
 		$config['last_checked'] = $jreg->get('last_checked',0);
-		$config['connection_reports']= $jreg->get('connection_reports',array('success' => 0, 'negative'=> 0,'negative_report' => null));
+		$config['connection_reports']= (array)$jreg->get('connection_reports',array('success' => 0, 'negative'=> 0,'negative_report' => null));
         return $config;
     }
 
