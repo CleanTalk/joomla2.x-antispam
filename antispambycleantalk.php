@@ -3,7 +3,7 @@
 /**
  * CleanTalk joomla plugin
  *
- * @version 4.9.8
+ * @version 5.0.0
  * @package Cleantalk
  * @subpackage Joomla
  * @author CleanTalk (welcome@cleantalk.org) 
@@ -25,7 +25,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
     /**
      * Plugin version string for server
      */
-    const ENGINE = 'joomla3-498';
+    const ENGINE = 'joomla3-500';
     
     /**
      * Default value for hidden field ct_checkjs 
@@ -230,7 +230,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
     	$id=0;
     	$id=$this->getId('system','antispambycleantalk');
     	if($id!==0){			
-    		$component = JRequest::getCmd( 'component' );
+    		$component = JFactory::getApplication()->input->get('component');
 			$table = JTable::getInstance('extension');
     		$table->load($id);
     		if($table->element=='antispambycleantalk'){				
@@ -585,7 +585,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 	            $table->store();
 	        }
         }       
-		if($app->isAdmin() && strpos(JFactory::getUri(), 'com_plugins&view=plugin&layout=edit&extension_id='.$this->getId('system','antispambycleantalk')))
+		if($app->isAdmin() && strpos(JUri::getInstance()->toString(), 'com_plugins&view=plugin&layout=edit&extension_id='.$this->getId('system','antispambycleantalk')))
 		{
 		//SFW Section
 		$this->loadLanguage();		
@@ -1051,7 +1051,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 	public function onExtensionAfterSave($name, $data)
 	{
 		$id = $this->getId('system','antispambycleantalk');
-		if (strpos(JFactory::getUri(), 'extension_id='.$id) !== false)
+		if (strpos(JUri::getInstance()->toString(), 'extension_id='.$id) !== false)
 		{
 			$table = JTable::getInstance('extension');
 			$table->load($id);
@@ -1241,7 +1241,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 				if(is_object($user) && isset($user->id) && $user->id > 0)
 					$is_logged_in = true;
 				
-				if(isset($config['show_notice_review']) && $config['show_notice_review'] == 1 && $is_logged_in && strpos(JFactory::getUri(), 'com_plugins&view=plugin&layout=edit&extension_id='.$id) !==false)
+				if(isset($config['show_notice_review']) && $config['show_notice_review'] == 1 && $is_logged_in && strpos(JUri::getInstance()->toString(), 'com_plugins&view=plugin&layout=edit&extension_id='.$id) !==false)
 				{
 					$document->addScriptDeclaration('var ct_show_feedback=true;');
 					$document->addScriptDeclaration('var ct_show_feedback_mes="'.JText::_('PLG_SYSTEM_CLEANTALK_FEEDBACKLINK').'";');
@@ -1395,10 +1395,10 @@ class plgSystemAntispambycleantalk extends JPlugin {
      */
     public function onAfterRoute() {
 
-        $option_cmd = JRequest::getCmd('option');
-        $view_cmd = JRequest::getCmd('view');
-        $task_cmd = JRequest::getCmd('task');
-        $page_cmd = JRequest::getCmd('page');
+        $option_cmd = JFactory::getApplication()->input->get('option');
+        $view_cmd = JFactory::getApplication()->input->get('view');
+        $task_cmd = JFactory::getApplication()->input->get('task');
+        $page_cmd = JFactory::getApplication()->input->get('page');
 
         $ver = new JVersion();
         $app = JFactory::getApplication();
@@ -1700,7 +1700,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
                 if ($ctResponse['allow'] == 0) {
                     $res_str = $ctResponse['comment'];
                     $app->setUserState('com_contact.contact.data', $data);  // not used in 1.5 :(
-                    $stub = JRequest::getString('id');
+                    $stub = JFactory::getApplication()->input->get('id');
                     // Redirect back to the contact form.
                     // see http://docs.joomla.org/JApplication::redirect/11.1 - what does last param mean?
                     // but it works! AZ
@@ -1999,7 +1999,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
                     $app = & JFactory::getApplication();
                     $app->enqueueMessage($ctResponse['comment'], 'error');
 
-                    $uri = & JFactory::getUri();
+                    $uri = & JUri::getInstance()->toString();
                     $redirect = $uri->toString();
 
                     // OPC
@@ -2392,7 +2392,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
             }
         }
 
-        $option_cmd = JRequest::getCmd('option');
+        $option_cmd = JFactory::getApplication()->input->get('option');
         // Return null if ct_checkjs is not set, because VirtueMart not need strict JS test
         if (!isset($data['ct_checkjs']) && $option_cmd = 'com_virtuemart')
            $checkjs = null; 
@@ -2752,7 +2752,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
         
 		$id=$this->getId('system','antispambycleantalk');
 		
-		$component = JRequest::getCmd( 'component' );
+		$component = JFactory::getApplication()->input->get('component');
 		$table = JTable::getInstance('extension');
 		$table->load($id);
 		if($table->element=='antispambycleantalk')
