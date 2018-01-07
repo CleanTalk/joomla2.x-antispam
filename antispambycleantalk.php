@@ -3,7 +3,7 @@
 /**
  * CleanTalk joomla plugin
  *
- * @version 4.9.9
+ * @version 4.9.8
  * @package Cleantalk
  * @subpackage Joomla
  * @author CleanTalk (welcome@cleantalk.org) 
@@ -230,7 +230,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
     	$id=0;
     	$id=$this->getId('system','antispambycleantalk');
     	if($id!==0){			
-    		$component = JFactory::getApplication()->input->get('component');
+    		$component = JRequest::getCmd( 'component' );
 			$table = JTable::getInstance('extension');
     		$table->load($id);
     		if($table->element=='antispambycleantalk'){				
@@ -320,22 +320,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
 				}	
 						
     		}
-    	}
-    	if (isset($result))
-    	{
-			$file = dirname(__FILE__) . DS. "cleantalk_api_calls.log";								
-			$calls_log = "CLEANTALK_PAID_CHECK_CALL".PHP_EOL."Date: [".date("Y-m-d H:i:s")."]".PHP_EOL."Result:".PHP_EOL.print_r($result,true);
-			if (!file_exists($file)) {
-				$fp = fopen($file, "w"); 
-				fwrite($fp, $calls_log.PHP_EOL.PHP_EOL);
-				fclose($fp);
-			}
-			else
-			{
-				$fp = fopen($file, "a"); 
-				fwrite($fp, $calls_log.PHP_EOL.PHP_EOL);
-				fclose($fp);			        	
-			}	    		
     	}
     		
     	
@@ -585,7 +569,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 	            $table->store();
 	        }
         }       
-		if($app->isAdmin() && strpos(JUri::getInstance()->toString(), 'com_plugins&view=plugin&layout=edit&extension_id='.$this->getId('system','antispambycleantalk')))
+		if($app->isAdmin() && strpos(JFactory::getUri(), 'com_plugins&view=plugin&layout=edit&extension_id='.$this->getId('system','antispambycleantalk')))
 		{
 		//SFW Section
 		$this->loadLanguage();		
@@ -1075,7 +1059,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 			$table->store();
 		}
 		
-	}    
+	}  
     /*
     exception for MijoShop ajax calls
     */
@@ -1187,6 +1171,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 					if(empty($config['service_id']) && !empty($config['user_token']))
 						$notice = JText::sprintf('PLG_SYSTEM_CLEANTALK_NOTICE_TRIAL', $user_token);												
 				}
+				$show_notice_review_done = isset($config['show_notice_review_done'])?$config['show_notice_review_done']:null;
 				$adminmail=JFactory::getConfig()->get('mailfrom');
 				// Passing parameters to JS
 				$document->addScriptDeclaration('
@@ -1201,7 +1186,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 						ct_connection_reports_success ="'.$config['connection_reports']['success'].'",
 						ct_connection_reports_negative ="'.$config['connection_reports']['negative'].'",
 						ct_connection_reports_negative_report = "'.addslashes(json_encode($config['connection_reports']['negative_report'])).'",
-						ct_notice_review_done ='.((isset($config['show_notice_review_done'] && $config['show_notice_review_done'] === 1)?'true':'false').';
+						ct_notice_review_done ='.(($show_notice_review_done === 1)?'true':'false').';
 					
 					//Translation
 					var ct_autokey_label = "'    .JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_AUTOKEY_LABEL').'",
@@ -1241,7 +1226,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 				if(is_object($user) && isset($user->id) && $user->id > 0)
 					$is_logged_in = true;
 				
-				if(isset($config['show_notice_review']) && $config['show_notice_review'] == 1 && $is_logged_in && strpos(JUri::getInstance()->toString(), 'com_plugins&view=plugin&layout=edit&extension_id='.$id) !==false)
+				if(isset($config['show_notice_review']) && $config['show_notice_review'] == 1 && $is_logged_in && strpos(JFactory::getUri(), 'com_plugins&view=plugin&layout=edit&extension_id='.$id) !==false)
 				{
 					$document->addScriptDeclaration('var ct_show_feedback=true;');
 					$document->addScriptDeclaration('var ct_show_feedback_mes="'.JText::_('PLG_SYSTEM_CLEANTALK_FEEDBACKLINK').'";');
@@ -1395,10 +1380,10 @@ class plgSystemAntispambycleantalk extends JPlugin {
      */
     public function onAfterRoute() {
 
-        $option_cmd = JFactory::getApplication()->input->get('option');
-        $view_cmd = JFactory::getApplication()->input->get('view');
-        $task_cmd = JFactory::getApplication()->input->get('task');
-        $page_cmd = JFactory::getApplication()->input->get('page');
+        $option_cmd = JRequest::getCmd('option');
+        $view_cmd = JRequest::getCmd('view');
+        $task_cmd = JRequest::getCmd('task');
+        $page_cmd = JRequest::getCmd('page');
 
         $ver = new JVersion();
         $app = JFactory::getApplication();
@@ -1700,7 +1685,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
                 if ($ctResponse['allow'] == 0) {
                     $res_str = $ctResponse['comment'];
                     $app->setUserState('com_contact.contact.data', $data);  // not used in 1.5 :(
-                    $stub = JFactory::getApplication()->input->get('id');
+                    $stub = JRequest::getString('id');
                     // Redirect back to the contact form.
                     // see http://docs.joomla.org/JApplication::redirect/11.1 - what does last param mean?
                     // but it works! AZ
@@ -1999,7 +1984,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
                     $app = & JFactory::getApplication();
                     $app->enqueueMessage($ctResponse['comment'], 'error');
 
-                    $uri = & JUri::getInstance()->toString();
+                    $uri = & JFactory::getUri();
                     $redirect = $uri->toString();
 
                     // OPC
@@ -2392,7 +2377,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
             }
         }
 
-        $option_cmd = JFactory::getApplication()->input->get('option');
+        $option_cmd = JRequest::getCmd('option');
         // Return null if ct_checkjs is not set, because VirtueMart not need strict JS test
         if (!isset($data['ct_checkjs']) && $option_cmd = 'com_virtuemart')
            $checkjs = null; 
@@ -2752,7 +2737,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
         
 		$id=$this->getId('system','antispambycleantalk');
 		
-		$component = JFactory::getApplication()->input->get('component');
+		$component = JRequest::getCmd( 'component' );
 		$table = JTable::getInstance('extension');
 		$table->load($id);
 		if($table->element=='antispambycleantalk')
