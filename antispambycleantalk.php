@@ -3,7 +3,7 @@
 /**
  * CleanTalk joomla plugin
  *
- * @version 5.0.0
+ * @version 4.9.9
  * @package Cleantalk
  * @subpackage Joomla
  * @author CleanTalk (welcome@cleantalk.org) 
@@ -25,7 +25,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
     /**
      * Plugin version string for server
      */
-    const ENGINE = 'joomla3-500';
+    const ENGINE = 'joomla3-499';
     
     /**
      * Default value for hidden field ct_checkjs 
@@ -1051,12 +1051,12 @@ class plgSystemAntispambycleantalk extends JPlugin {
 	public function onExtensionAfterSave($name, $data)
 	{
 		$id = $this->getId('system','antispambycleantalk');
-		if (strpos(JUri::getInstance()->toString(), 'extension_id='.$id) !== false)
+		if (strpos(JFactory::getUri(), 'extension_id='.$id) !== false)
 		{
 			$table = JTable::getInstance('extension');
 			$table->load($id);
 			$params = new JRegistry($table->params);
-			if ($enabled == 1)
+			if ($data->enabled === 1)
 			{
 				$new_config=json_decode($data->params);	
 				$access_key = trim($new_config->apikey);
@@ -1075,7 +1075,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 			$table->store();
 		}
 		
-	}  
+	}    
     /*
     exception for MijoShop ajax calls
     */
@@ -1201,7 +1201,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 						ct_connection_reports_success ="'.$config['connection_reports']['success'].'",
 						ct_connection_reports_negative ="'.$config['connection_reports']['negative'].'",
 						ct_connection_reports_negative_report = "'.addslashes(json_encode($config['connection_reports']['negative_report'])).'",
-						ct_notice_review_done ='.(($config['show_notice_review_done'] === 1)?'true':'false').';
+						ct_notice_review_done ='.((isset($config['show_notice_review_done'] && $config['show_notice_review_done'] === 1)?'true':'false').';
 					
 					//Translation
 					var ct_autokey_label = "'    .JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_AUTOKEY_LABEL').'",
