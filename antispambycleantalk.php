@@ -290,7 +290,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 							$service_id = (isset($result->data->show_notice) && $result->data->show_notice == 1 && isset($result->data->trial) && $result->data->trial == 1)?'':$result->data->service_id;
 							$spam_count = (isset($result->data->spam_count))?$result->data->spam_count:0;
 							$moderate_ip = (isset($result->data->moderate_ip) && $result->data->moderate_ip == 1)?1:0;
-							if ($sfw_enable ==1)
+							if ($sfw_enable ==1 && $api_key !== null)
 								self::update_sfw_db_networks($api_key);
 							self::ctSendAgentVersion($api_key);
 				    	}
@@ -520,7 +520,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 	        $sfw_last_send_log = $jparam->get('sfw_last_send_log', 0);
 	        $save_params = array();        	
             $sfw_check_interval = $jparam->get('sfw_check_interval', 0);
-            if ($sfw_check_interval > 0 && ($sfw_last_check + $sfw_check_interval) < time()) 
+            if ($sfw_check_interval > 0 && ($sfw_last_check + $sfw_check_interval) < time() && $ct_apikey !== null) 
                 self::update_sfw_db_networks($ct_apikey);
             if(time()-$sfw_last_send_log>3600)
             {
