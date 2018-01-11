@@ -3,7 +3,7 @@
 /**
  * CleanTalk joomla plugin
  *
- * @version 4.9.8
+ * @version 4.9.9
  * @package Cleantalk
  * @subpackage Joomla
  * @author CleanTalk (welcome@cleantalk.org) 
@@ -25,7 +25,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
     /**
      * Plugin version string for server
      */
-    const ENGINE = 'joomla3-498';
+    const ENGINE = 'joomla3-499';
     
     /**
      * Default value for hidden field ct_checkjs 
@@ -290,7 +290,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 							$service_id = (isset($result->data->show_notice) && $result->data->show_notice == 1 && isset($result->data->trial) && $result->data->trial == 1)?'':$result->data->service_id;
 							$spam_count = (isset($result->data->spam_count))?$result->data->spam_count:0;
 							$moderate_ip = (isset($result->data->moderate_ip) && $result->data->moderate_ip == 1)?1:0;
-							if ($sfw_enable ==1)
+							if ($sfw_enable ==1 && $api_key !== null)
 								self::update_sfw_db_networks($api_key);
 							self::ctSendAgentVersion($api_key);
 				    	}
@@ -320,22 +320,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
 				}	
 						
     		}
-    	}
-    	if (isset($result))
-    	{
-			$file = dirname(__FILE__) . DS. "cleantalk_api_calls.log";								
-			$calls_log = "CLEANTALK_PAID_CHECK_CALL".PHP_EOL."Date: [".date("Y-m-d H:i:s")."]".PHP_EOL."Result:".PHP_EOL.print_r($result,true);
-			if (!file_exists($file)) {
-				$fp = fopen($file, "w"); 
-				fwrite($fp, $calls_log.PHP_EOL.PHP_EOL);
-				fclose($fp);
-			}
-			else
-			{
-				$fp = fopen($file, "a"); 
-				fwrite($fp, $calls_log.PHP_EOL.PHP_EOL);
-				fclose($fp);			        	
-			}	    		
     	}
     		
     	
@@ -536,7 +520,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 	        $sfw_last_send_log = $jparam->get('sfw_last_send_log', 0);
 	        $save_params = array();        	
             $sfw_check_interval = $jparam->get('sfw_check_interval', 0);
-            if ($sfw_check_interval > 0 && ($sfw_last_check + $sfw_check_interval) < time()) 
+            if ($sfw_check_interval > 0 && ($sfw_last_check + $sfw_check_interval) < time() && $ct_apikey !== null) 
                 self::update_sfw_db_networks($ct_apikey);
             if(time()-$sfw_last_send_log>3600)
             {
@@ -1056,7 +1040,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 			$table = JTable::getInstance('extension');
 			$table->load($id);
 			$params = new JRegistry($table->params);
-			if ($enabled == 1)
+			if ($data->enabled === 1)
 			{
 				$new_config=json_decode($data->params);	
 				$access_key = trim($new_config->apikey);
@@ -1201,7 +1185,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 						ct_connection_reports_success ="'.$config['connection_reports']['success'].'",
 						ct_connection_reports_negative ="'.$config['connection_reports']['negative'].'",
 						ct_connection_reports_negative_report = "'.addslashes(json_encode($config['connection_reports']['negative_report'])).'",
-						ct_notice_review_done ='.(($config['show_notice_review_done'] === 1)?'true':'false').';
+						ct_notice_review_done ='.((isset($config['show_notice_review_done']) && $config['show_notice_review_done'] === 1)?'true':'false').';
 					
 					//Translation
 					var ct_autokey_label = "'    .JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_AUTOKEY_LABEL').'",
