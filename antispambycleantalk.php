@@ -3,7 +3,7 @@
 /**
  * CleanTalk joomla plugin
  *
- * @version 4.9.8
+ * @version 4.9.9
  * @package Cleantalk
  * @subpackage Joomla
  * @author CleanTalk (welcome@cleantalk.org) 
@@ -1171,7 +1171,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
 					if(empty($config['service_id']) && !empty($config['user_token']))
 						$notice = JText::sprintf('PLG_SYSTEM_CLEANTALK_NOTICE_TRIAL', $user_token);												
 				}
-				$show_notice_review_done = isset($config['show_notice_review_done'])?$config['show_notice_review_done']:null;
 				$adminmail=JFactory::getConfig()->get('mailfrom');
 				// Passing parameters to JS
 				$document->addScriptDeclaration('
@@ -1186,7 +1185,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 						ct_connection_reports_success ="'.$config['connection_reports']['success'].'",
 						ct_connection_reports_negative ="'.$config['connection_reports']['negative'].'",
 						ct_connection_reports_negative_report = "'.addslashes(json_encode($config['connection_reports']['negative_report'])).'",
-						ct_notice_review_done ='.(($show_notice_review_done === 1)?'true':'false').';
+						ct_notice_review_done ='.((isset($config['show_notice_review_done']) && $config['show_notice_review_done'] === 1)?'true':'false').';
 					
 					//Translation
 					var ct_autokey_label = "'    .JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_AUTOKEY_LABEL').'",
