@@ -230,7 +230,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
     	$id=0;
     	$id=$this->getId('system','antispambycleantalk');
     	if($id!==0){			
-    		$component = JRequest::getCmd( 'component' );
+    		$component = JFactory::getApplication()->input->get('component');
 			$table = JTable::getInstance('extension');
     		$table->load($id);
     		if($table->element=='antispambycleantalk'){				
@@ -569,7 +569,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 	            $table->store();
 	        }
         }       
-		if($app->isAdmin() && strpos(JFactory::getUri(), 'com_plugins&view=plugin&layout=edit&extension_id='.$this->getId('system','antispambycleantalk')))
+		if($app->isAdmin() && strpos(JUri::getInstance(), 'com_plugins&view=plugin&layout=edit&extension_id='.$this->getId('system','antispambycleantalk')))
 		{
 		//SFW Section
 		$this->loadLanguage();		
@@ -671,7 +671,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 	    		$query="update #__extensions set params='".json_encode($params)."' where extension_id=".$rows[0]->extension_id;
 	    		//print_r($query);
 	    		$ct_db->setQuery($query);
-	    		$ct_db->query();
+	    		$ct_db->execute();
 	    		//$rows=@$ct_db->loadObjectList();
 	    	}
     		die();
@@ -873,7 +873,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 	public function onExtensionAfterSave($name, $data)
 	{
 		$id = $this->getId('system','antispambycleantalk');
-		if (strpos(JFactory::getUri(), 'extension_id='.$id) !== false)
+		if (strpos(JUri::getInstance(), 'extension_id='.$id) !== false)
 		{
 			$table = JTable::getInstance('extension');
 			$table->load($id);
@@ -942,9 +942,9 @@ class plgSystemAntispambycleantalk extends JPlugin {
 				$code = "<div id='cleantalk_footer_link' style='width:100%;text-align:center;'><a href='https://cleantalk.org/joomla-anti-spam-plugin-without-captcha'>Anti-spam by CleanTalk</a> for Joomla!<br>".$config['spam_count']." spam blocked</div>";
 			else
 				$code = "<div id='cleantalk_footer_link' style='width:100%;text-align:center;'><a href='https://cleantalk.org/joomla-anti-spam-plugin-without-captcha'>Anti-spam by CleanTalk</a> for Joomla!<br></div>";
-			$documentbody = JResponse::getBody();
-			$documentbody = str_replace ("</body>", $code." </body>", $documentbody);
-			JResponse::setBody($documentbody);
+			$documentbody = JFactory::getApplication()->getBody();
+			$documentbody = str_replace ("</footer>", $code." </footer>", $documentbody);
+			JFactory::getApplication()->setBody($documentbody);
 		}
 
     }
@@ -1063,7 +1063,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 				if(is_object($user) && isset($user->id) && $user->id > 0)
 					$is_logged_in = true;
 				
-				if(isset($config['show_notice_review']) && $config['show_notice_review'] == 1 && $is_logged_in && strpos(JFactory::getUri(), 'com_plugins&view=plugin&layout=edit&extension_id='.$id) !==false)
+				if(isset($config['show_notice_review']) && $config['show_notice_review'] == 1 && $is_logged_in && strpos(JUri::getInstance(), 'com_plugins&view=plugin&layout=edit&extension_id='.$id) !==false)
 				{
 					$document->addScriptDeclaration('var ct_show_feedback=true;');
 					$document->addScriptDeclaration('var ct_show_feedback_mes="'.JText::_('PLG_SYSTEM_CLEANTALK_FEEDBACKLINK').'";');
@@ -1094,7 +1094,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 				if (!empty($user)) {
 					$user_id = $user[0][0];
 					$db->setQuery("UPDATE `#__users` SET ct_request_id='" . $ct_request_id . "' WHERE id='" . $user_id . "'");
-					$db->query("UPDATE `#__users` SET ct_request_id='" . $ct_request_id . "' WHERE id='" . $user_id . "'");
+					$db->execute();
 				}
 			}
 		}
@@ -1216,14 +1216,14 @@ class plgSystemAntispambycleantalk extends JPlugin {
      * @since 1.5
      */
     public function onAfterRoute() {
-
-        $option_cmd = JRequest::getCmd('option');
-        $view_cmd = JRequest::getCmd('view');
-        $task_cmd = JRequest::getCmd('task');
-        $page_cmd = JRequest::getCmd('page');
+        $app = JFactory::getApplication();
+        $option_cmd = $app->input->get('option');
+        $view_cmd = $app->input->get('view');
+        $task_cmd = $app->input->get('task');
+        $page_cmd = $app->input->get('page');
 
         $ver = new JVersion();
-        $app = JFactory::getApplication();
+
         //$config = $this->getCTConfig();
 
         if ($app->isAdmin()) {
@@ -1522,7 +1522,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
                 if ($ctResponse['allow'] == 0) {
                     $res_str = $ctResponse['comment'];
                     $app->setUserState('com_contact.contact.data', $data);  // not used in 1.5 :(
-                    $stub = JRequest::getString('id');
+                    $stub = JFactory::getApplication()->input->get('id');
                     // Redirect back to the contact form.
                     // see http://docs.joomla.org/JApplication::redirect/11.1 - what does last param mean?
                     // but it works! AZ
@@ -1810,7 +1810,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
                     'sender_info' => $sender_info 
                 )
         );
-
         if (!empty($ctResponse) && is_array($ctResponse)) {
             if ($ctResponse['allow'] == 0) {
                 if ($ctResponse['errno'] != 0) {
@@ -1821,7 +1820,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
                     $app = & JFactory::getApplication();
                     $app->enqueueMessage($ctResponse['comment'], 'error');
 
-                    $uri = & JFactory::getUri();
+                    $uri = & JUri::getInstance();
                     $redirect = $uri->toString();
 
                     // OPC
@@ -2085,7 +2084,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 
         if (!$field_presence) {
             $db->setQuery("ALTER TABLE `#__users` ADD ct_request_id char(32) NOT NULL DEFAULT ''");
-            $db->query();
+            $db->execute();
         }
 
         if (!empty($arrTables)) {
@@ -2096,7 +2095,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
                         "INSERT  " .
                         "INTO #__ct_curr_server (ct_work_url,ct_server_ttl,ct_server_changed ) " .
                         "VALUES ('', 0, 0)");
-                if ($db->query() !== FALSE)
+                if ($db->execute() !== FALSE)
                     self::$tables_ready = TRUE;
             }else {
                 self::$tables_ready = TRUE;
@@ -2110,7 +2109,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
                         "INSERT  " .
                         "INTO #__ct_apikey_status (ct_status,ct_changed ) " .
                         "VALUES ('', 0)");
-                    if ($db->query() !== FALSE)
+                    if ($db->execute() !== FALSE)
                         self::$tables_ready = TRUE;
                 }else {
                     self::$tables_ready = TRUE;
@@ -2152,7 +2151,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
                 "ct_work_url = '" . $ct_work_url . "', " .
                 "ct_server_ttl = " . $ct_server_ttl . ", " .
                 "ct_server_changed = " . $ct_server_changed);
-        $db->query();
+        $db->execute();
     }
   
     /**
@@ -2185,7 +2184,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
                 " SET " .
                 "ct_status = '" . $ct_status . "', " .
                 "ct_changed = " . $ct_changed);
-        $db->query();
+        $db->execute();
     }
   
     /**
@@ -2214,7 +2213,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
             }
         }
 
-        $option_cmd = JRequest::getCmd('option');
+        $option_cmd = JFactory::getApplication()->input->get('option');
         // Return null if ct_checkjs is not set, because VirtueMart not need strict JS test
         if (!isset($data['ct_checkjs']) && $option_cmd = 'com_virtuemart')
            $checkjs = null; 
@@ -2566,7 +2565,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
         $query->from($db->quoteName($this->sfw_table_name));
         //$query->where($db->quoteName('network') . ' in (' . $sql_list . ')');
         $query->where($db->quoteName('network') . ' = '.sprintf("%u", ip2long($sender_ip)). '& mask');
-        $query->setlLimit(1);
+        $query->setLimit(1);
         $db->setQuery($query);
         $row = $db->loadRow();
             
@@ -2574,7 +2573,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
         
 		$id=$this->getId('system','antispambycleantalk');
 		
-		$component = JRequest::getCmd( 'component' );
+		$component = JFactory::getApplication()->input->get('component');
 		$table = JTable::getInstance('extension');
 		$table->load($id);
 		if($table->element=='antispambycleantalk')
