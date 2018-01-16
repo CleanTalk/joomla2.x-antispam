@@ -15,7 +15,7 @@
 #key_buttons_wrapper{
     margin: 10px 0 0 0;
 }
-#spam_results h2, #spam_results table, #spam_results button, #connection_reports h2, #connection_reports table, #connection_reports button {
+#spam_results h2, #spam_results table, #connection_reports h2, #connection_reports table, #connection_reports button {
     -webkit-animation: fadein 1s; /* Safari, Chrome and Opera > 12.1 */
        -moz-animation: fadein 1s; /* Firefox < 16 */
         -ms-animation: fadein 1s; /* Internet Explorer */
