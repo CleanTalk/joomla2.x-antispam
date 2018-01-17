@@ -57,7 +57,7 @@
 }
 #delete_sel_spam_users, #delete_all_spam_users, #delete_sel_spam_comments, #delete_all_spam_comments, #send_connection_report
 {
-    margin: 15px 0 0 15px;
+    margin: 0 0 10px 15px;
     float:right;
 }
 #ct_preloader_spam_results{
