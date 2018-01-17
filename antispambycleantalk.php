@@ -483,6 +483,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
         $sfw_enable = $jparam->get('sfw_enable', 0);
         $ct_apikey = trim($jparam->get('apikey', 0));
         $sfw_log = (array)$jparam->get('sfw_log', 0);
+        $output = null;
         /*
             Do SpamFireWall actions for visitors if we have a GET request and option enabled. 
         */
@@ -687,28 +688,24 @@ class plgSystemAntispambycleantalk extends JPlugin {
 			$platform = 'joomla3';
 					
 				
-			$result = getAutoKey($adminmail, $website, $platform);
-			$result = $result ? json_decode($result, true) : false;
+			$output = getAutoKey($adminmail, $website, $platform);
+			$output = $output ? json_decode($output, true) : false;
 							
-			if (!empty($result['data']) && is_array($result['data'])){
+			if (!empty($output['data']) && is_array($output['data'])){
 				
-				$result = $result['data'];
+				$output = $output['data'];
 				// Checks if the user token is empty, then get user token by notice_paid_till()
-				if(empty($result['user_token'])){
+				if(empty($output['user_token'])){
 					
-					$result_tmp = noticePaidTill($result['auth_key']);
+					$result_tmp = noticePaidTill($output['auth_key']);
 					$result_tmp = $result_tmp ? json_decode($result_tmp, true) : false;
 					
 					if (!empty($result_tmp['data']) && is_array($result_tmp['data']))
-						$result['user_token'] = $result_tmp['data']['user_token'];
+						$output['user_token'] = $result_tmp['data']['user_token'];
 					
 				}
 			}
 				
-			print json_encode($result);
-			$mainframe=JFactory::getApplication();
-			$mainframe->close();
-			die();
 		}
 		//check spam users
 		if (isset($_POST['check_type']) && $_POST['check_type'] === 'users')
@@ -716,10 +713,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 			$improved_check = ($_POST['improved_check'] == 'true')?true:false;
 			$offset = isset($_POST['offset'])?$_POST['offset']:0;
 			$on_page = isset($_POST['amount'])?$_POST['amount']:2;
-		    print json_encode(self::get_spam_users($offset,$on_page,$improved_check));
-			$mainframe=JFactory::getApplication();
-			$mainframe->close();
-			die();	
+		   	$output = self::get_spam_users($offset,$on_page,$improved_check);
 		}
 		//check spam comments
 		if (isset($_POST['check_type']) && $_POST['check_type'] === 'comments')
@@ -727,54 +721,43 @@ class plgSystemAntispambycleantalk extends JPlugin {
 			$improved_check = ($_POST['improved_check'] == 'true')?true:false;
 			$offset = isset($_POST['offset'])?$_POST['offset']:0;
 			$on_page = isset($_POST['amount'])?$_POST['amount']:2;
-            print json_encode(self::get_spam_comments($offset,$on_page,$improved_check));
-			$mainframe=JFactory::getApplication();
-			$mainframe->close();
-			die();
+            $output = self::get_spam_comments($offset,$on_page,$improved_check);
 		}
 		if (isset($_POST['ct_del_user_ids']))
 		{
 			$spam_users = implode(',',$_POST['ct_del_user_ids']);
-			$send_result['result']=null;
-            $send_result['data']=null;
+			$output['result']=null;
+            $output['data']=null;
 			try {
 				$this->delete_users($spam_users);
-				$send_result['result']='success';
-				$send_result['data']=JText::sprintf('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_USERS_DELDONE', count($_POST['ct_del_user_ids']));
+				$output['result']='success';
+				$output['data']=JText::sprintf('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_USERS_DELDONE', count($_POST['ct_del_user_ids']));
 			}
 			catch (Exception $e){
-				$send_result['result']='error';
-				$send_result['data']=$e->getMessage();
+				$output['result']='error';
+				$output['data']=$e->getMessage();
 			}
-			print json_encode($send_result);
-			$mainframe=JFactory::getApplication();
-			$mainframe->close();
-			die();
 		}
 		if (isset($_POST['ct_del_comment_ids']))
 		{
 			$spam_comments = implode(',',$_POST['ct_del_comment_ids']);
-			$send_result['result']=null;
-            $send_result['data']=null;
+			$output['result']=null;
+            $output['data']=null;
 			try {
 				$this->delete_comments($spam_comments);
-				$send_result['result']='success';
-				$send_result['data']=JText::sprintf('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_COMMENTS_DELDONE', count($_POST['ct_del_comment_ids']));
+				$output['result']='success';
+				$output['data']=JText::sprintf('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_COMMENTS_DELDONE', count($_POST['ct_del_comment_ids']));
 			}
 			catch (Exception $e){
-				$send_result['result']='error';
-				$send_result['data']=$e->getMessage();
-			}
-			print json_encode($send_result);
-			$mainframe=JFactory::getApplication();
-			$mainframe->close();
-			die();			
+				$output['result']='error';
+				$output['data']=$e->getMessage();
+			}		
 		}
 		if (isset($_POST['send_connection_report']) && $_POST['send_connection_report'] === 'yes')
 		{
 			$CTconfig = $this->getCTConfig();
-			$send_result['result']=null;
-            $send_result['data']=null;
+			$output['result']=null;
+            $output['data']=null;
 			if ($CTconfig['connection_reports']['negative_report'] !== null)
 			{
 				$to  = "welcome@cleantalk.org" ; 
@@ -804,19 +787,24 @@ class plgSystemAntispambycleantalk extends JPlugin {
 			$headers  = "Content-type: text/html; charset=windows-1251 \r\n";
 			$headers .= "From: ".JFactory::getConfig()->get('mailfrom'); 
 			mail($to, $subject, $message, $headers);   			
-            $send_result['result']='success';
-            $send_result['data']='Success.';
+            $output['result']='success';
+            $output['data']='Success.';
             $jparam->set('connection_reports',array('success' => 0, 'negative'=> 0,'negative_report' => null));
 		    $table = JTable::getInstance('extension');
 		    $table->load($this->getId('system','antispambycleantalk'));
 		    $table->params = $jparam->toString();
-		    $table->store();
-            print json_encode($send_result);
+		    $table->store();			
+		}
+		if (isset($_POST['dev_insert_spam_users']) && $_POST['dev_insert_spam_users'] === 'yes')
+			$output = self::dev_insert_spam_users();
+		if ($output !== null)
+		{
+			print json_encode($output);
 			$mainframe=JFactory::getApplication();
 			$mainframe->close();
-			die();
-			
-		}
+			die();			
+		}			
+		
 	}
 
 
@@ -2959,6 +2947,32 @@ class plgSystemAntispambycleantalk extends JPlugin {
 	       	}              		
     	}	   	
 	    return $output;      
-	}   
+	}
+	private function dev_insert_spam_users()
+	{
+        $db = JFactory::getDBO();
+        $prefix = $db->getPrefix();
+        $query = "INSERT INTO `#__users` (name,username,email,registerDate,lastvisitDate,params,lastResetTime) VALUES ";
+        for ($i=0;$i<=30;$i++)
+        {
+        	$row="(";
+	        $row.="'spam_user$i',";
+	        $row.="'spam_user$i',";
+	        $row.="'s@cleantalk.org',";
+	        $row.="'2018-01-17 02:54:19',";
+	        $row.="'2018-01-17 02:54:19',";
+	        $row.="'{\"admin_style\":\"\",\"admin_language\":\"\",\"language\":\"\",\"editor\":\"\",\"helpsite\":\"\",\"timezone\":\"\"}',";
+	        $row.="'2018-01-17 02:54:19'";
+	        $row.=")";
+	        if ($i !== 30)
+	        	$row.=",";
+	        $query.=$row;    	
+        }
+        $db->setQuery($query);
+        if ($db->execute())
+			$output['result']='success!';
+		else $output['result']='error!';
+		return $output;
+	}	   
 }
 

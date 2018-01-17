@@ -157,6 +157,9 @@
 		<fieldset name="connectionreports">
 			
 		</fieldset>
+		<fieldset name="dev">
+			
+		</fieldset>		
 	</fields>
     </config>
 	<administration>
