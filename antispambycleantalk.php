@@ -286,6 +286,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 				    		if(isset($result->data) && !empty($result->data->show_review) && $result->data->show_review == 1)
 			    				$show_notice_review = 1;
 			    			else $show_notice_review=0;
+			    			$ip_license = (isset($result->data->ip_license))?$result->data->ip_license:0;
 							$user_token = (isset($result->data->user_token))?$result->data->user_token:'';
 							$service_id = (isset($result->data->show_notice) && $result->data->show_notice == 1 && isset($result->data->trial) && $result->data->trial == 1)?'':$result->data->service_id;
 							$spam_count = (isset($result->data->spam_count))?$result->data->spam_count:0;
@@ -304,6 +305,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 				    	$params->set('moderate_ip',$moderate_ip);
 				    	$params->set('ct_key_is_ok', 1);	
 				    	$params->set('show_notice_review_done',$jparam->get('show_notice_review_done', 0));	 
+				    	$params->set('ip_license',$ip_license);
 				    	$params->set('connection_reports',array('success' => 0, 'negative'=> 0,'negative_report' => null)); 									
 					}
 					else 
@@ -315,6 +317,8 @@ class plgSystemAntispambycleantalk extends JPlugin {
 						$params->set('service_id','');
 						$params->set('spam_count',0);
 						$params->set('last_checked', time());
+						$params->set('ip_license',0);
+						$params->set('moderate_ip',0);
 						$params->set('connection_reports',array('success' => 0, 'negative'=> 0,'negative_report' => null)); 
 					}
 				}	
@@ -998,6 +1002,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 						$notice = JText::sprintf('PLG_SYSTEM_CLEANTALK_NOTICE_TRIAL', $user_token);												
 				}
 				$adminmail=JFactory::getConfig()->get('mailfrom');
+				error_log(print_r($config,true));
 				// Passing parameters to JS
 				$document->addScriptDeclaration('
 					//Control params
