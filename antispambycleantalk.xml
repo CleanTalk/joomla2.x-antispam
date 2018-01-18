@@ -156,10 +156,7 @@
 		</fieldset>
 		<fieldset name="connectionreports">
 			
-		</fieldset>
-		<fieldset name="dev">
-			
-		</fieldset>		
+		</fieldset>	
 	</fields>
     </config>
 	<administration>
