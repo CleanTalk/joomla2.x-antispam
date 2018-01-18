@@ -1010,7 +1010,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 				else
 				{
 					if(empty($config['service_id']) && !empty($config['user_token']))
-						$notice = JText::sprintf('PLG_SYSTEM_CLEANTALK_NOTICE_TRIAL', $user_token);												
+						$notice = JText::sprintf('PLG_SYSTEM_CLEANTALK_NOTICE_TRIAL', $config['user_token']);												
 				}
 				$adminmail=JFactory::getConfig()->get('mailfrom');
 				// Passing parameters to JS

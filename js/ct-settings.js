@@ -488,7 +488,8 @@ jQuery(document).ready(function(){
 							html+="</tr>";					
 						});
 						jQuery('#spamcomments_table').append(html);
-					}	
+					}
+					jQuery('html, body').animate({scrollTop:jQuery(document).height()}, 'slow');	
 				}
 				off=spam_content[spam_content.length-1]["id"];				
 			}
