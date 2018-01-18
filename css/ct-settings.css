@@ -15,14 +15,13 @@
 #key_buttons_wrapper{
     margin: 10px 0 0 0;
 }
-#spam_results h2, #spam_results table, #spam_results button, #connection_reports h2, #connection_reports table, #connection_reports button {
+#spam_results h2, #spam_results table, #connection_reports h2, #connection_reports table, #connection_reports button {
     -webkit-animation: fadein 1s; /* Safari, Chrome and Opera > 12.1 */
        -moz-animation: fadein 1s; /* Firefox < 16 */
         -ms-animation: fadein 1s; /* Internet Explorer */
          -o-animation: fadein 1s; /* Opera < 12.1 */
             animation: fadein 1s;
 }
-
 @keyframes fadein {
     from { opacity: 0; }
     to   { opacity: 1; }
@@ -57,7 +56,7 @@
 }
 #delete_sel_spam_users, #delete_all_spam_users, #delete_sel_spam_comments, #delete_all_spam_comments, #send_connection_report
 {
-    margin: 15px 0 0 15px;
+    margin: 0 0 10px 15px;
     float:right;
 }
 #ct_preloader_spam_results{
@@ -66,6 +65,7 @@
     position: relative;
     top: 50%;
     left: 50%;
+    margin-top:20px;
     margin-right: -50%;
     transform: translate(-50%, -50%)
         }
