@@ -732,7 +732,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
 			$spam_users = implode(',',$_POST['ct_del_user_ids']);
 			$output['result']=null;
             $output['data']=null;
-            error_log(print_r($spam_users,true));
 			try {
 				$this->delete_users($spam_users);
 				$output['result']='success';
@@ -944,10 +943,9 @@ class plgSystemAntispambycleantalk extends JPlugin {
 			else
 			{
 				$documentbody = JFactory::getApplication()->getBody();
-				$documentbody = str_replace ("</footer>", $code." </footer>", $documentbody);				
+				$documentbody = str_replace ("</footer>", $code." </footer>", $documentbody);
+				JFactory::getApplication()->setBody($documentbody);								
 			}
-
-			JFactory::getApplication()->setBody($documentbody);
 		}
 
     }
