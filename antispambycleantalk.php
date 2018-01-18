@@ -732,6 +732,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 			$spam_users = implode(',',$_POST['ct_del_user_ids']);
 			$output['result']=null;
             $output['data']=null;
+            error_log(print_r($spam_users,true));
 			try {
 				$this->delete_users($spam_users);
 				$output['result']='success';
@@ -934,8 +935,18 @@ class plgSystemAntispambycleantalk extends JPlugin {
 				$code = "<div id='cleantalk_footer_link' style='width:100%;text-align:center;'><a href='https://cleantalk.org/joomla-anti-spam-plugin-without-captcha'>Anti-spam by CleanTalk</a> for Joomla!<br>".$config['spam_count']." spam blocked</div>";
 			else
 				$code = "<div id='cleantalk_footer_link' style='width:100%;text-align:center;'><a href='https://cleantalk.org/joomla-anti-spam-plugin-without-captcha'>Anti-spam by CleanTalk</a> for Joomla!<br></div>";
-			$documentbody = JFactory::getApplication()->getBody();
-			$documentbody = str_replace ("</footer>", $code." </footer>", $documentbody);
+			if(!version_compare(JVERSION, '3', 'ge'))
+			{
+				$documentbody = JResponse::getBody();
+				$documentbody = str_replace ("</footer>", $code." </footer>", $documentbody);
+				JResponse::setBody($documentbody);
+			}
+			else
+			{
+				$documentbody = JFactory::getApplication()->getBody();
+				$documentbody = str_replace ("</footer>", $code." </footer>", $documentbody);				
+			}
+
 			JFactory::getApplication()->setBody($documentbody);
 		}
 
@@ -1002,7 +1013,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
 						$notice = JText::sprintf('PLG_SYSTEM_CLEANTALK_NOTICE_TRIAL', $user_token);												
 				}
 				$adminmail=JFactory::getConfig()->get('mailfrom');
-				error_log(print_r($config,true));
 				// Passing parameters to JS
 				$document->addScriptDeclaration('
 					//Control params
@@ -1042,7 +1052,13 @@ class plgSystemAntispambycleantalk extends JPlugin {
 						ct_spamcheck_users_delconfirm = "'.JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_USERS_DELCONFIRM').'",
 						ct_spamcheck_users_delconfirm_error = "'.JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_USERS_DELCONFIRM_ERROR').'",
 						ct_spamcheck_comments_delconfirm = "'.JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_COMMENTS_DELCONFIRM').'",
-						ct_spamcheck_comments_delconfirm_error = "'.JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_COMMENTS_DELCONFIRM_ERROR').'";																
+						ct_spamcheck_comments_delconfirm_error = "'.JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_COMMENTS_DELCONFIRM_ERROR').'",
+						ct_spamcheck_load_more_results = "'.JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_LOAD_MORE_RESULTS').'",
+						ct_connection_reports_no_reports = "'.JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_CONNECTIONREPORTS_NO_REPORTS').'",
+						ct_connection_reports_send_report = "'.JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_CONNECTIONREPORTS_SENDBUTTON_LABEL').'",
+						ct_connection_reports_table_date = "'.JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_CONNECTIONREPORTS_TABLE_DATE').'",
+						ct_connection_reports_table_pageurl = "'.JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_CONNECTIONREPORTS_TABLE_PAGEURL').'",
+						ct_connection_reports_table_libreport = "'.JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_CONNECTIONREPORTS_TABLE_LIBREPORT').'";																
 				');
 				
 				//Admin JS and CSS
@@ -2763,6 +2779,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 		$db->setQuery("SHOW TABLES LIKE '%jcomments'");
 		$improved_check = ($_POST['improved_check'] == 'true')?true:false;
 		$amount = $on_page;
+	    $last_id = $offset;		
 		$jtable = $db->loadAssocList();
 		if (empty($jtable))
 		{
@@ -2773,6 +2790,11 @@ class plgSystemAntispambycleantalk extends JPlugin {
         {
         	while (count($spam_comments)<$on_page)
         	{
+        		if ($last_id>0)
+        		{
+        			$offset=0;
+        			$db->setQuery("SELECT * FROM `#__jcomments` WHERE id > ".$last_id." LIMIT ".$offset.", ".$amount);
+        		}
 	            $db->setQuery("SELECT * FROM `#__jcomments` LIMIT ".$offset.", ".$amount);
 	            $comments = $db->loadAssocList();   
 	            if (empty($comments))
@@ -2835,11 +2857,10 @@ class plgSystemAntispambycleantalk extends JPlugin {
 			       		}
 	            	}	            	
 	            }
-			    if (count($spam_comments)<$on_page)
-			    {
-			    	$offset+=$amount;
-			    	$amount++;
-			    }	                     		
+			    $offset+=$amount;
+			    $amount = $on_page-count($spam_comments);
+			    if (count($comments)<$on_page)
+			    	break;	                     		
         	}
         	if ($output['result'] != 'error')
         	{
@@ -2865,9 +2886,14 @@ class plgSystemAntispambycleantalk extends JPlugin {
 	    $output['result']=null;
 	    $output['data']=null;
 	    $amount = $on_page;
+	    $last_id = $offset;
 	    while(count($spam_users)<$on_page)
 	    {
-		    $db->setQuery("SELECT * FROM `#__users` LIMIT ".$offset.", ".$amount);
+	    	if ($last_id>0){
+	    		$offset=0;
+	    		$db->setQuery("SELECT * FROM `#__users` WHERE id > ".$last_id." LIMIT ".$offset.", ".$amount);
+	    	}
+	    	else $db->setQuery("SELECT * FROM `#__users` LIMIT ".$offset.", ".$amount);		    
 		    $users = $db->loadAssocList();
 		    if (empty($users))
 		    	break;
@@ -2930,13 +2956,13 @@ class plgSystemAntispambycleantalk extends JPlugin {
 		       				}
 		       			}
 		       		}	           		
-		    	}		  	             	
+		    	}
+
 		    }
-		    if (count($spam_users)<$on_page)
-		    {
-		    	$offset+=$amount;
-		    	$amount++;
-		    }   	
+		    $offset+=$amount;
+		    $amount = $on_page-count($spam_users);
+		    if (count($users)<$on_page)
+		    	break;
 	    }
     	if ($output['result'] != 'error')
     	{
@@ -2958,7 +2984,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
         $db = JFactory::getDBO();
         $prefix = $db->getPrefix();
         $query = "INSERT INTO `#__users` (name,username,email,registerDate,lastvisitDate,params,lastResetTime) VALUES ";
-        for ($i=0;$i<=30;$i++)
+        for ($i=1;$i<=30;$i++)
         {
         	$row="(";
 	        $row.="'spam_user$i',";
