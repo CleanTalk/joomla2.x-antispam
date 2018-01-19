@@ -458,7 +458,8 @@ jQuery(document).ready(function(){
 						});
 						html+="</tbody></table></center>";										
 					}
-					html+="<center><button id='load_more_results' class='btn btn-default' onclick='load_more()' type='button'>"+ct_spamcheck_load_more_results+"</button></center>";
+					if (spam_content.length>=on_page)
+						html+="<center><button id='load_more_results' class='btn btn-default' onclick='load_more()' type='button'>"+ct_spamcheck_load_more_results+"</button></center>";
 					jQuery('#spam_results').append(html);		
 				}
 				else
