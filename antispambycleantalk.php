@@ -1047,6 +1047,8 @@ class plgSystemAntispambycleantalk extends JPlugin {
 						ct_spamcheck_table_joined = "'.JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_TABLE_JOINED').'",
 						ct_spamcheck_table_email = "'.JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_TABLE_EMAIL').'",
 						ct_spamcheck_table_lastvisit = "'.JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_TABLE_LASTVISIT').'",
+						ct_spamcheck_table_date = "'.JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_TABLE_DATE').'",
+						ct_spamcheck_table_text = "'.JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_TABLE_TEXT').'",
 						ct_spamcheck_users_delconfirm = "'.JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_USERS_DELCONFIRM').'",
 						ct_spamcheck_users_delconfirm_error = "'.JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_USERS_DELCONFIRM_ERROR').'",
 						ct_spamcheck_comments_delconfirm = "'.JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_COMMENTS_DELCONFIRM').'",

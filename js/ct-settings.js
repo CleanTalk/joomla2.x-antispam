@@ -446,7 +446,7 @@ jQuery(document).ready(function(){
 					{
 						html+="<button id='delete_all_spam_comments' class='btn btn-danger' onclick='delete_comment(true)' type='button'>"+ct_spamcheck_delall+"</button>";
 						html+="<button id='delete_sel_spam_comments' class='btn btn-danger' onclick='delete_comment()' type='button'>"+ct_spamcheck_delsel+"</button>";
-						html+='<center><table id = "spamcomments_table" class="table table-bordered table-hover table-striped" cellspacing=0 cellpadding=3><thead><tr><th></th><th>Username</th><th>E-mail</th><th>Text</th><th>Date</th></tr></thead><tbody>';
+						html+='<center><table id = "spamcomments_table" class="table table-bordered table-hover table-striped" cellspacing=0 cellpadding=3><thead><tr><th></th><th>'+ct_spamcheck_table_username+'</th><th>'+ct_spamcheck_table_email+'</th><th>'+ct_spamcheck_table_text+'</th><th>'+ct_spamcheck_table_date+'</th></tr></thead><tbody>';
 						spam_content.forEach(function(item,i,arr){
 							html+="<tr>";
 							html+="<td><input type='checkbox' name=ct_del_comment["+item["id"]+"] value='1' /></td>";	
