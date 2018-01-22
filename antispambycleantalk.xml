@@ -15,12 +15,13 @@
 	<filename plugin="antispambycleantalk">classes/Cleantalk.php</filename>
 	<filename plugin="antispambycleantalk">classes/CleantalkRequest.php</filename>
 	<filename plugin="antispambycleantalk">classes/CleantalkResponse.php</filename>
+	<filename plugin="antispambycleantalk">classes/CleantalkHelper.php</filename>
+	<filename plugin="antispambycleantalk">classes/sfw_die_page.html</filename>
 	<filename plugin="antispambycleantalk">js/ct-settings.js</filename>
 	<filename plugin="antispambycleantalk">js/ct-functions.js</filename>	
 	<filename plugin="antispambycleantalk">css/ct-settings.css</filename>
 	<filename plugin="antispambycleantalk">jquery-1.11.2.min.js</filename>
 	<filename plugin="antispambycleantalk">preloader.gif</filename>
-	<filename plugin="antispambycleantalk">spamfirewall.html</filename>
 	<filename plugin="antispambycleantalk">error.html</filename>
 	
 	<folder>sql/mysql</folder>
