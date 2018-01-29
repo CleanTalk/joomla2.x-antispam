@@ -3,7 +3,7 @@
 /**
  * CleanTalk joomla plugin
  *
- * @version 5.0.0
+ * @version 5.0.1
  * @package Cleantalk
  * @subpackage Joomla
  * @author CleanTalk (welcome@cleantalk.org) 
@@ -304,8 +304,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
 						
     		}
     	}
-    		
-    	error_log(print_r($params,true));
     	return (isset($params)?$params:null);
     }
     
@@ -614,17 +612,10 @@ class plgSystemAntispambycleantalk extends JPlugin {
             		print $this->_subject->getError();
             		die();
 					
-            	}else{
-					
-            		if(isset($_POST['option'])&&$_POST['option']=='com_alfcontact'){
-						
+            	}else{						
             			$error_tpl=file_get_contents(dirname(__FILE__)."/error.html");
 						print str_replace('%ERROR_TEXT%',$this->_subject->getError(),$error_tpl);
-						die();
-						
-            		}else
-						JError::raiseError(503, $this->_subject->getError());
-					
+						die();					
                 }
             }
     	}
@@ -1412,7 +1403,9 @@ class plgSystemAntispambycleantalk extends JPlugin {
                 }
                 else
                 {
-                	JError::raiseError(503, $this->_subject->getError());
+            		$error_tpl=file_get_contents(dirname(__FILE__)."/error.html");
+					print str_replace('%ERROR_TEXT%',$this->_subject->getError(),$error_tpl);
+					die();
                 }
             }
         }
@@ -2691,7 +2684,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
         }
         if ($sfw_nets) 
         {
-            $db = JFactory::getDbo();
             $query = $db->getQuery(true);
             $query->delete($db->quoteName($this->sfw_table_name));
             $db->setQuery($query);
@@ -2716,7 +2708,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
                 }
                 $query->values($values);
                 $db->setQuery($query);
-                $result = $db->execute();
+                $db->execute();
             }
         }                                
         $save_params['sfw_last_check'] = time();

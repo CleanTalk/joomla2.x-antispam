@@ -744,7 +744,7 @@ class Cleantalk {
         $request['method_name'] = '2s_blacklists_db'; 
         $request['auth_key'] = $api_key;
         $url='https://api.cleantalk.org';
-        $result=sendRawRequest($url,$request);
+        $result=CleantalkHelper::sendRawRequest($url,$request);
         return $result;
     }
 }
