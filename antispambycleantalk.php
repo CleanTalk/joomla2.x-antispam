@@ -3,7 +3,7 @@
 /**
  * CleanTalk joomla plugin
  *
- * @version 5.0.1
+ * @version 5.1
  * @package Cleantalk
  * @subpackage Joomla
  * @author CleanTalk (welcome@cleantalk.org) 
@@ -25,7 +25,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
     /**
      * Plugin version string for server
      */
-    const ENGINE = 'joomla3-501';
+    const ENGINE = 'joomla3-51';
     
     /**
      * Default value for hidden field ct_checkjs 
@@ -889,17 +889,19 @@ class plgSystemAntispambycleantalk extends JPlugin {
 				$code = "<div id='cleantalk_footer_link' style='width:100%;text-align:center;'><a href='https://cleantalk.org/joomla-anti-spam-plugin-without-captcha'>Anti-spam by CleanTalk</a> for Joomla!<br>".$config['spam_count']." spam blocked</div>";
 			else
 				$code = "<div id='cleantalk_footer_link' style='width:100%;text-align:center;'><a href='https://cleantalk.org/joomla-anti-spam-plugin-without-captcha'>Anti-spam by CleanTalk</a> for Joomla!<br></div>";
-			if(!version_compare(JVERSION, '3', 'ge'))
+
+			if(version_compare(JVERSION, '3.0', '<') == 1)
 			{
 				$documentbody = JResponse::getBody();
-				$documentbody = str_replace ("</footer>", $code." </footer>", $documentbody);
+				$documentbody = str_replace ("</body>", $code." </body>", $documentbody);
 				JResponse::setBody($documentbody);
 			}
 			else
 			{
 				$documentbody = JFactory::getApplication()->getBody();
 				$documentbody = str_replace ("</footer>", $code." </footer>", $documentbody);
-				JFactory::getApplication()->setBody($documentbody);								
+				JFactory::getApplication()->setBody($documentbody);	
+
 			}
 		}
 
