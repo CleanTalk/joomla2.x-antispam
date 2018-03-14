@@ -293,19 +293,23 @@ class Cleantalk {
     private function sendRequest($data = null, $url, $server_timeout = 3) {
         // Convert to array
         $data = (array)json_decode(json_encode($data), true);
-    
-    //Cleaning from 'null' values
-    $tmp_data = array();
-    foreach($data as $key => $value){
-      if($value !== null)
-        $tmp_data[$key] = $value;
-    }
-    $data = $tmp_data;
-    unset($key, $value, $tmp_data);
-    
+        
+        $original_url = $url;
+        $original_data = $data;
+        
+        //Cleaning from 'null' values
+        $tmp_data = array();
+        foreach($data as $key => $value){
+            if($value !== null){
+                $tmp_data[$key] = $value;
+            }
+        }
+        $data = $tmp_data;
+        unset($key, $value, $tmp_data);
+        
         // Convert to JSON
         $data = json_encode($data);
-    
+        
         if (isset($this->api_version)) {
             $url = $url . $this->api_version;
         }
@@ -314,10 +318,10 @@ class Cleantalk {
         if ($this->ssl_on && !preg_match("/^https:/", $url)) {
             $url = preg_replace("/^(http)/i", "$1s", $url);
         }
-    
+        
         $result = false;
         $curl_error = null;
-    if(function_exists('curl_init')) {
+        if(function_exists('curl_init')){
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_URL, $url);
             curl_setopt($ch, CURLOPT_TIMEOUT, $server_timeout);
@@ -332,19 +336,23 @@ class Cleantalk {
             
             // Disabling CA cert verivication
             // Disabling common name verification
-            if ($this->ssl_on && $this->ssl_path=='') {
-                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-                curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-            }
-            else if ($this->ssl_on && $this->ssl_path!='') {
-              curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
-                curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, true);
+            if ($this->ssl_on && $this->ssl_path != '') {
+                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
                 curl_setopt($ch, CURLOPT_CAINFO, $this->ssl_path);
+            }else{ // Disabling CA cert verivication and common name verification
+                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
             }
 
             $result = curl_exec($ch);
             if (!$result) {
                 $curl_error = curl_error($ch);
+                // Use SSL next time, if error occurs.
+                if(!$this->ssl_on){
+                    $this->ssl_on = true;
+                    return $this->sendRequest($original_data, $original_url, $server_timeout);
+                }
             }
             
             curl_close($ch); 
@@ -367,15 +375,11 @@ class Cleantalk {
             }
         }
         
-        if (!$result || !cleantalk_is_JSON($result)) {
+        if (!$result || !self::cleantalk_is_JSON($result)) {
             $response = null;
             $response['errno'] = 1;
-            if ($curl_error) {
-                $response['errstr'] = sprintf("CURL error: '%s'", $curl_error); 
-            } else {
-                $response['errstr'] = 'No CURL support compiled in'; 
-            }
-            $response['errstr'] .= ' or disabled allow_url_fopen in php.ini.'; 
+            $response['errstr'] = true;
+            $response['curl_err'] = isset($curl_error) ? $curl_error : false;
             $response = json_decode(json_encode($response));
             
             return $response;
