@@ -14,25 +14,6 @@
 
 defined('_JEXEC') or die();
 
-/**
-* Load JSON functions if they are not exists 
-if(!function_exists('json_encode')) {
-    require_once 'JSON.php';
-
-    function json_encode($data) {
-        $json = new Services_JSON();
-        return( $json->encode($data) );
-    }
-
-}
-if(!function_exists('json_decode')) {
-    require_once 'JSON.php';
-
-    function json_decode($data) {
-        $json = new Services_JSON();
-        return( $json->decode($data) );
-    }
-}
 
 
 
@@ -709,7 +690,7 @@ class Cleantalk {
     * param string
     * @return string
     */
-    private function stringToUTF8($str, $data_codepage = null){
+    function stringToUTF8($str, $data_codepage = null){
         if (!preg_match('//u', $str) && function_exists('mb_detect_encoding') && function_exists('mb_convert_encoding')) {
             
             if ($data_codepage !== null)
@@ -729,7 +710,7 @@ class Cleantalk {
     * param string
     * @return string
     */
-    private function stringFromUTF8($str, $data_codepage = null){
+    function stringFromUTF8($str, $data_codepage = null){
         if (preg_match('//u', $str) && function_exists('mb_convert_encoding') && $data_codepage !== null) {
             return mb_convert_encoding($str, $data_codepage, 'UTF-8');
         }
@@ -752,70 +733,69 @@ class Cleantalk {
         return $result;
     }
 }
-    if( !function_exists('apache_request_headers') )
+if( !function_exists('apache_request_headers') )
+{
+  function apache_request_headers()
+  {
+    $arh = array();
+    $rx_http = '/\AHTTP_/';
+    foreach($_SERVER as $key => $val)
     {
-      function apache_request_headers()
+      if( preg_match($rx_http, $key) )
       {
-        $arh = array();
-        $rx_http = '/\AHTTP_/';
-        foreach($_SERVER as $key => $val)
+        $arh_key = preg_replace($rx_http, '', $key);
+        $rx_matches = array();
+        $rx_matches = explode('_', $arh_key);
+        if( count($rx_matches) > 0 and strlen($arh_key) > 2 )
         {
-          if( preg_match($rx_http, $key) )
-          {
-            $arh_key = preg_replace($rx_http, '', $key);
-            $rx_matches = array();
-            $rx_matches = explode('_', $arh_key);
-            if( count($rx_matches) > 0 and strlen($arh_key) > 2 )
-            {
-              foreach($rx_matches as $ak_key => $ak_val) $rx_matches[$ak_key] = ucfirst($ak_val);
-              $arh_key = implode('-', $rx_matches);
-            }
-            $arh[$arh_key] = $val;
-          }
+          foreach($rx_matches as $ak_key => $ak_val) $rx_matches[$ak_key] = ucfirst($ak_val);
+          $arh_key = implode('-', $rx_matches);
         }
-        return( $arh );
+        $arh[$arh_key] = $val;
       }
     }
+    return( $arh );
+  }
+}
 
-    private function cleantalk_get_real_ip()
-    {
-      // Getting headers
-      $headers = function_exists('apache_request_headers') ? apache_request_headers() : $_SERVER;
+function cleantalk_get_real_ip()
+{
+  // Getting headers
+  $headers = function_exists('apache_request_headers') ? apache_request_headers() : $_SERVER;
 
-      // Getting IP for validating
-      if (array_key_exists( 'X-Forwarded-For', $headers )){
-        $ip = explode(",", trim($headers['X-Forwarded-For']));
-        $ip = trim($ip[0]);
-      }elseif(array_key_exists( 'HTTP_X_FORWARDED_FOR', $headers)){
-        $ip = explode(",", trim($headers['HTTP_X_FORWARDED_FOR']));
-        $ip = trim($ip[0]);
-      }else{
-        $ip = $_SERVER['REMOTE_ADDR'];
-      }
+  // Getting IP for validating
+  if (array_key_exists( 'X-Forwarded-For', $headers )){
+    $ip = explode(",", trim($headers['X-Forwarded-For']));
+    $ip = trim($ip[0]);
+  }elseif(array_key_exists( 'HTTP_X_FORWARDED_FOR', $headers)){
+    $ip = explode(",", trim($headers['HTTP_X_FORWARDED_FOR']));
+    $ip = trim($ip[0]);
+  }else{
+    $ip = $_SERVER['REMOTE_ADDR'];
+  }
 
-        // Validating IP
-        // IPv4
-      if(filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)){
-        $the_ip = $ip;
-        // IPv6
-      }elseif(filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)){
-        $the_ip = $ip;
-        // Unknown
-      }else{
-        $the_ip = null;
-      }
-      return $the_ip;
-    }
+    // Validating IP
+    // IPv4
+  if(filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)){
+    $the_ip = $ip;
+    // IPv6
+  }elseif(filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)){
+    $the_ip = $ip;
+    // Unknown
+  }else{
+    $the_ip = null;
+  }
+  return $the_ip;
+}
 
-    private function cleantalk_is_JSON($string)
-    {
-        return ((is_string($string) && (is_object(json_decode($string)) || is_array(json_decode($string))))) ? true : false;
-    }
+function cleantalk_is_JSON($string)
+{
+    return ((is_string($string) && (is_object(json_decode($string)) || is_array(json_decode($string))))) ? true : false;
+}
 
-    // Patch for locale_get_display_region() for old PHP versions
-    if( !function_exists('locale_get_display_region') ){  
-      function locale_get_display_region($locale, $curr_lcoale='en'){
-        return $locale;
-      }
-    }
-
+// Patch for locale_get_display_region() for old PHP versions
+if( !function_exists('locale_get_display_region') ){  
+  function locale_get_display_region($locale, $curr_lcoale='en'){
+    return $locale;
+  }
+}
