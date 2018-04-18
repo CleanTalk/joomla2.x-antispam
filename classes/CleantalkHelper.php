@@ -264,7 +264,7 @@ class CleantalkHelper
 	 * @param integer connect timeout
 	 * @return type
 	 */
-	static public function sendRawRequest($url, $data, $isJSON = false, $timeout = 3){
+	static public function sendRawRequest($url, $data, $isJSON = false, $timeout = 15){
 		
 		$result=null;
 		if(!$isJSON){

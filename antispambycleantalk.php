@@ -2501,7 +2501,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 	    if (function_exists('curl_init')) {
                 //$url = 'https://cleantalk.org/app_notice';
                 $url = 'https://api.cleantalk.org';
-                $server_timeout = 10;
+                $server_timeout = 15;
 
                 $data = array();
                 $data['auth_key'] = $apikey;
