@@ -2371,7 +2371,8 @@ class plgSystemAntispambycleantalk extends JPlugin {
             'cookies_enabled' => $this->ct_cookies_test(true), 
             'checkjs_data_post' => $checkjs_data_post, 
             'checkjs_data_cookies' => $checkjs_data_cookies, 
-            'ct_options'=>json_encode($config)
+            'ct_options'=>json_encode($config),
+            'REFFERRER_PREVIOUS' => isset($_COOKIE['apbct_prev_referer'])?$_COOKIE['apbct_prev_referer']:null,
         );
         return $sender_info;
     }
@@ -2688,7 +2689,12 @@ class plgSystemAntispambycleantalk extends JPlugin {
 			'cookies_names' => array(),
 			'check_value' => $config['apikey'],
 		);
-			
+        // Pervious referer
+        if(!empty($_SERVER['HTTP_REFERER'])){
+            setcookie('apbct_prev_referer', $_SERVER['HTTP_REFERER'], 0, '/');
+            $cookie_test_value['cookies_names'][] = 'apbct_prev_referer';
+            $cookie_test_value['check_value'] .= $_SERVER['HTTP_REFERER'];
+        }			
 		// Submit time
 		$apbct_timestamp = time();
 		setcookie('apbct_timestamp', $apbct_timestamp, 0, '/');
