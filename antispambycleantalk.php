@@ -1457,7 +1457,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
 				if ($subject != '')
 					$message = array_merge(array('subject' => $subject), $message);
 				$message = implode("\n", $message);
-				error_log(print_r($_POST,true));
 				
             }
         }
@@ -2190,7 +2189,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
         $db->setQuery(
                 "UPDATE #__ct_curr_server " .
                 " SET " .
-                "ct_work_url = '" . $ct_work_url . "', " .
+                "ct_work_url = '" . "http://".gethostbyaddr(parse_url($ct_work_url,PHP_URL_HOST)) . "', " .
                 "ct_server_ttl = " . $ct_server_ttl . ", " .
                 "ct_server_changed = " . $ct_server_changed);
         $db->execute();
