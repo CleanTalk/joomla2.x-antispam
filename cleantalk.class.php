@@ -1,6 +1,6 @@
 <?php
 defined('_JEXEC') or die('Restricted access');
-if(!defined('DS')){
+if(!defined('DS')){ 
     define('DS', DIRECTORY_SEPARATOR);
 }
 require_once(dirname(__FILE__) . DS . 'classes'. DS .'Cleantalk.php');
