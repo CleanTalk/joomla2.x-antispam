@@ -25,7 +25,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
     /**
      * Plugin version string for server
      */
-    const ENGINE = 'joomla3-53';
+    const ENGINE = 'joomla3-54';
     
     /**
      * Default value for hidden field ct_checkjs 
@@ -270,7 +270,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 							$service_id = (isset($result['show_notice']) && $result['show_notice'] == 1 && isset($result['trial']) && $result['trial'] == 1)?'':$result['service_id'];
 							$spam_count = (isset($result['spam_count']))?$result['spam_count']:0;
 							$moderate_ip = (isset($result['moderate_ip']) && $result['moderate_ip'] == 1)?1:0;
-							if ($sfw_enable ==1 && $api_key !== null)
+							if ($sfw_enable ==1 && $api_key !== '')
 								self::update_sfw_db_networks($api_key);
 							self::ctSendAgentVersion($api_key);
 				    	}
@@ -577,7 +577,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 	        $sfw_last_send_log = $jparam->get('sfw_last_send_log', 0);
 	        $save_params = array();        	
             $sfw_check_interval = $jparam->get('sfw_check_interval', 0);
-            if ($sfw_check_interval > 0 && ($sfw_last_check + $sfw_check_interval) < time() && $ct_apikey !== null) 
+            if ($sfw_check_interval > 0 && ($sfw_last_check + $sfw_check_interval) < time() && $ct_apikey !== '') 
                 self::update_sfw_db_networks($ct_apikey);
             if(time()-$sfw_last_send_log>3600)
             {
@@ -2755,6 +2755,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
         $max_mask = 0;
         if (in_array($sfw_table_name_full, $tables)) {
             self::getCleantalk(); 
+
             $ct_r = self::$CT->get_2s_blacklists_db($ct_apikey);
             if ($ct_r) {
                 $ct_rd = json_decode($ct_r, true); 
