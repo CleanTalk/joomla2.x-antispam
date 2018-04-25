@@ -2481,9 +2481,8 @@ class plgSystemAntispambycleantalk extends JPlugin {
 		} else {
 			if ($app->input->get('option') === 'com_rsform' || $app->input->get('option') === 'com_uniform')
 			{
-				print "<script> document.body.innerHTML = '';</script>";
-				die();
-				//$app->redirect($_SERVER['REQUEST_URI'],$ctResponse['comment'],'error');
+				  $app->enqueueMessage($ctResponse['comment'],'error');
+				  $app->redirect($_SERVER['REQUEST_URI']);
 			}
 			else 
 				$this->_subject->setError($ctResponse['comment']);
