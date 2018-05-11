@@ -290,7 +290,6 @@ class CleantalkHelper
 			curl_setopt($ch, CURLOPT_HTTPHEADER, array('Expect:'));
 			
 			$result = curl_exec($ch);
-			
 			if($result !== false){
 				$curl_exec=true;
 			}

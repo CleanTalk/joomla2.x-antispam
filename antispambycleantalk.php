@@ -235,8 +235,11 @@ class plgSystemAntispambycleantalk extends JPlugin {
 							"path_to_cms" => $_SERVER['HTTP_HOST']
 						);						
 						$result= CleantalkHelper::sendRawRequest($url, $dt);
-						$result = $result ? json_decode($result, true) : false;						
-						$key_is_ok = isset($result) ? $result['valid'] : 0;	
+						$result = $result ? json_decode($result, true) : false;			
+						if ($result)
+							$key_is_ok =  $result ? $result['valid'] : 0;	
+						else
+							JError::raiseNotice(1024, JText::_('PLG_SYSTEM_CLEANTALK_NETWORK_ERROR'));
 
 					}
 					$params   = new JRegistry($table->params);
