@@ -69,12 +69,27 @@
 			<field name="sfw_last_send_log" type="hidden" 
 				default="0" 
 			/>
-			<field name="server" type="hidden" 
+			<field name="server_url" type="hidden" 
 				label="PLG_SYSTEM_CLEANTALK_PARAM_SERVER" 
 				description="PLG_SYSTEM_CLEANTALK_PARAM_SERVER_DESC" 
 				size="50" 
 				default="http://moderate.cleantalk.org" 
 			/>
+			<field name="work_url" type="hidden" 
+				default="" 
+			/>
+			<field name="server_ttl" type="hidden" 
+				default="0"
+			/>			
+			<field name="server_changed" type="hidden" 
+				default="0" 
+			/>
+			<field name="ct_status" type="hidden" 
+				default=""
+			/>			
+			<field name="ct_changed" type="hidden" 
+				default="0" 
+			/>												
 			<field name="user_token" type="hidden" 
 				label="user_token" 
 				description="user_token" 

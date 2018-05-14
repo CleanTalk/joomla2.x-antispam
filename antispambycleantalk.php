@@ -1173,11 +1173,8 @@ class plgSystemAntispambycleantalk extends JPlugin {
 					// Trial notice show time in minutes
 					$notice_showtime = 10;
 
-					// First try to get stored status
-					$db_status = self::dbGetApikeyStatus();
-
 					try{
-						$status = unserialize($db_status['ct_status']);
+						$status = unserialize($config['ct_status']);
 					}catch(Exception $e){
 
 					}
@@ -1189,7 +1186,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 					if(is_array($status) && isset($status['show_notice']) && $status['show_notice'] == 0)
 						$notice_check_timeout = $notice_check_timeout_long; 
 					// Time is greater than check timeout - need to check actual status now
-					if(time() > strtotime("+$notice_check_timeout hours", $db_status['ct_changed'])){
+					if(time() > strtotime("+$notice_check_timeout hours", $config['ct_changed'])){
 						$status = self::checkApiKeyStatus($config['apikey'], 'notice_paid_till');
 						if(isset($status) && $status !== FALSE){
 							$status = $status['data'];
@@ -1205,14 +1202,12 @@ class plgSystemAntispambycleantalk extends JPlugin {
 								$table->params = $params->toString();
 								$table->store();
 							}
-							$db_status['ct_status'] = serialize($status);
-							$db_status['ct_changed'] = time();
-							self::dbSetApikeyStatus($db_status['ct_status'], $db_status['ct_changed']);
+							self::dbSetApikeyStatus(serialize($status), time());
 
 						}
 					}
 					// Time is in notice show time - need to show notice
-					if(is_array($status) && time() < strtotime("+$notice_showtime minutes", $db_status['ct_changed'])){
+					if(is_array($status) && time() < strtotime("+$notice_showtime minutes", $config['ct_changed'])){
 						// Bad apikey status is in database - need to check actual status again,
 						//  because admin could change key from bad to good since last notice
 						//  before api key check timeout.
@@ -1221,7 +1216,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 							$new_status = self::checkApiKeyStatus($config['apikey'], 'notice_paid_till');
 							if(isset($new_status) && $new_status !== FALSE){
 								$status = $new_status['data'];
-								self::dbSetApikeyStatus(serialize($new_status), $db_status['ct_changed']); // Save it with old time!
+								self::dbSetApikeyStatus(serialize($new_status), $config['ct_changed']); // Save it with old time!
 							}
 
 						}
@@ -1931,14 +1926,14 @@ class plgSystemAntispambycleantalk extends JPlugin {
         }
         $ct_request->auth_key = $apikey;
         $ct_request->agent = self::ENGINE; 
-        $config = self::dbGetServer();
+        $config = $this->getCTConfig();
         $result = NULL;
 
-        self::$CT->work_url = $config['ct_work_url'];
-        self::$CT->server_ttl = $config['ct_server_ttl'];
-        self::$CT->server_changed = $config['ct_server_changed'];
+        self::$CT->work_url = $config['work_url'];
+        self::$CT->server_ttl = $config['server_ttl'];
+        self::$CT->server_changed = $config['server_changed'];
         $result = self::$CT->sendFeedback($ct_request);
-                if (self::$CT->server_change) {
+        if (self::$CT->server_change) {
             self::dbSetServer(self::$CT->work_url, self::$CT->server_ttl, time());
         }
         return $result;
@@ -1981,12 +1976,11 @@ class plgSystemAntispambycleantalk extends JPlugin {
         $ct_request->auth_key = $config['apikey'];
         $ct_request->agent = self::ENGINE; 
 
-        $config = self::dbGetServer();
         $result = NULL;
 
-        self::$CT->work_url = $config['ct_work_url'];
-        self::$CT->server_ttl = $config['ct_server_ttl'];
-        self::$CT->server_changed = $config['ct_server_changed'];
+        self::$CT->work_url = $config['work_url'];
+        self::$CT->server_ttl = $config['server_ttl'];
+        self::$CT->server_changed = $config['server_changed'];
         
         switch ($method) {
             case 'check_message':
@@ -2056,7 +2050,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
             }
             
             self::$CT = new Cleantalk;
-            self::$CT->server_url = $config['server'];
+            self::$CT->server_url = $config['server_url'];
         }
 
         return self::$CT;
@@ -2071,7 +2065,12 @@ class plgSystemAntispambycleantalk extends JPlugin {
             
         $config['apikey'] = ''; 
         $config['ct_key_is_ok'] = 0;
-        $config['server'] = '';
+        $config['server_url'] = '';
+        $config['work_url'] = '';
+        $config['server_ttl'] = 0;
+        $config['server_changed'] = 0;
+        $config['ct_status'] = '';
+        $config['ct_changed'] = 0;
         $config['jcomments_unpublished_nofications'] = '';
         $config['general_contact_forms_test'] = '';
         $config['relevance_test'] = '';
@@ -2088,7 +2087,12 @@ class plgSystemAntispambycleantalk extends JPlugin {
   		$jreg = new JRegistry($plugin->params);
 		$config['apikey'] = trim($jreg->get('apikey', ''));
 		$config['ct_key_is_ok'] = $jreg->get('ct_key_is_ok',0);
-		$config['server'] = $jreg->get('server', '');
+		$config['server_url'] = $jreg->get('server_url', '');
+		$config['work_url'] = $jreg->get('work_url', '');
+		$config['server_ttl'] = $jreg->get('server_ttl', '');
+		$config['server_changed'] = $jreg->get('server_changed', '');
+		$config['ct_status'] = $jreg->get('ct_status', '');
+		$config['ct_changed'] = $jreg->get('ct_changed', 0);
 		$config['jcomments_unpublished_nofications'] = $jreg->get('jcomments_unpublished_nofications', '');
 		$config['general_contact_forms_test'] = $jreg->get('general_contact_forms_test', '');
 		$config['relevance_test'] = $jreg->get('relevance_test', '');
@@ -2131,52 +2135,8 @@ class plgSystemAntispambycleantalk extends JPlugin {
             $db->execute();
         }
 
-        if (!empty($arrTables)) {
-            $db->setQuery("SELECT count(*) FROM #__ct_curr_server");
-            $row = $db->loadRow();
-            if ($row[0] == 0) {
-                $db->setQuery(
-                        "INSERT  " .
-                        "INTO #__ct_curr_server (ct_work_url,ct_server_ttl,ct_server_changed ) " .
-                        "VALUES ('', 0, 0)");
-                if ($db->execute() !== FALSE)
-                    self::$tables_ready = TRUE;
-            }else {
-                self::$tables_ready = TRUE;
-            }
-
-            if(self::$tables_ready){
-                $db->setQuery("SELECT count(*) FROM #__ct_apikey_status");
-                $row = $db->loadRow();
-                if ($row[0] == 0) {
-                    $db->setQuery(
-                        "INSERT  " .
-                        "INTO #__ct_apikey_status (ct_status,ct_changed ) " .
-                        "VALUES ('', 0)");
-                    if ($db->execute() !== FALSE)
-                        self::$tables_ready = TRUE;
-                }else {
-                    self::$tables_ready = TRUE;
-                }
-            }
-        }
         return self::$tables_ready;
     }
-
-    /**
-     * Current server getter
-     * @return array
-     */
-    private function dbGetServer() {
-        if (!self::$tables_ready) {
-            self::initTables();
-        }
-        $db = JFactory::getDBO();
-        $db->setQuery("SELECT ct_work_url,ct_server_ttl,ct_server_changed FROM #__ct_curr_server ORDER BY id LIMIT 1");
-        $row = $db->loadAssoc();
-        return $row;
-    }
-
     /**
      * Current server setter
      * $ct_work_url
@@ -2185,33 +2145,15 @@ class plgSystemAntispambycleantalk extends JPlugin {
      * @return null
      */
     private function dbSetServer($ct_work_url, $ct_server_ttl, $ct_server_changed) {
-        if (!self::$tables_ready) {
-            self::initTables();
-        }
-        $db = JFactory::getDBO();
-        $db->setQuery(
-                "UPDATE #__ct_curr_server " .
-                " SET " .
-                "ct_work_url = '" . "http://".gethostbyaddr(parse_url($ct_work_url,PHP_URL_HOST)) . "', " .
-                "ct_server_ttl = " . $ct_server_ttl . ", " .
-                "ct_server_changed = " . $ct_server_changed);
-        $db->execute();
+		$table = JTable::getInstance('extension');
+		$table->load($this->getId());
+		$params = new JRegistry($table->params);
+		$params->set('work_url',"http://".gethostbyaddr(parse_url($ct_work_url,PHP_URL_HOST)));
+		$params->set('server_ttl',$ct_server_ttl);
+		$params->set('server_changed',$ct_server_changed);
+		$table->params = $params->toString();
+		$table->store();
     }
-  
-    /**
-     * Current apikey status getter
-     * @return array
-     */
-    private function dbGetApikeyStatus() {
-        if (!self::$tables_ready) {
-            self::initTables();
-        }
-        $db = JFactory::getDBO();
-        $db->setQuery("SELECT ct_status,ct_changed FROM #__ct_apikey_status ORDER BY id LIMIT 1");
-        $row = $db->loadAssoc();
-        return $row;
-    }
-
     /**
      * Current apikey status setter
      * $ct_status
@@ -2219,16 +2161,13 @@ class plgSystemAntispambycleantalk extends JPlugin {
      * @return null
      */
     private function dbSetApikeyStatus($ct_status, $ct_changed) {
-        if (!self::$tables_ready) {
-            self::initTables();
-        }
-        $db = JFactory::getDBO();
-        $db->setQuery(
-                "UPDATE #__ct_apikey_status " .
-                " SET " .
-                "ct_status = '" . $ct_status . "', " .
-                "ct_changed = " . $ct_changed);
-        $db->execute();
+		$table = JTable::getInstance('extension');
+		$table->load($this->getId());
+		$params = new JRegistry($table->params);
+		$params->set('ct_status',$ct_status);
+		$params->set('ct_changed',$ct_changed);
+		$table->params = $params->toString();
+		$table->store();    	
     }
   
     /**
