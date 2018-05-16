@@ -459,7 +459,7 @@ class Cleantalk {
                         $server_host = $server['ip'];
                         $work_url = $server_host;
                     }
-                    $work_url = $url_prefix . $work_url; 
+                    $work_url = $url_prefix . gethostbyaddr($work_url); 
                     if (isset($url_suffix)) 
                         $work_url = $work_url . $url_suffix;
                     
@@ -509,7 +509,6 @@ class Cleantalk {
                 }
             }
         }
-
         if (count($response) == 0 && function_exists('gethostbynamel')) {
             $records = gethostbynamel($host);
 

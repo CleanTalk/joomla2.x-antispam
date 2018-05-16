@@ -2148,7 +2148,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 		$table = JTable::getInstance('extension');
 		$table->load($this->getId());
 		$params = new JRegistry($table->params);
-		$params->set('work_url',"http://".gethostbyaddr(parse_url($ct_work_url,PHP_URL_HOST)));
+		$params->set('work_url',$ct_work_url);
 		$params->set('server_ttl',$ct_server_ttl);
 		$params->set('server_changed',$ct_server_changed);
 		$table->params = $params->toString();
