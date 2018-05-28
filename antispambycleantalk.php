@@ -561,7 +561,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 			        if ($sfw_test_ip) {
 			            $sender_ip = $sfw_test_ip;
 			        }
-	    			$sfw_log[$sender_ip]->allow++;
+	    			(object)$sfw_log[$sender_ip]->allow++;
 	    			$jparam->set('sfw_log',$sfw_log);
 		            $table = JTable::getInstance('extension');$id = $this->getId();
 		            $table->load($id);
