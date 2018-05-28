@@ -25,8 +25,8 @@ function ct_setCookie(name, value){
 }
 
 function animate_banner(to){
-		if(close_animate){
-			jQuery('#feedback_notice').fadeTo(300,to);
+	if(close_animate){
+		jQuery('#feedback_notice').fadeTo(300,to);
 	}
 }
 
@@ -178,7 +178,7 @@ jQuery(document).ready(function(){
 		
 	}
 	
-	// Handler for 
+	// Handler for review banner
 	jQuery('#ct_review_link').click(function(){
 		var data = {
 			'ct_delete_notice': 'yes'
@@ -249,14 +249,17 @@ jQuery(document).ready(function(){
 			}
 		});
 	});
+	
 	jQuery('#check_spam_users').click(function(){
 		off=0;
 		list_spam_results('users',off,on_page);
 	});
+	
 	jQuery('#check_spam_comments').click(function(){
 		off = 0;
 		list_spam_results('comments',off,on_page);
 	});
+	
 	jQuery('#send_connection_report').click(function(){
 		var data = {
 			'send_connection_report': 'yes'
@@ -278,6 +281,7 @@ jQuery(document).ready(function(){
 
 		});
 	});
+	
 	jQuery('#dev_btn_insert_spam_users').click(function(){
 		var data ={
 			'dev_insert_spam_users':'yes'
@@ -346,6 +350,7 @@ jQuery(document).ready(function(){
 			}
 			else alert(ct_spamcheck_users_delconfirm_error);			
 	}
+	
 	function delete_comment(all=false)
 	{
 		    var data = { 'ct_del_comment_ids[]' : []};
@@ -394,113 +399,115 @@ jQuery(document).ready(function(){
 			}
 			else alert(ct_spamcheck_comments_delconfirm_error);			
 	}
+	
 	function load_more()
 	{
 		var get_table_type = document.getElementById('spamusers_table')?'users':document.getElementById('spamcomments_table')?'comments':'';
 		if (get_table_type)
 			list_spam_results(get_table_type,off,on_page);				
 	}
+	
 	function list_spam_results(type,offset,amount)
 	{
 		var data = {
-		'check_type': type,
-		'offset':offset,
-		'amount':amount,
-		'improved_check':jQuery("#ct_impspamcheck_checkbox").is(":checked")
+			'check_type': type,
+			'offset':offset,
+			'amount':amount,
+			'improved_check':jQuery("#ct_impspamcheck_checkbox").is(":checked")
 		};
-    if (off==0)
-    	jQuery("#spam_results").empty();
-    jQuery('#ct_preloader_spam_results').show()
-    jQuery.ajax({
-	type: "POST",
-	url: location.href,
-	data: data,
-	// dataType: 'json',
-	success: function(msg){
-		msg=jQuery.parseJSON(msg);
-		var html='';
-		if (msg.result == 'success')
-		{
-			var spam_content = (msg.data.spam_users)?msg.data.spam_users:msg.data.spam_comments;
-			if (spam_content.length>0)
-			{
-				if (off == 0)
+		if (off==0)
+			jQuery("#spam_results").empty();
+		jQuery('#ct_preloader_spam_results').show();
+		jQuery.ajax({
+			type: "POST",
+			url: location.href,
+			data: data,
+			// dataType: 'json',
+			success: function(msg){
+				msg=jQuery.parseJSON(msg);
+				var html='';
+				if (msg.result == 'success')
 				{
-					if (type == 'users')
+					var spam_content = (msg.data.spam_users)?msg.data.spam_users:msg.data.spam_comments;
+					if (spam_content.length>0)
 					{
-						html+="<button id='delete_all_spam_users' class='btn btn-danger' onclick='delete_user(true)' type='button'>"+ct_spamcheck_delall+"</button>";
-						html+="<button id='delete_sel_spam_users' class='btn btn-danger' onclick='delete_user()' type='button'>"+ct_spamcheck_delsel+"</button>";
-						html+='<center><table id = "spamusers_table" class="table table-bordered table-hover table-striped" cellspacing=0 cellpadding=3><thead><tr><th></th><th>'+ct_spamcheck_table_username+'</th><th>'+ct_spamcheck_table_joined+'</th><th>'+ct_spamcheck_table_email+'</th><th>'+ct_spamcheck_table_lastvisit+'</th></tr></thead><tbody>';
-						spam_content.forEach(function(item, i,arr){
-							html+="<tr>";
-							html+="<td><input type='checkbox' name=ct_del_user["+item["id"]+"] value='1' /></td>";	
-							html+="<td>"+item["username"]+"</td>";
-							html+="<td>"+item["registerDate"]+"</td>";
-							html+="<td>"+item["email"]+"</td>";	
-							html+="<td>"+item["lastvisitDate"]+"</td>";						
-							html+="</tr>";
-						});
-						html+="</tbody></table></center>";						
+						if (off == 0)
+						{
+							if (type == 'users')
+							{
+								html+="<button id='delete_all_spam_users' class='btn btn-danger' onclick='delete_user(true)' type='button'>"+ct_spamcheck_delall+"</button>";
+								html+="<button id='delete_sel_spam_users' class='btn btn-danger' onclick='delete_user()' type='button'>"+ct_spamcheck_delsel+"</button>";
+								html+='<center><table id = "spamusers_table" class="table table-bordered table-hover table-striped" cellspacing=0 cellpadding=3><thead><tr><th></th><th>'+ct_spamcheck_table_username+'</th><th>'+ct_spamcheck_table_joined+'</th><th>'+ct_spamcheck_table_email+'</th><th>'+ct_spamcheck_table_lastvisit+'</th></tr></thead><tbody>';
+								spam_content.forEach(function(item, i,arr){
+									html+="<tr>";
+									html+="<td><input type='checkbox' name=ct_del_user["+item["id"]+"] value='1' /></td>";	
+									html+="<td>"+item["username"]+"</td>";
+									html+="<td>"+item["registerDate"]+"</td>";
+									html+="<td>"+item["email"]+"</td>";	
+									html+="<td>"+item["lastvisitDate"]+"</td>";						
+									html+="</tr>";
+								});
+								html+="</tbody></table></center>";						
+							}
+							if (type == 'comments')
+							{
+								html+="<button id='delete_all_spam_comments' class='btn btn-danger' onclick='delete_comment(true)' type='button'>"+ct_spamcheck_delall+"</button>";
+								html+="<button id='delete_sel_spam_comments' class='btn btn-danger' onclick='delete_comment()' type='button'>"+ct_spamcheck_delsel+"</button>";
+								html+='<center><table id = "spamcomments_table" class="table table-bordered table-hover table-striped" cellspacing=0 cellpadding=3><thead><tr><th></th><th>'+ct_spamcheck_table_username+'</th><th>'+ct_spamcheck_table_email+'</th><th>'+ct_spamcheck_table_text+'</th><th>'+ct_spamcheck_table_date+'</th></tr></thead><tbody>';
+								spam_content.forEach(function(item,i,arr){
+									html+="<tr>";
+									html+="<td><input type='checkbox' name=ct_del_comment["+item["id"]+"] value='1' /></td>";	
+									html+="<td>"+item["username"]+"</td>";
+									html+="<td>"+item["email"]+"</td>";
+									html+="<td>"+item["comment"]+"</td>";	
+									html+="<td>"+item["date"]+"</td>";						
+									html+="</tr>";											
+								});
+								html+="</tbody></table></center>";										
+							}
+							if (spam_content.length>=on_page)
+								html+="<center><button id='load_more_results' class='btn btn-default' onclick='load_more()' type='button'>"+ct_spamcheck_load_more_results+"</button></center>";
+							jQuery('#spam_results').append(html);		
+						}
+						else
+						{
+							if (type == 'users')
+							{
+								spam_content.forEach(function(item, i,arr){
+									html+="<tr>";
+									html+="<td><input type='checkbox' name=ct_del_user["+item["id"]+"] value='1' /></td>";	
+									html+="<td>"+item["username"]+"</td>";
+									html+="<td>"+item["registerDate"]+"</td>";
+									html+="<td>"+item["email"]+"</td>";	
+									html+="<td>"+item["lastvisitDate"]+"</td>";						
+									html+="</tr>";
+								});
+								jQuery('#spamusers_table').append(html);					
+							}
+							if (type == 'comments')
+							{
+								spam_content.forEach(function(item,i,arr){
+									html+="<tr>";
+									html+="<td><input type='checkbox' name=ct_del_comment["+item["id"]+"] value='1' /></td>";	
+									html+="<td>"+item["username"]+"</td>";
+									html+="<td>"+item["email"]+"</td>";
+									html+="<td>"+item["comment"]+"</td>";	
+									html+="<td>"+item["date"]+"</td>";						
+									html+="</tr>";					
+								});
+								jQuery('#spamcomments_table').append(html);
+							}
+							jQuery('html, body').animate({scrollTop:jQuery(document).height()}, 'slow');	
+						}
+						off=spam_content[spam_content.length-1]["id"];				
 					}
-					if (type == 'comments')
-					{
-						html+="<button id='delete_all_spam_comments' class='btn btn-danger' onclick='delete_comment(true)' type='button'>"+ct_spamcheck_delall+"</button>";
-						html+="<button id='delete_sel_spam_comments' class='btn btn-danger' onclick='delete_comment()' type='button'>"+ct_spamcheck_delsel+"</button>";
-						html+='<center><table id = "spamcomments_table" class="table table-bordered table-hover table-striped" cellspacing=0 cellpadding=3><thead><tr><th></th><th>'+ct_spamcheck_table_username+'</th><th>'+ct_spamcheck_table_email+'</th><th>'+ct_spamcheck_table_text+'</th><th>'+ct_spamcheck_table_date+'</th></tr></thead><tbody>';
-						spam_content.forEach(function(item,i,arr){
-							html+="<tr>";
-							html+="<td><input type='checkbox' name=ct_del_comment["+item["id"]+"] value='1' /></td>";	
-							html+="<td>"+item["username"]+"</td>";
-							html+="<td>"+item["email"]+"</td>";
-							html+="<td>"+item["comment"]+"</td>";	
-							html+="<td>"+item["date"]+"</td>";						
-							html+="</tr>";											
-						});
-						html+="</tbody></table></center>";										
-					}
-					if (spam_content.length>=on_page)
-						html+="<center><button id='load_more_results' class='btn btn-default' onclick='load_more()' type='button'>"+ct_spamcheck_load_more_results+"</button></center>";
-					jQuery('#spam_results').append(html);		
+				}		
+				if (msg.result == 'error' && (!document.getElementById('spamusers_table' || !document.getElementById('spamcomments_table')))){
+					html+='<center><h2>'+msg.data+'</h2></center>;';
+					jQuery('#spam_results').append(html);
 				}
-				else
-				{
-					if (type == 'users')
-					{
-						spam_content.forEach(function(item, i,arr){
-							html+="<tr>";
-							html+="<td><input type='checkbox' name=ct_del_user["+item["id"]+"] value='1' /></td>";	
-							html+="<td>"+item["username"]+"</td>";
-							html+="<td>"+item["registerDate"]+"</td>";
-							html+="<td>"+item["email"]+"</td>";	
-							html+="<td>"+item["lastvisitDate"]+"</td>";						
-							html+="</tr>";
-						});
-						jQuery('#spamusers_table').append(html);					
-					}
-					if (type == 'comments')
-					{
-						spam_content.forEach(function(item,i,arr){
-							html+="<tr>";
-							html+="<td><input type='checkbox' name=ct_del_comment["+item["id"]+"] value='1' /></td>";	
-							html+="<td>"+item["username"]+"</td>";
-							html+="<td>"+item["email"]+"</td>";
-							html+="<td>"+item["comment"]+"</td>";	
-							html+="<td>"+item["date"]+"</td>";						
-							html+="</tr>";					
-						});
-						jQuery('#spamcomments_table').append(html);
-					}
-					jQuery('html, body').animate({scrollTop:jQuery(document).height()}, 'slow');	
-				}
-				off=spam_content[spam_content.length-1]["id"];				
-			}
-		}		
-		if (msg.result == 'error' && (!document.getElementById('spamusers_table' || !document.getElementById('spamcomments_table')))){
-			html+='<center><h2>'+msg.data+'</h2></center>;';
-			jQuery('#spam_results').append(html);
-		}
-		jQuery('#ct_preloader_spam_results').hide();		
+				jQuery('#ct_preloader_spam_results').hide();		
 
-	}
-});		
+			}
+		});		
 	}

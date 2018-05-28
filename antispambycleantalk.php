@@ -152,6 +152,10 @@ class plgSystemAntispambycleantalk extends JPlugin {
 	return $js_key;	
 
     }  
+	
+	/**
+	* 
+	*/
     public function check_url_exclusions(){
 		
 		global $cleantalk_url_exclusions;
@@ -628,220 +632,217 @@ class plgSystemAntispambycleantalk extends JPlugin {
 	            $table->params = $params->toString();
 	            $table->store();
 	        }
-        }       
+        }
+		
 		if($app->isAdmin() && strpos(JUri::getInstance(), 'com_plugins&view=plugin&layout=edit&extension_id='.$this->getId()))
 		{
-		//SFW Section
-		$this->loadLanguage();		
-    	if( isset($_GET['option'])&&$_GET['option']=='com_rsform'&&isset($_POST)&&sizeof($_POST)>0&&!$app->isAdmin() ||
-			isset($_POST['option'])&&$_POST['option']=='com_virtuemart'&&isset($_POST['task'])&&$_POST['task']=='saveUser' ||
-			isset($_GET['api_controller']) ||
-			isset($_GET['task'])&&$_GET['task']=='mailAskquestion'||
-			isset($_POST['task'])&&$_POST['task']=='mailAskquestion' ||
-			isset($_GET['ajax']) && isset($_GET['username']) && isset($_GET['email']) ||
-			isset($_POST['option'])&&$_POST['option']=='com_alfcontact' ||
-			isset($_POST['option'])&&$_POST['option']=='com_contact'&&isset($_POST['task'])&&$_POST['task']=='contact.submit'
-    	){
-    		$sender_email = '';
-		    $sender_nickname = '';
-		    $subject = '';
-		    $contact_form = true;
-		    $message = '';
-		    
-		    if(isset($_GET['ajax'])){
+			$this->loadLanguage();
+			if( isset($_GET['option'])&&$_GET['option']=='com_rsform'&&isset($_POST)&&sizeof($_POST)>0&&!$app->isAdmin() ||
+				isset($_POST['option'])&&$_POST['option']=='com_virtuemart'&&isset($_POST['task'])&&$_POST['task']=='saveUser' ||
+				isset($_GET['api_controller']) ||
+				isset($_GET['task'])&&$_GET['task']=='mailAskquestion'||
+				isset($_POST['task'])&&$_POST['task']=='mailAskquestion' ||
+				isset($_GET['ajax']) && isset($_GET['username']) && isset($_GET['email']) ||
+				isset($_POST['option'])&&$_POST['option']=='com_alfcontact' ||
+				isset($_POST['option'])&&$_POST['option']=='com_contact'&&isset($_POST['task'])&&$_POST['task']=='contact.submit'
+			){
+				$sender_email = '';
+				$sender_nickname = '';
+				$subject = '';
+				$contact_form = true;
+				$message = '';
 				
-		    	$sender_email = $_GET['email'];
-		    	$sender_nickname = $_GET['username'];
+				if(isset($_GET['ajax'])){
+					
+					$sender_email = $_GET['email'];
+					$sender_nickname = $_GET['username'];
+					
+				}else if(isset($_POST['task'])&&$_POST['task']=='saveUser'){
+					
+					$sender_email = $_POST['email'];
+					$sender_nickname = $_POST['username'];
+					
+				}else{
+					
+					$ct_temp_msg_data = $this->getFieldsAny($_POST);
+					
+					$sender_email    = ($ct_temp_msg_data['email']    ? $ct_temp_msg_data['email']    : '');
+					$sender_nickname = ($ct_temp_msg_data['nickname'] ? $ct_temp_msg_data['nickname'] : '');
+					$subject         = ($ct_temp_msg_data['subject']  ? $ct_temp_msg_data['subject']  : '');
+					$contact_form    = ($ct_temp_msg_data['contact']  ? $ct_temp_msg_data['contact']  : true);
+					$message         = ($ct_temp_msg_data['message']  ? $ct_temp_msg_data['message']  : array());
+					if ($subject != '')
+						$message = array_merge(array('subject' => $subject), $message);
+					$message = implode("\n", $message);
+					
+				}
 				
-		    }else if(isset($_POST['task'])&&$_POST['task']=='saveUser'){
-				
-		    	$sender_email = $_POST['email'];
-		    	$sender_nickname = $_POST['username'];
-				
-		    }else{
-				
-		    	$ct_temp_msg_data = $this->getFieldsAny($_POST);
-				
-				$sender_email    = ($ct_temp_msg_data['email']    ? $ct_temp_msg_data['email']    : '');
-				$sender_nickname = ($ct_temp_msg_data['nickname'] ? $ct_temp_msg_data['nickname'] : '');
-				$subject         = ($ct_temp_msg_data['subject']  ? $ct_temp_msg_data['subject']  : '');
-				$contact_form    = ($ct_temp_msg_data['contact']  ? $ct_temp_msg_data['contact']  : true);
-				$message         = ($ct_temp_msg_data['message']  ? $ct_temp_msg_data['message']  : array());
-				if ($subject != '')
-					$message = array_merge(array('subject' => $subject), $message);
-				$message = implode("\n", $message);
-				
-		    }
-		    
-    		$result = $this->onSpamCheck(
-                '',
-                array(
-                    'sender_email' => $sender_email, 
-                    'sender_nickname' => $sender_nickname, 
-                    'message' => $message
-                ));
-				
-            $this->is_executed=true;
+				$result = $this->onSpamCheck(
+					'',
+					array(
+						'sender_email' => $sender_email, 
+						'sender_nickname' => $sender_nickname, 
+						'message' => $message
+					));
+					
+				$this->is_executed=true;
 
-            if ($result !== true) {
-            	if(isset($_GET['ajax'])){
-					
-            		print $this->_subject->getError();
-            		die();
-					
-            	}else{						
-            			$error_tpl=file_get_contents(dirname(__FILE__)."/error.html");
+				if ($result !== true){
+					if(isset($_GET['ajax'])){
+						print $this->_subject->getError();
+						die();
+					}else{						
+						$error_tpl=file_get_contents(dirname(__FILE__)."/error.html");
 						print str_replace('%ERROR_TEXT%',$this->_subject->getError(),$error_tpl);
 						die();					
-                }
-            }
-    	}
-    	
-    	if(isset($_POST['ct_delete_notice'])&&$_POST['ct_delete_notice']==='yes'){
+					}
+				}
+			}
 			
-    		/*$id=$this->getId('system','antispambycleantalk');
-    		if($id!==0)
-    		{
-    			$table = JTable::getInstance('extension');
-    			$table->load($id);
-    			$params   = new JRegistry($table->params);
-				$params->set('show_notice',0);
-				$table->params = $params->toString();
-				$table->store();
-    		}
-    		$mainframe=JFactory::getApplication();
-    		$mainframe->close();*/
-    		$ct_db=JFactory::getDBO();
-	    	$query="select * from #__extensions where element='antispambycleantalk' and folder='system' ";
-	    	$ct_db->setQuery($query,0,1);
-	    	$rows=$ct_db->loadObjectList();
-	    	if(count($rows)>0){
+			// Close review banner
+			if(isset($_POST['ct_delete_notice'])&&$_POST['ct_delete_notice']==='yes'){
 				
-	    		$params=json_decode($rows[0]->params);
+				/*$id=$this->getId('system','antispambycleantalk');
+				if($id!==0)
+				{
+					$table = JTable::getInstance('extension');
+					$table->load($id);
+					$params   = new JRegistry($table->params);
+					$params->set('show_notice',0);
+					$table->params = $params->toString();
+					$table->store();
+				}
+				$mainframe=JFactory::getApplication();
+				$mainframe->close();*/
+				$ct_db=JFactory::getDBO();
+				$query="select * from #__extensions where element='antispambycleantalk' and folder='system' ";
+				$ct_db->setQuery($query,0,1);
+				$rows=$ct_db->loadObjectList();
+				if(count($rows)>0){
+					
+					$params=json_decode($rows[0]->params);
 
-	    		$params->show_notice_review_done=1;
-	    		$query="update #__extensions set params='".json_encode($params)."' where extension_id=".$rows[0]->extension_id;
-	    		//print_r($query);
-	    		$ct_db->setQuery($query);
-	    		$ct_db->execute();
-	    		//$rows=@$ct_db->loadObjectList();
-	    	}
-    		die();
-    	}
-		
-		// Getting key automatically
-		if(isset($_POST['get_auto_key']) && $_POST['get_auto_key'] === 'yes'){
+					$params->show_notice_review_done=1;
+					$query="update #__extensions set params='".json_encode($params)."' where extension_id=".$rows[0]->extension_id;
+					//print_r($query);
+					$ct_db->setQuery($query);
+					$ct_db->execute();
+					//$rows=@$ct_db->loadObjectList();
+				}
+				die();
+			}
+			
+			// Getting key automatically
+			if(isset($_POST['get_auto_key']) && $_POST['get_auto_key'] === 'yes'){
 
-			$output = CleantalkHelper::getApiKey(JFactory::getConfig()->get('mailfrom'), $_SERVER['HTTP_HOST'], 'joomla3');
-			// Checks if the user token is empty, then get user token by notice_paid_till()
-			if(empty($output['user_token'])){				
-				$result_tmp = CleantalkHelper::noticePaidTill($output['auth_key']);
-				$output['user_token'] = $result_tmp['data']['user_token'];				
+				$output = CleantalkHelper::getApiKey(JFactory::getConfig()->get('mailfrom'), $_SERVER['HTTP_HOST'], 'joomla3');
+				// Checks if the user token is empty, then get user token by notice_paid_till()
+				if(empty($output['user_token'])){				
+					$result_tmp = CleantalkHelper::noticePaidTill($output['auth_key']);
+					$output['user_token'] = $result_tmp['data']['user_token'];				
+				}
+					
 			}
-				
-		}
-		//check spam users
-		if (isset($_POST['check_type']) && $_POST['check_type'] === 'users')
-		{
-			$improved_check = ($_POST['improved_check'] == 'true')?true:false;
-			$offset = isset($_POST['offset'])?$_POST['offset']:0;
-			$on_page = isset($_POST['amount'])?$_POST['amount']:2;
-		   	$output = self::get_spam_users($offset,$on_page,$improved_check);
-		}
-		//check spam comments
-		if (isset($_POST['check_type']) && $_POST['check_type'] === 'comments')
-		{
-			$improved_check = ($_POST['improved_check'] == 'true')?true:false;
-			$offset = isset($_POST['offset'])?$_POST['offset']:0;
-			$on_page = isset($_POST['amount'])?$_POST['amount']:2;
-            $output = self::get_spam_comments($offset,$on_page,$improved_check);
-		}
-		if (isset($_POST['ct_del_user_ids']))
-		{
-			$spam_users = implode(',',$_POST['ct_del_user_ids']);
-			$output['result']=null;
-            $output['data']=null;
-			try {
-				$this->delete_users($spam_users);
-				$output['result']='success';
-				$output['data']=JText::sprintf('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_USERS_DELDONE', count($_POST['ct_del_user_ids']));
-			}
-			catch (Exception $e){
-				$output['result']='error';
-				$output['data']=$e->getMessage();
-			}
-		}
-		if (isset($_POST['ct_del_comment_ids']))
-		{
-			$spam_comments = implode(',',$_POST['ct_del_comment_ids']);
-			$output['result']=null;
-            $output['data']=null;
-			try {
-				$this->delete_comments($spam_comments);
-				$output['result']='success';
-				$output['data']=JText::sprintf('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_COMMENTS_DELDONE', count($_POST['ct_del_comment_ids']));
-			}
-			catch (Exception $e){
-				$output['result']='error';
-				$output['data']=$e->getMessage();
-			}		
-		}
-		if (isset($_POST['send_connection_report']) && $_POST['send_connection_report'] === 'yes')
-		{
-			$CTconfig = $this->getCTConfig();
-			$output['result']=null;
-            $output['data']=null;
-			if ($CTconfig['connection_reports']['negative_report'] !== null)
+			
+			// Check spam users
+			if (isset($_POST['check_type']) && $_POST['check_type'] === 'users')
 			{
-				$to  = "welcome@cleantalk.org" ; 
-				$subject = "Connection report for ".$_SERVER['HTTP_HOST']; 
-				$message = ' 
-				<html> 
-				    <head> 
-				        <title></title> 
-				    </head> 
-				    <body> 
-				        <p>From '.date('d M',$CTconfig['connection_reports']['negative_report'][0]->date).' to '.date('d M').' has been made '.($CTconfig['connection_reports']['success']+$CTconfig['connection_reports']['negative']).' calls, where '.$CTconfig['connection_reports']['success'].' were success and '.$CTconfig['connection_reports']['negative'].' were negative</p> 
-				        <p>Negative report:</p>
-				        <table>  <tr>
-				    <td>&nbsp;</td>
-				    <td><b>Date</b></td>
-				    <td><b>Page URL</b></td>
-				    <td><b>Library report</b></td>
-				  </tr>
-				';
+				$improved_check = ($_POST['improved_check'] == 'true')?true:false;
+				$offset = isset($_POST['offset'])?$_POST['offset']:0;
+				$on_page = isset($_POST['amount'])?$_POST['amount']:2;
+				$output = self::get_spam_users($offset,$on_page,$improved_check);
 			}
-			foreach ($CTconfig['connection_reports']['negative_report'] as $key=>$report)
+			// Check spam comments
+			if (isset($_POST['check_type']) && $_POST['check_type'] === 'comments')
 			{
-				$message.= "<tr><td>".($key+1).".</td><td>".$report->date."</td><td>".$report->page_url."</td><td>".$report->lib_report."</td></tr>";
-			}  
-			$message.='</table></body></html>'; 
+				$improved_check = ($_POST['improved_check'] == 'true')?true:false;
+				$offset = isset($_POST['offset'])?$_POST['offset']:0;
+				$on_page = isset($_POST['amount'])?$_POST['amount']:2;
+				$output = self::get_spam_comments($offset,$on_page,$improved_check);
+			}
+			if (isset($_POST['ct_del_user_ids']))
+			{
+				$spam_users = implode(',',$_POST['ct_del_user_ids']);
+				$output['result']=null;
+				$output['data']=null;
+				try {
+					$this->delete_users($spam_users);
+					$output['result']='success';
+					$output['data']=JText::sprintf('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_USERS_DELDONE', count($_POST['ct_del_user_ids']));
+				}
+				catch (Exception $e){
+					$output['result']='error';
+					$output['data']=$e->getMessage();
+				}
+			}
+			if (isset($_POST['ct_del_comment_ids']))
+			{
+				$spam_comments = implode(',',$_POST['ct_del_comment_ids']);
+				$output['result']=null;
+				$output['data']=null;
+				try {
+					$this->delete_comments($spam_comments);
+					$output['result']='success';
+					$output['data']=JText::sprintf('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_COMMENTS_DELDONE', count($_POST['ct_del_comment_ids']));
+				}
+				catch (Exception $e){
+					$output['result']='error';
+					$output['data']=$e->getMessage();
+				}		
+			}
+			if (isset($_POST['send_connection_report']) && $_POST['send_connection_report'] === 'yes')
+			{
+				$CTconfig = $this->getCTConfig();
+				$output['result']=null;
+				$output['data']=null;
+				if ($CTconfig['connection_reports']['negative_report'] !== null)
+				{
+					$to  = "welcome@cleantalk.org" ; 
+					$subject = "Connection report for ".$_SERVER['HTTP_HOST']; 
+					$message = ' 
+					<html> 
+						<head> 
+							<title></title> 
+						</head> 
+						<body> 
+							<p>From '.date('d M',$CTconfig['connection_reports']['negative_report'][0]->date).' to '.date('d M').' has been made '.($CTconfig['connection_reports']['success']+$CTconfig['connection_reports']['negative']).' calls, where '.$CTconfig['connection_reports']['success'].' were success and '.$CTconfig['connection_reports']['negative'].' were negative</p> 
+							<p>Negative report:</p>
+							<table>  <tr>
+						<td>&nbsp;</td>
+						<td><b>Date</b></td>
+						<td><b>Page URL</b></td>
+						<td><b>Library report</b></td>
+					  </tr>
+					';
+				}
+				foreach ($CTconfig['connection_reports']['negative_report'] as $key=>$report)
+				{
+					$message.= "<tr><td>".($key+1).".</td><td>".$report->date."</td><td>".$report->page_url."</td><td>".$report->lib_report."</td></tr>";
+				}  
+				$message.='</table></body></html>'; 
 
-			$headers  = "Content-type: text/html; charset=windows-1251 \r\n";
-			$headers .= "From: ".JFactory::getConfig()->get('mailfrom'); 
-			mail($to, $subject, $message, $headers);   			
-            $output['result']='success';
-            $output['data']='Success.';
-            $jparam->set('connection_reports',array('success' => 0, 'negative'=> 0,'negative_report' => null));
-		    $table = JTable::getInstance('extension');
-		    $table->load($this->getId());
-		    $table->params = $jparam->toString();
-		    $table->store();			
+				$headers  = "Content-type: text/html; charset=windows-1251 \r\n";
+				$headers .= "From: ".JFactory::getConfig()->get('mailfrom'); 
+				mail($to, $subject, $message, $headers);   			
+				$output['result']='success';
+				$output['data']='Success.';
+				$jparam->set('connection_reports',array('success' => 0, 'negative'=> 0,'negative_report' => null));
+				$table = JTable::getInstance('extension');
+				$table->load($this->getId());
+				$table->params = $jparam->toString();
+				$table->store();			
+			}
+			if (isset($_POST['dev_insert_spam_users']) && $_POST['dev_insert_spam_users'] === 'yes')
+				$output = self::dev_insert_spam_users();
+
+			if ($output !== null)
+			{
+				print json_encode($output);
+				$mainframe=JFactory::getApplication();
+				$mainframe->close();
+				die();
+			}
 		}
-		if (isset($_POST['dev_insert_spam_users']) && $_POST['dev_insert_spam_users'] === 'yes')
-			$output = self::dev_insert_spam_users();
-
-		if ($output !== null)
-		{
-			print json_encode($output);
-			$mainframe=JFactory::getApplication();
-			$mainframe->close();
-			die();			
-		}			
-		
-	}
-
-
     }
 
     //Delete spam users
@@ -1991,7 +1992,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
                 break;
             case 'check_newuser':
                 $result = self::$CT->isAllowUser($ct_request);
-                break;
+                break
             default:
                 return NULL;
         }
@@ -1999,7 +2000,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
             self::dbSetServer(self::$CT->work_url, self::$CT->server_ttl, time());
         }
 
-        // Result should be an associative array 
+        // Result should be an 	ssociative array 
         $result = json_decode(json_encode($result), true);
         $CTconfig = $this->getCTConfig();
         $id = $this->getId();
@@ -2351,10 +2352,11 @@ class plgSystemAntispambycleantalk extends JPlugin {
 	 * @return 	boolean True if passes validation OR false if it fails
 	 */
 	private function onSpamCheck($context='', $data){
+		
+		// Pass the check if URL is in exclusions
 		if($this->check_url_exclusions())
-		{
-			return false;
-		}
+			return true;
+		
 		// Converts $data Array into an Object
 		$obj = new JObject($data);
    		$app = JFactory::getApplication();     
@@ -2407,27 +2409,29 @@ class plgSystemAntispambycleantalk extends JPlugin {
 	
 		self::getCleantalk();
 		$ctResponse = self::ctSendRequest(
-				'check_message', array(
-						'message' => $obj->get('message'),
-						'sender_email' => $obj->get('sender_email'),
-						'sender_ip' => cleantalk_get_real_ip(),
-						'sender_nickname' => $obj->get('sender_nickname'),
-						'js_on' => $checkjs,
-						'post_info' => $post_info,
-						'submit_time' => $submit_time,
-                        'sender_info' => $sender_info 
-				)
+			'check_message', array(
+				'message' => $obj->get('message'),
+				'sender_email' => $obj->get('sender_email'),
+				'sender_ip' => cleantalk_get_real_ip(),
+				'sender_nickname' => $obj->get('sender_nickname'),
+				'js_on' => $checkjs,
+				'post_info' => $post_info,
+				'submit_time' => $submit_time,
+				'sender_info' => $sender_info 
+			)
 		);
+		
 		if (!empty($ctResponse['allow']) AND $ctResponse['allow'] == 1 || $ctResponse['errno']!=0 && $checkjs==1) {
 			return true;
 		} else {
-			if ($app->input->get('option') === 'com_rsform' || $app->input->get('option') === 'com_uniform')
-			{
+			
+			if ($app->input->get('option') === 'com_rsform' || $app->input->get('option') === 'com_uniform'){
 				  $app->enqueueMessage($ctResponse['comment'],'error');
 				  $app->redirect($_SERVER['REQUEST_URI']);
-			}
-			else 
+			}else{
 				$this->_subject->setError($ctResponse['comment']);
+			}
+			
 			return false;
 		}
 	}
