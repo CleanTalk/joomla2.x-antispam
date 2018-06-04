@@ -3,7 +3,7 @@
 /**
  * CleanTalk joomla plugin
  *
- * @version 5.4
+ * @version 5.5
  * @package Cleantalk
  * @subpackage Joomla
  * @author CleanTalk (welcome@cleantalk.org) 
@@ -25,7 +25,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
     /**
      * Plugin version string for server
      */
-    const ENGINE = 'joomla3-54';
+    const ENGINE = 'joomla3-55';
     
     /**
      * Default value for hidden field ct_checkjs 
@@ -1992,14 +1992,13 @@ class plgSystemAntispambycleantalk extends JPlugin {
                 break;
             case 'check_newuser':
                 $result = self::$CT->isAllowUser($ct_request);
-                break
+                break;
             default:
                 return NULL;
         }
         if (self::$CT->server_change) {
             self::dbSetServer(self::$CT->work_url, self::$CT->server_ttl, time());
         }
-
         // Result should be an 	ssociative array 
         $result = json_decode(json_encode($result), true);
         $CTconfig = $this->getCTConfig();
@@ -2356,7 +2355,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
 		// Pass the check if URL is in exclusions
 		if($this->check_url_exclusions())
 			return true;
-		
 		// Converts $data Array into an Object
 		$obj = new JObject($data);
    		$app = JFactory::getApplication();     
@@ -2419,21 +2417,31 @@ class plgSystemAntispambycleantalk extends JPlugin {
 				'submit_time' => $submit_time,
 				'sender_info' => $sender_info 
 			)
-		);
-		
-		if (!empty($ctResponse['allow']) AND $ctResponse['allow'] == 1 || $ctResponse['errno']!=0 && $checkjs==1) {
-			return true;
-		} else {
-			
-			if ($app->input->get('option') === 'com_rsform' || $app->input->get('option') === 'com_uniform'){
-				  $app->enqueueMessage($ctResponse['comment'],'error');
-				  $app->redirect($_SERVER['REQUEST_URI']);
-			}else{
-				$this->_subject->setError($ctResponse['comment']);
+		);	
+		if ($ctResponse)
+		{
+			if ($ctResponse['errno'] != 0)
+			{
+				//TODO: inform admin
+				if ($checkjs == 0)
+					return false;
 			}
-			
-			return false;
+
+			if ($ctResponse['allow'] == 1)
+				return true;
+			else
+			{
+				if ($app->input->get('option') === 'com_rsform' || $app->input->get('option') === 'com_uniform'){
+					  $app->enqueueMessage($ctResponse['comment'],'error');
+					  $app->redirect($_SERVER['REQUEST_URI']);
+				}else{
+					$this->_subject->setError($ctResponse['comment']);
+				}
+				
+				return false;				
+			}				
 		}
+		return true;
 	}
         
         /**
