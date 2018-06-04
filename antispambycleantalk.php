@@ -2404,11 +2404,11 @@ class plgSystemAntispambycleantalk extends JPlugin {
 		if ($post_info === false) {
 			$post_info = '';
 		}
-	
+		$sender_message = trim(preg_replace("/(^[\r\n]*|[\r\n]+)[\s\t]*[\r\n]+/", $obj->get('message'));
 		self::getCleantalk();
 		$ctResponse = self::ctSendRequest(
 			'check_message', array(
-				'message' => $obj->get('message'),
+				'message' => $sender_message,
 				'sender_email' => $obj->get('sender_email'),
 				'sender_ip' => cleantalk_get_real_ip(),
 				'sender_nickname' => $obj->get('sender_nickname'),
