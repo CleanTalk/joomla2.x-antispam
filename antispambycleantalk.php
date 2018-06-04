@@ -2404,7 +2404,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 		if ($post_info === false) {
 			$post_info = '';
 		}
-		$sender_message = trim(preg_replace("/(^[\r\n]*|[\r\n]+)[\s\t]*[\r\n]+/", $obj->get('message'));
+		$sender_message = trim(preg_replace("/(^[\r\n]*|[\r\n]+)[\s\t]*[\r\n]+/", $obj->get('message')));
 		self::getCleantalk();
 		$ctResponse = self::ctSendRequest(
 			'check_message', array(
