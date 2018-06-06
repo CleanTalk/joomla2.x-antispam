@@ -2427,17 +2427,14 @@ class plgSystemAntispambycleantalk extends JPlugin {
 					return false;
 			}
 
-			if ($ctResponse['allow'] == 1)
-				return true;
-			else
+			if ($ctResponse['allow'] == 0)
 			{
 				if ($app->input->get('option') === 'com_rsform' || $app->input->get('option') === 'com_uniform'){
 					  $app->enqueueMessage($ctResponse['comment'],'error');
 					  $app->redirect($_SERVER['REQUEST_URI']);
 				}else{
 					$this->_subject->setError($ctResponse['comment']);
-				}
-				
+				}				
 				return false;				
 			}				
 		}
