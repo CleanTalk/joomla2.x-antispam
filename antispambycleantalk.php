@@ -20,12 +20,12 @@ if(!defined('DS')){
     define('DS', DIRECTORY_SEPARATOR);
 }
 require_once(dirname(__FILE__) . DS . 'cleantalk.class.php');
-
+require_once(dirname(__FILE__) . DS . 'custom_config.php');
 class plgSystemAntispambycleantalk extends JPlugin {
     /**
      * Plugin version string for server
      */
-    const ENGINE = 'joomla3-55';
+    const ENGINE = 'joomla3-56';
     
     /**
      * Default value for hidden field ct_checkjs 
@@ -152,30 +152,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 	return $js_key;	
 
     }  
-	
-	/**
-	* 
-	*/
-    public function check_url_exclusions(){
-		
-		global $cleantalk_url_exclusions;
-		
-		if(isset($cleantalk_url_exclusions) && count($cleantalk_url_exclusions) > 0){
-			
-			$result = false;
-			foreach($cleantalk_url_exclusions as $value){
-				
-				if(stripos($_SERVER['REQUEST_URI'], $value) !== false)
-					$result=true;
-
-			} unset($value);
-			
-		}else
-			$result=false;
-		
-		return $result;
-	}
-    
+	    
     /*
     * Get id of CleanTalk extension
     */
@@ -387,7 +364,9 @@ class plgSystemAntispambycleantalk extends JPlugin {
 		'_wpcf7',
 		'avatar__file_image_data',
 	);
-	
+    $fields_exclusions = CleantalkCustomConfig::get_fields_exclusions();
+    if ($fields_exclusions)
+        array_merge($skip_fields_with_strings,$fields_exclusions); 	
 	// Reset $message if we have a sign-up data
     $skip_message_post = array(
         'edd_action', // Easy Digital Downloads
@@ -1497,6 +1476,14 @@ class plgSystemAntispambycleantalk extends JPlugin {
      * @since 1.5
      */
     public function onValidateContact(&$contact, &$data) {
+		// Pass the check if URL is in exclusions
+		$url_exclusion = CleantalkCustomConfig::get_url_exclusions();
+		if ($url_exclusion)
+		{
+			foreach ($url_exclusion as $key=>$value)
+				if (strpos($_SERVER['REQUEST_URI'],$value) !== false)
+				    return true; 
+		}    	
         $session = JFactory::getSession();
         $submit_time = $this->submit_time_test();
 
@@ -1615,7 +1602,14 @@ class plgSystemAntispambycleantalk extends JPlugin {
      * @since 1.5
      */
     public function onJCommentsCommentBeforeAdd(&$comment) {
-        
+		// Pass the check if URL is in exclusions
+		$url_exclusion = CleantalkCustomConfig::get_url_exclusions();
+		if ($url_exclusion)
+		{
+			foreach ($url_exclusion as $key=>$value)
+				if (strpos($_SERVER['REQUEST_URI'],$value) !== false)
+				    return true; 
+		}        
         $config = $this->getCTConfig();
         
         $session = JFactory::getSession();
@@ -1803,7 +1797,14 @@ class plgSystemAntispambycleantalk extends JPlugin {
         if (JFactory::getUser()->id || $_SERVER['REQUEST_METHOD'] != 'POST') {
             return false;
         }
-
+		// Pass the check if URL is in exclusions
+		$url_exclusion = CleantalkCustomConfig::get_url_exclusions();
+		if ($url_exclusion)
+		{
+			foreach ($url_exclusion as $key=>$value)
+				if (strpos($_SERVER['REQUEST_URI'],$value) !== false)
+				    return true; 
+		}
         $post = $_POST;
         $ver = new JVersion();
         if (strcmp($ver->RELEASE, '1.5') <= 0) {
@@ -2353,8 +2354,13 @@ class plgSystemAntispambycleantalk extends JPlugin {
 	private function onSpamCheck($context='', $data){
 		
 		// Pass the check if URL is in exclusions
-		if($this->check_url_exclusions())
-			return true;
+		$url_exclusion = CleantalkCustomConfig::get_url_exclusions();
+		if ($url_exclusion)
+		{
+			foreach ($url_exclusion as $key=>$value)
+				if (strpos($_SERVER['REQUEST_URI'],$value) !== false)
+				    return true; 
+		}
 		// Converts $data Array into an Object
 		$obj = new JObject($data);
    		$app = JFactory::getApplication();     
