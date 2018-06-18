@@ -2310,39 +2310,13 @@ class plgSystemAntispambycleantalk extends JPlugin {
             'REFFERRER' => @$_SERVER['HTTP_REFERER'],
             'USER_AGENT' => @$_SERVER['HTTP_USER_AGENT'],
             'direct_post' => $this->ct_direct_post,
-            'cookies_enabled' => $this->ct_cookies_test(true), 
+            'cookies_enabled' => $this->apbct_cookies_test(), 
             'checkjs_data_post' => $checkjs_data_post, 
             'checkjs_data_cookies' => $checkjs_data_cookies, 
             'ct_options'=>json_encode($config),
             'REFFERRER_PREVIOUS' => isset($_COOKIE['apbct_prev_referer'])?$_COOKIE['apbct_prev_referer']:null,
         );
         return $sender_info;
-    }
-
-    /**
-     * Cookies test for sender 
-     * @return null|0|1;
-     */
-    private function ct_cookies_test ($test = false) {
-        $cookie_label = 'ct_cookies_test';
-        $secret_hash = $this->cleantalk_get_checkjs_code();
-
-        $result = null;
-        if (isset($_COOKIE[$cookie_label])) {
-            if ($_COOKIE[$cookie_label] == $secret_hash) {
-                $result = 1;
-            } else {
-                $result = 0;
-            }
-        } else {
-            setcookie($cookie_label, $secret_hash, 0, '/');
-
-            if ($test) {
-                $result = 0;
-            }
-        }
-        
-        return $result;
     }
 
 	 /**
@@ -2665,7 +2639,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 	 * Also checks for valid timestamp in $_COOKIE['apbct_timestamp'] and other apbct_ COOKIES
 	 * @return null|0|1;
 	 */
-	function apbct_cookies_test()
+	private function apbct_cookies_test()
 	{
 		$config = $this->getCTConfig();
 		
