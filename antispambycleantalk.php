@@ -2276,7 +2276,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
      */
     private function submit_time_test() {
 		if($this->apbct_cookies_test() == 1){
-			return time() - $_COOKIE['apbct_timestamp'];
+			return time() - intval($_COOKIE['apbct_timestamp']);
 		}else{
 			return null;
 		}
@@ -2315,6 +2315,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
             'checkjs_data_cookies' => $checkjs_data_cookies, 
             'ct_options'=>json_encode($config),
             'REFFERRER_PREVIOUS' => isset($_COOKIE['apbct_prev_referer'])?$_COOKIE['apbct_prev_referer']:null,
+            'fields_number'   => sizeof($_POST),
         );
         return $sender_info;
     }
