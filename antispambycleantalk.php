@@ -1227,8 +1227,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
         // Add Javascript
         $document->addScriptDeclaration($this->getJSTest(null, null, true));
 
-        $this->ct_cookies_test();
-
      }
 
 
