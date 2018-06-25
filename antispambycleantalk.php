@@ -256,6 +256,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 							$moderate_ip = (isset($result['moderate_ip']) && $result['moderate_ip'] == 1)?1:0;
 							if ($sfw_enable ==1 && $api_key !== '')
 								self::update_sfw_db_networks($api_key);
+							self::ctSendAgentVersion($api_key);
 				    	}
 						$params->set('last_checked', $new_checked);
 						$params->set('last_status', $new_status);
@@ -883,14 +884,11 @@ class plgSystemAntispambycleantalk extends JPlugin {
 			$table = JTable::getInstance('extension');
 			$table->load($id);
 			$params = new JRegistry($table->params);
-
 			if ($data->enabled)
 			{
 				$new_config=json_decode($data->params);	
 				$access_key = trim($new_config->apikey);
-		        $params = $this->checkIsPaid($access_key, true);
-				self::ctSendAgentVersion($access_key);
-
+		        $params = $this->checkIsPaid($access_key, true);	
 			}
 			else
 			{
@@ -899,7 +897,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
 					$params->set('spam_count',0);
 					$params->set('user_token','');
 					$params->set('last_checked','');
-
 			}
 			$table->params = $params->toString();
 			$table->store();
@@ -1226,6 +1223,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
         $document = JFactory::getDocument();
         // Add Javascript
         $document->addScriptDeclaration($this->getJSTest(null, null, true));
+
 
      }
 
@@ -1935,6 +1933,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
         if (self::$CT->server_change) {
             self::dbSetServer(self::$CT->work_url, self::$CT->server_ttl, time());
         }
+        error_log("15");
         return $result;
     }
     private function ctSendRequest($method, $params) {
