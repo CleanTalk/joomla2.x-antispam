@@ -256,7 +256,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
 							$moderate_ip = (isset($result['moderate_ip']) && $result['moderate_ip'] == 1)?1:0;
 							if ($sfw_enable ==1 && $api_key !== '')
 								self::update_sfw_db_networks($api_key);
-							self::ctSendAgentVersion($api_key);
 				    	}
 						$params->set('last_checked', $new_checked);
 						$params->set('last_status', $new_status);
@@ -856,16 +855,18 @@ class plgSystemAntispambycleantalk extends JPlugin {
 		}
 
 	}     
-    /**
-     * This event is triggered after update extension
-     * Joomla 2.5+
-     * @access public
-     */
-    
-    public function onExtensionAfterUpdate($name, $data){
+	/**
+	 * Event triggered after update an extension
+	 *
+	 * @param   JInstaller $installer   Installer instance
+	 * @param   int        $extensionId Extension Id
+	 *
+	 * @return void
+	 */    
+    public function onExtensionAfterUpdate($installer, $extensionId){
 		$config = $this->getCTConfig();
 		//Sending agent version	
-		if(isset($config['apikey']) && trim($config['apikey']) != '' && $config['apikey'] != 'enter key'){
+		if(isset($config['apikey']) && trim($config['apikey']) != ''){
 			self::ctSendAgentVersion($config['apikey']);
     	}
     }
@@ -886,7 +887,9 @@ class plgSystemAntispambycleantalk extends JPlugin {
 			{
 				$new_config=json_decode($data->params);	
 				$access_key = trim($new_config->apikey);
-		        $params = $this->checkIsPaid($access_key, true);	
+		        $params = $this->checkIsPaid($access_key, true);
+				self::ctSendAgentVersion($access_key);
+
 			}
 			else
 			{
@@ -1917,10 +1920,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
 		if (self::getCleantalk() == null)
 			return;
         $ctFbParams['feedback'] = '0:' . self::ENGINE;
-        defined('_JEXEC') or die('Restricted access');
-        if(!defined('DS')){
-            define('DS', DIRECTORY_SEPARATOR);
-        }
         $ct_request = new CleantalkRequest;
         
         foreach ($ctFbParams as $k => $v) {
@@ -1929,7 +1928,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
         $ct_request->auth_key = $apikey;
         $ct_request->agent = self::ENGINE; 
         $config = $this->getCTConfig();
-        $result = NULL;
 
         self::$CT->work_url = $config['work_url'];
         self::$CT->server_ttl = $config['server_ttl'];
