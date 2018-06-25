@@ -883,7 +883,8 @@ class plgSystemAntispambycleantalk extends JPlugin {
 			$table = JTable::getInstance('extension');
 			$table->load($id);
 			$params = new JRegistry($table->params);
-			if ($data->enabled === 1)
+
+			if ($data->enabled)
 			{
 				$new_config=json_decode($data->params);	
 				$access_key = trim($new_config->apikey);
