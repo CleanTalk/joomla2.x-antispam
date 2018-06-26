@@ -644,7 +644,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
 				}else{
 					
 					$ct_temp_msg_data = $this->getFieldsAny($_POST);
-					
 					$sender_email    = ($ct_temp_msg_data['email']    ? $ct_temp_msg_data['email']    : '');
 					$sender_nickname = ($ct_temp_msg_data['nickname'] ? $ct_temp_msg_data['nickname'] : '');
 					$subject         = ($ct_temp_msg_data['subject']  ? $ct_temp_msg_data['subject']  : '');
@@ -1411,9 +1410,11 @@ class plgSystemAntispambycleantalk extends JPlugin {
             }
         }
 
-        if (!$sender_email && $_SERVER['REQUEST_METHOD'] == 'POST' && !in_array($option_cmd, $this->skip_coms)){
-			
-			$do_test = true;
+        if (!$sender_email && $_SERVER['REQUEST_METHOD'] == 'POST' && !in_array($option_cmd, $this->skip_coms)) {
+        	$do_test = true;
+        	
+			if ($option_cmd == 'com_virtuemart' && $task_cmd == 'add')
+				$do_test = false;
 			foreach ($_POST as $k => $v) {
 				if ($do_test && in_array($k, $this->skip_params)) {
 					$do_test = false;
@@ -1431,7 +1432,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 				$subject         = ($ct_temp_msg_data['subject']  ? $ct_temp_msg_data['subject']  : '');
 				$contact_form    = ($ct_temp_msg_data['contact']  ? $ct_temp_msg_data['contact']  : true);
 				$message         = ($ct_temp_msg_data['message']  ? $ct_temp_msg_data['message']  : array());
-	
+
 				if ($subject != '')
 					$message = array_merge(array('subject' => $subject), $message);
 				$message = implode("\n", $message);
