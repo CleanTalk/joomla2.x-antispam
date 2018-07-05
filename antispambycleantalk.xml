@@ -149,8 +149,14 @@
 				default="0" 
 			/>
  			<field name="js_keys" type="hidden" 
-				default="0" 
-			/>               
+				default="" 
+			/>
+ 			<field name="js_keys_store_days" type="hidden" 
+				default="14" 
+			/>	
+ 			<field name="js_key_lifetime" type="hidden" 
+				default="86400" 
+			/>					               
 		</fieldset>
 		<fieldset name="jcomments">
 			<field name="groups" type="usergroup" 

@@ -8,7 +8,6 @@ ctSetCookie("ct_pointer_data", "0");
 ctSetCookie("ct_timezone", "0");
 
 setTimeout(function(){
-	ctSetCookie("%s", "%s");
 	ctSetCookie("ct_checkjs", "{value}", "0");
 	ctSetCookie("ct_timezone", new Date().getTimezoneOffset()/60*(-1));
 },1000);

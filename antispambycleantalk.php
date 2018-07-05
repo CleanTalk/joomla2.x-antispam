@@ -99,58 +99,47 @@ class plgSystemAntispambycleantalk extends JPlugin {
      */
     public function __construct (&$subject, $config) {
         parent::__construct($subject, $config);
-    }
-  
+    } 
     private function cleantalk_get_checkjs_code()
     {
     	$config = $this->getCTConfig();
-    	$api_key = isset($config['apikey']) ? $config['apikey'] : null;
-    	$js_keys = isset($config['js_keys']) ? json_decode($config['js_keys'], true) : null;
-    	if($js_keys == null){
-		
-		$js_key = strval(md5($api_key . time()));
-		
-		$js_keys = array(
-			'keys' => array(
-				array(
-					time() => $js_key
-				)
-			), // Keys to do JavaScript antispam test 
-			'js_keys_amount' => 24, // JavaScript keys store days - 8 days now
-			'js_key_lifetime' => 86400, // JavaScript key life time in seconds - 1 day now
-		);
-		
-		}else{
-			
-			$keys_times = array();
-			
-			foreach($js_keys['keys'] as $time => $key){
-				
-				if($time + $js_keys['js_key_lifetime'] < time())
-					unset($js_keys['keys'][$time]);
-				
-				$keys_times[] = $time;
+    	$keys = $config['js_keys'];
+        $key = strval(md5($config['apikey'] . time()));
+        $latest_key_time = 0;
+        if (empty($keys))
+        	$keys = array( $key => time());
+        else
+        {
+        	$keys = json_decode($keys);
+	        foreach ($keys as $k => $t) {
 
-			}unset($time, $key);
-			
-			if(max($keys_times) + 3600 < time()){
-				$js_key =  strval(md5($api_key . time()));
-				$js_keys['keys'][time()] = $js_key;
-			}else{
-				$js_key = $js_keys['keys'][max($keys_times)];
-			}
-		
-	}
-	$id=0;
-    $id=$this->getId();
-    $table = JTable::getInstance('extension');
-    $table->load($id);
+	            // Removing key if it's to old
+	            if (time() - $t > $config['js_keys_store_days'] * 86400) {
+	                unset($keys[$k]);
+	                continue;
+	            }
+
+	            if ($t > $latest_key_time) {
+	                $latest_key_time = $t;
+	                $key = $k;
+	            }
+	        }
+	        // Get new key if the latest key is too old
+	        if (time() - $latest_key_time > $config['js_key_lifetime']) {
+	            $keys[$key] = time();
+	        }	                 	
+        }
+	    $id=$this->getId();
+	    $table = JTable::getInstance('extension');
+	    $table->load($id);
 		$params   = new JRegistry($table->params);
-		$params->set('js_keys', json_encode($js_keys));
+		$params->set('js_keys', json_encode($keys));
 		$table->params = $params->toString();
-		$table->store();
-	return $js_key;	
+		$table->store();         
+                   	
+		
 
+		return $key;	
     }  
 	    
     /*
@@ -1941,7 +1930,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
         if (self::$CT->server_change) {
             self::dbSetServer(self::$CT->work_url, self::$CT->server_ttl, time());
         }
-        error_log("15");
         return $result;
     }
     private function ctSendRequest($method, $params) {
@@ -2067,35 +2055,14 @@ class plgSystemAntispambycleantalk extends JPlugin {
      */
     private function getCTConfig() {
         $plugin = JPluginHelper::getPlugin('system', 'antispambycleantalk');
-            
-        $config['apikey'] = ''; 
-        $config['ct_key_is_ok'] = 0;
-        $config['server_url'] = '';
-        $config['work_url'] = '';
-        $config['server_ttl'] = 0;
-        $config['server_changed'] = 0;
-        $config['ct_status'] = '';
-        $config['ct_changed'] = 0;
-        $config['jcomments_unpublished_nofications'] = '';
-        $config['general_contact_forms_test'] = '';
-        $config['relevance_test'] = '';
-        $config['user_token'] = '';
-        $config['service_id'] ='';
-        $config['js_keys'] = '';
-        $config['spam_count'] = 0;
-        $config['moderate_ip'] =0;
-        $config['ip_license'] =0;
-        $config['show_notice_review'] = 0;
-        $config['show_notice_review_done'] = 0;
-        $config['last_checked'] = 0;
-        $config['connection_reports'] = array('success' => 0, 'negative'=> 0,'negative_report' => null);
   		$jreg = new JRegistry($plugin->params);
+
 		$config['apikey'] = trim($jreg->get('apikey', ''));
 		$config['ct_key_is_ok'] = $jreg->get('ct_key_is_ok',0);
-		$config['server_url'] = $jreg->get('server_url', '');
+		$config['server_url'] = $jreg->get('server_url', 'http://moderate.cleantalk.org');
 		$config['work_url'] = $jreg->get('work_url', '');
-		$config['server_ttl'] = $jreg->get('server_ttl', '');
-		$config['server_changed'] = $jreg->get('server_changed', '');
+		$config['server_ttl'] = $jreg->get('server_ttl', 0);
+		$config['server_changed'] = $jreg->get('server_changed', 0);
 		$config['ct_status'] = $jreg->get('ct_status', '');
 		$config['ct_changed'] = $jreg->get('ct_changed', 0);
 		$config['jcomments_unpublished_nofications'] = $jreg->get('jcomments_unpublished_nofications', '');
@@ -2107,7 +2074,9 @@ class plgSystemAntispambycleantalk extends JPlugin {
 		$config['moderate_ip'] = $jreg->get('moderate_ip',0);
 		$config['ip_license'] = $jreg->get('ip_license',0);
 		$config['tell_about_cleantalk'] = $jreg->get('tell_about_cleantalk', '');
-		$config['js_keys'] = $jreg->get('js_keys','');
+		$config['js_keys'] = $jreg->get('js_keys',array());
+		$config['js_keys_store_days'] = $jreg->get('js_keys_store_days',14);
+		$config['js_key_lifetime'] = $jreg->get('js_key_lifetime',86400);
 		$config['show_notice_review_done'] = $jreg->get('show_notice_review_done',0);
 		$config['show_notice_review'] = $jreg->get('show_notice_review',0);
 		$config['last_checked'] = $jreg->get('last_checked',0);
@@ -2215,12 +2184,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
      * @since 1.5
      */
     private function getJSTest($needle = null, $after = false, $cookie_check = false) {
-        try {
-            $ct_checkjs_key = $this->cleantalk_get_checkjs_code();
-        } catch (Exception $e) {
-            $ct_checkjs_key = 1;
-        }
-        
+
         $session = JFactory::getSession();
         $value = $this->cleantalk_get_checkjs_code();
         /*
@@ -2230,7 +2194,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
             $field_name = 'ct_checkjs';
         $get_funcs = file_get_contents(dirname(__FILE__) . DS. "js". DS. "ct-functions.js");
         $html = str_replace("{value}", $value, $get_funcs);
-		$html = sprintf($html, $field_name, $ct_checkjs_key);
+		$html = sprintf($html, $field_name, $value);
             return $html;
         }
 
@@ -2239,7 +2203,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
         $str = '<input type="hidden" id="' . $field_id . '" name="ct_checkjs" value="' . self::CT_CHECKJS_DEF . '" />'. "\n";
         $str .= '<script type="text/javascript">'. "\n";
         $str .= '// <![CDATA['. "\n";
-        $str .= 'document.getElementById("'. $field_id .'").value = document.getElementById("'. $field_id .'").value.replace(/^' . self::CT_CHECKJS_DEF . '$/, "' . $ct_checkjs_key . '");'. "\n";
+        $str .= 'document.getElementById("'. $field_id .'").value = document.getElementById("'. $field_id .'").value.replace(/^' . self::CT_CHECKJS_DEF . '$/, "' . $value . '");'. "\n";
         $str .= '// ]]>'. "\n";
         $str .= '</script>'. "\n";
         
