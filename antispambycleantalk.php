@@ -206,7 +206,14 @@ class plgSystemAntispambycleantalk extends JPlugin {
 				if($new_checked-$last_checked > 86400  || $force_check)
 				{
 					if (empty($api_key))
+					{
 						$key_is_ok=false;
+						$result = CleantalkHelper::noticePaidTill($api_key);
+						if (empty($result['error']))
+						{
+							$key_is_ok = true;
+						}
+					}
 					else
 					{
 						$url='https://api.cleantalk.org';
@@ -244,7 +251,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 				    		}
 				    	}							
 				    	$result = CleantalkHelper::noticePaidTill($api_key);
-				    	if($result !== null)
+				    	if(empty($result['error']))
 				    	{
 				    		if(isset($result['show_review']) && $result['show_review'] == 1)
 			    				$show_notice_review = 1;
