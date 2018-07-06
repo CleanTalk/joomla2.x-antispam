@@ -3,7 +3,7 @@
 /**
  * CleanTalk joomla plugin
  *
- * @version 5.5
+ * @version 5.6.1
  * @package Cleantalk
  * @subpackage Joomla
  * @author CleanTalk (welcome@cleantalk.org) 
@@ -25,7 +25,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
     /**
      * Plugin version string for server
      */
-    const ENGINE = 'joomla3-56';
+    const ENGINE = 'joomla3-561';
     
     /**
      * Default value for hidden field ct_checkjs 
@@ -107,14 +107,14 @@ class plgSystemAntispambycleantalk extends JPlugin {
         $key = strval(md5($config['apikey'] . time()));
         $latest_key_time = 0;
         if (empty($keys))
-        	$keys = array( $key => time());
+        	$keys = array(time() => $key);
         else
         {
         	$keys = json_decode($keys,true);
-	        foreach ($keys as $k => $t) {
+	        foreach ($keys as $t => $k) {
 	            // Removing key if it's to old
 	            if (time() - $t > $config['js_keys_store_days'] * 86400) {
-	                unset($keys[$k]);
+	                unset($keys[$t]);
 	                continue;
 	            }
 	            if ($t > $latest_key_time) {
@@ -124,7 +124,7 @@ class plgSystemAntispambycleantalk extends JPlugin {
 	        }
 	        // Get new key if the latest key is too old
 	        if (time() - $latest_key_time > $config['js_key_lifetime']) {
-	            $keys[$key] = time();
+	            $keys[time()] = $key;
 	        }	                 	
         }
 	    $id=$this->getId();
