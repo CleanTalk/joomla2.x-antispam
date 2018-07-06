@@ -110,15 +110,13 @@ class plgSystemAntispambycleantalk extends JPlugin {
         	$keys = array( $key => time());
         else
         {
-        	$keys = json_decode($keys);
+        	$keys = json_decode($keys,true);
 	        foreach ($keys as $k => $t) {
-
 	            // Removing key if it's to old
 	            if (time() - $t > $config['js_keys_store_days'] * 86400) {
 	                unset($keys[$k]);
 	                continue;
 	            }
-
 	            if ($t > $latest_key_time) {
 	                $latest_key_time = $t;
 	                $key = $k;
@@ -2058,16 +2056,16 @@ class plgSystemAntispambycleantalk extends JPlugin {
 		$config['apikey'] = trim($jreg->get('apikey', ''));
 		$config['ct_key_is_ok'] = $jreg->get('ct_key_is_ok',0);
 		$config['sfw_enable'] = $jreg->get('sfw_enable', 0);
-		$config['sfw_last_check'] = $jreg->get('sfw_last_check', 0);
-		$config['sfw_check_interval'] = $jreg->get('sfw_check_interval', 86400);
-		$config['sfw_last_send_log'] = $jreg->get('sfw_last_send_log', 0);
-		$config['sfw_reload_timeout'] = $jreg->get('sfw_reload_timeout', 3);
+		$config['sfw_last_check'] = intval($jreg->get('sfw_last_check', 0));
+		$config['sfw_check_interval'] = intval($jreg->get('sfw_check_interval', 86400));
+		$config['sfw_last_send_log'] = intval($jreg->get('sfw_last_send_log', 0));
+		$config['sfw_reload_timeout'] = intval($jreg->get('sfw_reload_timeout', 3));
 		$config['server_url'] = $jreg->get('server_url', 'http://moderate.cleantalk.org');
 		$config['work_url'] = $jreg->get('work_url', '');
-		$config['server_ttl'] = $jreg->get('server_ttl', 0);
-		$config['server_changed'] = $jreg->get('server_changed', 0);
+		$config['server_ttl'] = intval($jreg->get('server_ttl', 0));
+		$config['server_changed'] = intval($jreg->get('server_changed', 0));
 		$config['ct_status'] = $jreg->get('ct_status', '');
-		$config['ct_changed'] = $jreg->get('ct_changed', 0);
+		$config['ct_changed'] = intval($jreg->get('ct_changed', 0));
 		$config['jcomments_unpublished_nofications'] = $jreg->get('jcomments_unpublished_nofications', '');
 		$config['general_contact_forms_test'] = $jreg->get('general_contact_forms_test', '');
 		$config['relevance_test'] = $jreg->get('relevance_test', '');
@@ -2078,11 +2076,11 @@ class plgSystemAntispambycleantalk extends JPlugin {
 		$config['ip_license'] = $jreg->get('ip_license',0);
 		$config['tell_about_cleantalk'] = $jreg->get('tell_about_cleantalk', '');
 		$config['js_keys'] = $jreg->get('js_keys',array());
-		$config['js_keys_store_days'] = $jreg->get('js_keys_store_days',14);
-		$config['js_key_lifetime'] = $jreg->get('js_key_lifetime',86400);
+		$config['js_keys_store_days'] = intval($jreg->get('js_keys_store_days',14));
+		$config['js_key_lifetime'] = intval($jreg->get('js_key_lifetime',86400));
 		$config['show_notice_review_done'] = $jreg->get('show_notice_review_done',0);
 		$config['show_notice_review'] = $jreg->get('show_notice_review',0);
-		$config['last_checked'] = $jreg->get('last_checked',0);
+		$config['last_checked'] = intval($jreg->get('last_checked',0));
 		$config['connection_reports']= (array)$jreg->get('connection_reports',array('success' => 0, 'negative'=> 0,'negative_report' => null));
         return $config;
     }
