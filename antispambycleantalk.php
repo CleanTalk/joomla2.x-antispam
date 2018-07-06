@@ -197,11 +197,9 @@ class plgSystemAntispambycleantalk extends JPlugin {
 					if (empty($api_key))
 					{
 						$key_is_ok=false;
-						$result = CleantalkHelper::noticePaidTill($api_key);
-						if (empty($result['error']))
-						{
+						$npd_result = CleantalkHelper::noticePaidTill($api_key);
+						if (empty($npd_result['error']))
 							$key_is_ok = true;
-						}
 					}
 					else
 					{
@@ -238,8 +236,8 @@ class plgSystemAntispambycleantalk extends JPlugin {
 				    			if($last_status!=1&&$new_status==1)
 				    					$show_notice=1;
 				    		}
-				    	}							
-				    	$result = CleantalkHelper::noticePaidTill($api_key);
+				    	}
+				    	$result = ($npd_result) ? $npd_result : CleantalkHelper::noticePaidTill($api_key);
 				    	if(empty($result['error']))
 				    	{
 				    		if(isset($result['show_review']) && $result['show_review'] == 1)
@@ -516,10 +514,11 @@ class plgSystemAntispambycleantalk extends JPlugin {
         }
 
         $app = JFactory::getApplication(); 
-        $plugin = JPluginHelper::getPlugin('system', 'antispambycleantalk');
-        $jparam = new JRegistry($plugin->params);
-        $sfw_enable = $jparam->get('sfw_enable', 0);
-        $ct_apikey = trim($jparam->get('apikey', 0));
+		$CTconfig = $this->getCTConfig();
+		$plugin = JPluginHelper::getPlugin('system', 'antispambycleantalk');
+		$jparam = new JRegistry($plugin->params);
+        $sfw_enable = $CTconfig['sfw_enable'];
+        $ct_apikey = $CTconfig['apikey'];
         $sfw_log = (array)$jparam->get('sfw_log', 0);
         $output = null;
         /*
@@ -555,10 +554,10 @@ class plgSystemAntispambycleantalk extends JPlugin {
         */
         if($sfw_enable == 1) 
         {
-	        $sfw_last_check = $jparam->get('sfw_last_check', 0);     
-	        $sfw_last_send_log = $jparam->get('sfw_last_send_log', 0);
+	        $sfw_last_check = $CTconfig['sfw_last_check'];     
+	        $sfw_last_send_log = $CTconfig['sfw_last_send_log'];
 	        $save_params = array();        	
-            $sfw_check_interval = $jparam->get('sfw_check_interval', 0);
+            $sfw_check_interval = $CTconfig['sfw_check_interval'];
             if ($sfw_check_interval > 0 && ($sfw_last_check + $sfw_check_interval) < time() && $ct_apikey !== '') 
                 self::update_sfw_db_networks($ct_apikey);
             if(time()-$sfw_last_send_log>3600)
@@ -766,7 +765,6 @@ class plgSystemAntispambycleantalk extends JPlugin {
 			}
 			if (isset($_POST['send_connection_report']) && $_POST['send_connection_report'] === 'yes')
 			{
-				$CTconfig = $this->getCTConfig();
 				$output['result']=null;
 				$output['data']=null;
 				if ($CTconfig['connection_reports']['negative_report'] !== null)
@@ -2059,6 +2057,11 @@ class plgSystemAntispambycleantalk extends JPlugin {
 
 		$config['apikey'] = trim($jreg->get('apikey', ''));
 		$config['ct_key_is_ok'] = $jreg->get('ct_key_is_ok',0);
+		$config['sfw_enable'] = $jreg->get('sfw_enable', 0);
+		$config['sfw_last_check'] = $jreg->get('sfw_last_check', 0);
+		$config['sfw_check_interval'] = $jreg->get('sfw_check_interval', 86400);
+		$config['sfw_last_send_log'] = $jreg->get('sfw_last_send_log', 0);
+		$config['sfw_reload_timeout'] = $jreg->get('sfw_reload_timeout', 3);
 		$config['server_url'] = $jreg->get('server_url', 'http://moderate.cleantalk.org');
 		$config['work_url'] = $jreg->get('work_url', '');
 		$config['server_ttl'] = $jreg->get('server_ttl', 0);
