@@ -7,7 +7,7 @@
     <license>GNU/GPLv2</license>
     <authorEmail>welcome@cleantalk.org</authorEmail>
     <authorUrl>cleantalk.org</authorUrl>
-    <version>5.6.1</version>
+    <version>5.7</version>
     <description>PLG_CLEANTALK_DESCRIPTION</description>
     <files>
 	<filename plugin="antispambycleantalk">antispambycleantalk.php</filename>
@@ -16,6 +16,7 @@
 	<filename plugin="antispambycleantalk">classes/CleantalkRequest.php</filename>
 	<filename plugin="antispambycleantalk">classes/CleantalkResponse.php</filename>
 	<filename plugin="antispambycleantalk">classes/CleantalkHelper.php</filename>
+	<filename plugin="antispambycleantalk">classes/CleantalkSFW.php</filename>	
 	<filename plugin="antispambycleantalk">classes/sfw_die_page.html</filename>
 	<filename plugin="antispambycleantalk">js/ct-settings.js</filename>
 	<filename plugin="antispambycleantalk">js/ct-functions.js</filename>	
@@ -84,67 +85,58 @@
 			/>			
 			<field name="server_changed" type="hidden" 
 				default="0" 
-			/>
-			<field name="ct_status" type="hidden" 
-				default=""
-			/>			
-			<field name="ct_changed" type="hidden" 
-				default="0" 
-			/>												
+			/>											
 			<field name="user_token" type="hidden" 
-				label="user_token" 
-				description="user_token" 
-				size="50" 
 				default="" 
 			/>
 			<field name ="service_id" type="hidden"
-				label="service_id"
-				description="service_id"
-				size="50"
 				default=""
 			/>
 			<field name ="spam_count" type="hidden"
-				label="spam_count"
-				description="spam_count"
-				size="50"
 				default="0"
 			/>
-			<field name="last_status" type="hidden" 
-				label="last_status" 
-				description="last_status" 
-				size="50" 
-				default="" 
-			/>
 			<field name="show_notice" type="hidden" 
-				label="show_notice" 
-				description="show_notice" 
-				size="50" 
-				default="" 
+				default="0" 
 			/>
-			<field name="show_notice_review" type="hidden" 
-				label="show_notice_review" 
-				description="show_notice_review" 
-				size="50" 
-				default="" 
+			<field name="renew" type="hidden"  
+				default="0" 
+			/>	
+			<field name="trial" type="hidden"  
+				default="0" 
+			/>					
+			<field name="show_review" type="hidden"  
+				default="0" 
 			/>
-			<field name="last_checked" type="hidden" 
-				label="last_checked" 
-				description="last_checked" 
-				size="50" 
-				default="" 
+			<field name="show_review_done" type="hidden"  
+				default="0" 
+			/>				
+			<field name="ip_license" type="hidden"  
+				default="0" 
 			/>
-			<field name="ip_license" type="hidden" 
-				label="ip_license" 
-				description="ip_license" 
-				size="50" 
-				default="" 
+			<field name="license_trial" type="hidden"  
+				default="0" 
 			/>
+			<field name="valid" type="hidden"  
+				default="0" 
+			/>
+			<field name="auto_update_app" type="hidden"  
+				default="0" 
+			/>	
+			<field name="show_auto_update_notice" type="hidden"  
+				default="0" 
+			/>											
 			<field name="moderate_ip" type="hidden" 
-				label="moderate_ip" 
-				description="moderate_ip" 
-				size="50" 
-				default="" 
+				default="0" 
 			/>
+			<field name="moderate" type="hidden"  
+				default="0" 
+			/>	
+			<field name="acc_status_last_check" type="hidden"  
+				default="0" 
+			/>
+			<field name="acc_status_check_interval" type="hidden"  
+				default="86400" 
+			/>										
 			<field name="ct_key_is_ok" type="hidden" 
 				default="0" 
 			/>
@@ -156,7 +148,10 @@
 			/>	
  			<field name="js_key_lifetime" type="hidden" 
 				default="86400" 
-			/>					               
+			/>	
+ 			<field name="connection_reports" type="hidden" 
+				default="" 
+			/>							               
 		</fieldset>
 		<fieldset name="jcomments">
 			<field name="groups" type="usergroup" 
