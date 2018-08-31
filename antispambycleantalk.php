@@ -128,7 +128,8 @@ class plgSystemAntispambycleantalk extends JPlugin
 		{				
 			$result = CleantalkHelper::api_method__notice_paid_till($api_key);
 			$save_params = array();
-
+			
+			$save_params['connection_reports'] = $config['connection_reports'];
 		    $save_params['acc_status_last_check'] = time();	
 
 			if (empty($result['error']))
