@@ -3,7 +3,7 @@
 /**
  * CleanTalk joomla plugin
  *
- * @version 5.7
+ * @version 5.8
  * @package Cleantalk
  * @subpackage Joomla
  * @author CleanTalk (welcome@cleantalk.org) 
@@ -27,7 +27,7 @@ class plgSystemAntispambycleantalk extends JPlugin
     /**
      * Plugin version string for server
      */
-    const ENGINE = 'joomla3-57';
+    const ENGINE = 'joomla3-58';
 
     /*
      * Flag marked JComments form initilization. 
@@ -596,7 +596,8 @@ class plgSystemAntispambycleantalk extends JPlugin
     		$option_cmd == 'com_users'    ||
     		$option_cmd == 'com_user'     ||
     		$option_cmd == 'com_login'    ||
-    		$option_cmd == 'com_akeebasubs')
+    		$option_cmd == 'com_akeebasubs' ||
+    		$option_cmd == 'com_acymailing')
     		return true;
 
     	return false;
@@ -773,7 +774,7 @@ class plgSystemAntispambycleantalk extends JPlugin
 														
 			}
 			if(isset($notice))
-					JError::raiseNotice(1024, $notice);
+				JFactory::getApplication()->enqueueMessage($notice,'notice');
 		}
 
     }

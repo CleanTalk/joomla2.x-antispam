@@ -2,7 +2,7 @@ Anti-spam plugin for Joomla 2.5-3.X.
 ============
 [![Build Status](https://travis-ci.org/CleanTalk/joomla25-3x-antispam.svg)](https://travis-ci.org/CleanTalk/joomla25-3x-antispam)
 
-Version 5.7
+Version 5.8
 
 ## Simple antispam test
 
@@ -18,5 +18,5 @@ Example how to use plugin to filter spam bots at any Joomla form.
                 ));
 
             if ($result !== true) {
-                JError::raiseError(503, $this->_subject->getError());
+                JFactory::getApplication()->enqueueMessage($this->_subject->getError(),'error');
             }
