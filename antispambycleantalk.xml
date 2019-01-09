@@ -7,7 +7,7 @@
     <license>GNU/GPLv2</license>
     <authorEmail>welcome@cleantalk.org</authorEmail>
     <authorUrl>cleantalk.org</authorUrl>
-    <version>5.8</version>
+    <version>5.9</version>
     <description>PLG_CLEANTALK_DESCRIPTION</description>
     <files>
 	<filename plugin="antispambycleantalk">antispambycleantalk.php</filename>
@@ -19,7 +19,8 @@
 	<filename plugin="antispambycleantalk">classes/CleantalkSFW.php</filename>	
 	<filename plugin="antispambycleantalk">classes/sfw_die_page.html</filename>
 	<filename plugin="antispambycleantalk">js/ct-settings.js</filename>
-	<filename plugin="antispambycleantalk">js/ct-functions.js</filename>	
+	<filename plugin="antispambycleantalk">js/ct-functions.js</filename>
+	<filename plugin="antispambycleantalk">js/ct-external.js</filename>		
 	<filename plugin="antispambycleantalk">css/ct-settings.css</filename>
 	<filename plugin="antispambycleantalk">jquery-1.11.2.min.js</filename>
 	<filename plugin="antispambycleantalk">preloader.gif</filename>
@@ -55,10 +56,12 @@
 				class="cleantalk_spacer"
 			/>			
             <field name="general_contact_forms_test" type="checkbox" label="COM_PLUGINS_CT_CUSTOM_FORMS" value="1" default="0" description="COM_PLUGINS_CT_CUSTOM_FORMS_DESCRIPTION" />
-			
-            <field name="tell_about_cleantalk" type="checkbox" label="COM_PLUGINS_CT_TELL_ABOUT" value="1" default="0" description="COM_PLUGINS_CT_TELL_ABOUT_DESCRIPTION" />
 
             <field name="sfw_enable" type="checkbox" label="COM_PLUGINS_CT_SPAM_FIREWALL" value="1" default="0" description="COM_PLUGINS_CT_SPAM_FIREWALL_DESCRIPTION" />
+
+            <field name="check_external" type="checkbox" label="COM_PLUGINS_CT_CHECK_EXTERNAL" value="1" default="0" description="COM_PLUGINS_CT_CHECK_EXTERNAL_DESCRIPTION" />
+			<field name="check_all_post" type="checkbox" label="COM_PLUGINS_CT_CHECK_ALL_POST" value="1" default="0" description="COM_PLUGINS_CT_CHECK_ALL_POST_DESCRIPTION" />
+            <field name="tell_about_cleantalk" type="checkbox" label="COM_PLUGINS_CT_TELL_ABOUT" value="1" default="0" description="COM_PLUGINS_CT_TELL_ABOUT_DESCRIPTION" />
 			<field name="sfw_last_check" type="hidden" 
 				default="0" 
 			/>

@@ -2,7 +2,7 @@ Anti-spam plugin for Joomla 2.5-3.X.
 ============
 [![Build Status](https://travis-ci.org/CleanTalk/joomla25-3x-antispam.svg)](https://travis-ci.org/CleanTalk/joomla25-3x-antispam)
 
-Version 5.8
+Version 5.9
 
 ## Simple antispam test
 
