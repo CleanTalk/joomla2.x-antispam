@@ -97,18 +97,18 @@ class plgSystemAntispambycleantalk extends JPlugin
 	                $key = $k;
 	            }
 	        }
+	    }
 	        
-	        // Get new key if the latest key is too old
-	        if (time() - $latest_key_time > $config['js_key_lifetime']) {
-	            $key = rand();
-	            $keys[$key] = time();
-	        }
-	        
-	        if (md5(json_encode($keys)) != $keys_checksum) {
-	        	$save_params['js_keys'] = $keys;
-	        	$this->saveCTConfig($save_params);
-	        }         	
+        // Get new key if the latest key is too old
+        if (time() - $latest_key_time > $config['js_key_lifetime']) {
+            $key = rand();
+            $keys[$key] = time();
         }
+        
+        if (md5(json_encode($keys)) != $keys_checksum) {
+        	$save_params['js_keys'] = $keys;
+        	$this->saveCTConfig($save_params);
+        }         	
                        
 		return $key;	
     }  
