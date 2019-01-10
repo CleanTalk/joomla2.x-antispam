@@ -70,6 +70,7 @@ class plgSystemAntispambycleantalk extends JPlugin
 		{
 			$this->_id = $config['id'];
 		}        
+
         $this->loadLanguage();	
     } 
 
@@ -81,31 +82,34 @@ class plgSystemAntispambycleantalk extends JPlugin
 
         $key = null;
         $latest_key_time = 0;
-        foreach ($keys as $k => $t) {
+        if ($keys && is_array($keys))
+        {
+	        foreach ($keys as $k => $t) {
 
-            // Removing key if it's to old
-            if (time() - $t > $config['js_keys_store_days'] * 86400) {
-                unset($keys[$k]);
-                continue;
-            }
+	            // Removing key if it's to old
+	            if (time() - $t > $config['js_keys_store_days'] * 86400) {
+	                unset($keys[$k]);
+	                continue;
+	            }
 
-            if ($t > $latest_key_time) {
-                $latest_key_time = $t;
-                $key = $k;
-            }
+	            if ($t > $latest_key_time) {
+	                $latest_key_time = $t;
+	                $key = $k;
+	            }
+	        }
+	        
+	        // Get new key if the latest key is too old
+	        if (time() - $latest_key_time > $config['js_key_lifetime']) {
+	            $key = rand();
+	            $keys[$key] = time();
+	        }
+	        
+	        if (md5(json_encode($keys)) != $keys_checksum) {
+	        	$save_params['js_keys'] = $keys;
+	        	$this->saveCTConfig($save_params);
+	        }         	
         }
-        
-        // Get new key if the latest key is too old
-        if (time() - $latest_key_time > $config['js_key_lifetime']) {
-            $key = rand();
-            $keys[$key] = time();
-        }
-        
-        if (md5(json_encode($keys)) != $keys_checksum) {
-        	$save_params['js_keys'] = $keys;
-        	$this->saveCTConfig($save_params);
-        }      
-                  
+                       
 		return $key;	
     }  
 	    
@@ -840,137 +844,142 @@ class plgSystemAntispambycleantalk extends JPlugin
 
             }
         }
-        if ($_SERVER['REQUEST_METHOD'] == 'POST') 
-            $this->ct_direct_post = 1;
-        /*
-            Contact forms anti-spam code
-        */
-        $sender_email = null;
-        $message = '';
-        $sender_nickname = null;
-		$post_info = array(
-			'comment_type' => 'feedback_general_contact_form',
-			'post_url'     => isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : ''
-		);     
-		if ($option_cmd == 'com_rsform')
-			$post_info['comment_type'] = 'rsform_contact_form';
-        //Rapid
-        if (isset($_POST['rp_email'])){ 
-            $sender_email = $_POST['rp_email'];
+        if ($_SERVER['REQUEST_METHOD'] == 'POST')
+        {
+        	$this->ct_direct_post = 1;
 
-            if (isset($_POST["rp_subject"]))
-                $message = $_POST["rp_subject"];
+        	/*
+	            Contact forms anti-spam code
+	        */
+	        $sender_email = null;
+	        $message = '';
+	        $sender_nickname = null;
+			$post_info = array(
+				'comment_type' => 'feedback_general_contact_form',
+				'post_url'     => isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : ''
+			);     
+			if ($option_cmd == 'com_rsform')
+				$post_info['comment_type'] = 'rsform_contact_form';
+	        //Rapid
+	        if (isset($_POST['rp_email'])){ 
+	            $sender_email = $_POST['rp_email'];
+
+	            if (isset($_POST["rp_subject"]))
+	                $message = $_POST["rp_subject"];
+	            
+	            if (isset($_POST['rp_message']))
+	                $message .= ' ' . $_POST['rp_message'];
+	            $post_info['comment_type'] = 'rapid_contact_form';
+	        } //VTEM Contact
+	        elseif (isset($_POST["vcontact_email"])) { 
+	            $sender_email = $_POST['vcontact_email'];
+	            if (isset($_POST["vcontact_subject"]))
+	                $message = $_POST["vcontact_subject"];
+
+	            if (isset($_POST["vcontact_message"]))
+	                $message .= ' ' . $_POST["vcontact_message"];
+	            
+	            if (isset($_POST["vcontact_name"]))
+	                $sender_nickname = $_POST["vcontact_name"];
+	            $post_info['comment_type'] = 'vtem_contact_form';
+	        } //BreezingForms
+	        elseif (isset($_POST['ff_task']) && $_POST['ff_task'] == 'submit') {
+
+	            foreach ($_POST as $v) {
+	                if (is_array($v)) {
+	                    foreach ($v as $k=>$v2) {
+	                        if ($this->validEmail($v2)) {
+	                            $sender_email = $v2;
+	                        }
+	                        else
+	                        {
+	                        	if(is_int($k))
+	                        	{
+	                        		$message.=$v2."\n";
+	                        	}
+	                        }
+	                    }
+	                } else {
+	                    if ($this->validEmail($v)) {
+	                        $sender_email = $v;
+	                    }
+	                    else
+	                    {
+	                   		//$contact_message.=$v."\n";
+	                    }
+	                }
+	            }
+	            $post_info['comment_type'] = 'breezing_contact_form';
+	        }
+	        // Genertal test for any forms or form with custom fields
+	        elseif ($config['general_contact_forms_test'] || 
+	        	$option_cmd == 'com_rsform' ||
+	        	$option_cmd == 'com_virtuemart')
+	        {
+				$ct_temp_msg_data = $this->getFieldsAny($_POST);
+				$sender_email    = ($ct_temp_msg_data['email']    ? $ct_temp_msg_data['email']    : '');
+				$sender_nickname = ($ct_temp_msg_data['nickname'] ? $ct_temp_msg_data['nickname'] : '');
+				$subject         = ($ct_temp_msg_data['subject']  ? $ct_temp_msg_data['subject']  : '');
+				$contact_form    = ($ct_temp_msg_data['contact']  ? $ct_temp_msg_data['contact']  : true);
+				$message         = ($ct_temp_msg_data['message']  ? $ct_temp_msg_data['message']  : array());
+
+				if ($subject != '')
+					$message = array_merge(array('subject' => $subject), $message);
+				$message = implode("\n", $message);
+	        }
+	        if ($config['check_external'] && isset($_SERVER['REQUEST_METHOD'], $_POST['ct_method'], $_POST['ct_action']))
+	        {
+		    	$action = htmlspecialchars($_POST['ct_action']);
+		    	$method = htmlspecialchars($_POST['ct_method']);
+		    	unset($_POST['ct_action'], $_POST['ct_method']);        	
+	        }
+	        if (!$this->exceptionList() && (trim($sender_email) !='' || $config['check_all_post']))
+	        {
+	        	$ctResponse = self::ctSendRequest(
+		            'check_message', array(
+		                'sender_nickname' => $sender_nickname,
+		                'sender_email' => $sender_email,
+		                'message' => trim(preg_replace("/(^[\r\n]*|[\r\n]+)[\s\t]*[\r\n]+/","\n", $message)),
+		                'post_info' => $post_info,
+		            )
+	        	);
+
+	            if ($ctResponse) 
+	            {
+			        if (!empty($ctResponse) && is_array($ctResponse)) 
+			        {
+			            if ($ctResponse['errno'] != 0) 
+			                $this->sendAdminEmail("CleanTalk. Can't verify feedback message!", $ctResponse['comment']);
+						else 
+						{
+					        if (empty($_POST['cleantalk_hidden_ajax']) && $config['check_external'] && isset($_SERVER['REQUEST_METHOD'], $_POST['ct_method'], $_POST['ct_action']))
+					        {
+								print "<html><body><form method='$method' action='$action'>";
+								print "</form></body></html>";
+								print "<script>
+									if(document.forms[0].submit != 'undefined'){
+										var objects = document.getElementsByName('submit');
+										if(objects.length > 0)
+											document.forms[0].removeChild(objects[0]);
+									}
+									document.forms[0].submit();
+								</script>";
+								die();       	
+					        }
+			                if ($ctResponse['allow'] == 0)
+			                {
+			            		$error_tpl=file_get_contents(dirname(__FILE__)."/error.html");
+								print str_replace('%ERROR_TEXT%',$ctResponse['comment'],$error_tpl);
+								die();		                    	                	
+			                } 
+
+			            }
+			        } 
+	            }
+	        }        	
+        } 
             
-            if (isset($_POST['rp_message']))
-                $message .= ' ' . $_POST['rp_message'];
-            $post_info['comment_type'] = 'rapid_contact_form';
-        } //VTEM Contact
-        elseif (isset($_POST["vcontact_email"])) { 
-            $sender_email = $_POST['vcontact_email'];
-            if (isset($_POST["vcontact_subject"]))
-                $message = $_POST["vcontact_subject"];
 
-            if (isset($_POST["vcontact_message"]))
-                $message .= ' ' . $_POST["vcontact_message"];
-            
-            if (isset($_POST["vcontact_name"]))
-                $sender_nickname = $_POST["vcontact_name"];
-            $post_info['comment_type'] = 'vtem_contact_form';
-        } //BreezingForms
-        elseif (isset($_POST['ff_task']) && $_POST['ff_task'] == 'submit') {
-
-            foreach ($_POST as $v) {
-                if (is_array($v)) {
-                    foreach ($v as $k=>$v2) {
-                        if ($this->validEmail($v2)) {
-                            $sender_email = $v2;
-                        }
-                        else
-                        {
-                        	if(is_int($k))
-                        	{
-                        		$message.=$v2."\n";
-                        	}
-                        }
-                    }
-                } else {
-                    if ($this->validEmail($v)) {
-                        $sender_email = $v;
-                    }
-                    else
-                    {
-                   		//$contact_message.=$v."\n";
-                    }
-                }
-            }
-            $post_info['comment_type'] = 'breezing_contact_form';
-        }
-        // Genertal test for any forms or form with custom fields
-        elseif (($_SERVER['REQUEST_METHOD'] == 'POST' && $config['general_contact_forms_test']) || 
-        	$option_cmd == 'com_rsform' ||
-        	$option_cmd == 'com_virtuemart')
-        {
-			$ct_temp_msg_data = $this->getFieldsAny($_POST);
-			$sender_email    = ($ct_temp_msg_data['email']    ? $ct_temp_msg_data['email']    : '');
-			$sender_nickname = ($ct_temp_msg_data['nickname'] ? $ct_temp_msg_data['nickname'] : '');
-			$subject         = ($ct_temp_msg_data['subject']  ? $ct_temp_msg_data['subject']  : '');
-			$contact_form    = ($ct_temp_msg_data['contact']  ? $ct_temp_msg_data['contact']  : true);
-			$message         = ($ct_temp_msg_data['message']  ? $ct_temp_msg_data['message']  : array());
-
-			if ($subject != '')
-				$message = array_merge(array('subject' => $subject), $message);
-			$message = implode("\n", $message);
-        }
-        if ($config['check_external'] && isset($_SERVER['REQUEST_METHOD'], $_POST['ct_method'], $_POST['ct_action']))
-        {
-	    	$action = htmlspecialchars($_POST['ct_action']);
-	    	$method = htmlspecialchars($_POST['ct_method']);
-	    	unset($_POST['ct_action'], $_POST['ct_method']);        	
-        }
-        if (!$this->exceptionList() && (trim($sender_email) !='' || $config['check_all_post']))
-        {
-        	$ctResponse = self::ctSendRequest(
-	            'check_message', array(
-	                'sender_nickname' => $sender_nickname,
-	                'sender_email' => $sender_email,
-	                'message' => trim(preg_replace("/(^[\r\n]*|[\r\n]+)[\s\t]*[\r\n]+/","\n", $message)),
-	                'post_info' => $post_info,
-	            )
-        	);
-
-            if ($ctResponse) 
-            {
-		        if (!empty($ctResponse) && is_array($ctResponse)) 
-		        {
-		            if ($ctResponse['errno'] != 0) 
-		                $this->sendAdminEmail("CleanTalk. Can't verify feedback message!", $ctResponse['comment']);
-					else 
-					{
-				        if (empty($_POST['cleantalk_hidden_ajax']) && $config['check_external'] && isset($_SERVER['REQUEST_METHOD'], $_POST['ct_method'], $_POST['ct_action']))
-				        {
-							print "<html><body><form method='$method' action='$action'>";
-							print "</form></body></html>";
-							print "<script>
-								if(document.forms[0].submit != 'undefined'){
-									var objects = document.getElementsByName('submit');
-									if(objects.length > 0)
-										document.forms[0].removeChild(objects[0]);
-								}
-								document.forms[0].submit();
-							</script>";
-							die();       	
-				        }
-		                if ($ctResponse['allow'] == 0)
-		                {
-		            		$error_tpl=file_get_contents(dirname(__FILE__)."/error.html");
-							print str_replace('%ERROR_TEXT%',$ctResponse['comment'],$error_tpl);
-							die();		                    	                	
-		                } 
-
-		            }
-		        } 
-            }
-        }
     }
 
     ////////////////////////////
@@ -1543,7 +1552,7 @@ class plgSystemAntispambycleantalk extends JPlugin
      */
     private function submit_time_test() 
     {
-    	return $this->ct_cookies_test() ? time() - intval($_COOKIE['ct_ps_timestamp']) : 0;
+    	return $this->ct_cookies_test() ? time() - intval($_COOKIE['ct_timestamp']) : null;
     }
     
     /**
@@ -1590,6 +1599,12 @@ class plgSystemAntispambycleantalk extends JPlugin
 			'cookies_names' => array(),
 			'check_value' => $config['apikey'],
 		);
+
+		// Submit time
+		$ct_timestamp = time();
+		setcookie('ct_timestamp', $ct_timestamp, 0, '/');
+		$cookie_test_value['cookies_names'][] = 'ct_timestamp';
+		$cookie_test_value['check_value'] .= $ct_timestamp;
 
         // Pervious referer
         if(!empty($_SERVER['HTTP_REFERER'])){
