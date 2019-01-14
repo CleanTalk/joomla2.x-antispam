@@ -69,10 +69,37 @@ class plgSystemAntispambycleantalk extends JPlugin
 		if (isset($config['id']))
 		{
 			$this->_id = $config['id'];
-		}        
+		}
+		else $this->_id = $this->getId();        
 
         $this->loadLanguage();	
     } 
+
+	private function getId()
+	{
+		$db=JFactory::getDBO();
+		if(!version_compare(JVERSION, '3', 'ge')){ //joomla 2.5
+		
+			$sql='SELECT extension_id FROM #__extensions WHERE folder ="'.$db->getEscaped('system').'" AND element ="'.$db->getEscaped('antispambycleantalk').'"';
+			$db->setQuery($sql);
+			
+		}else{
+			
+			$query = $db->getQuery(true);
+			$query
+				->select($db->quoteName('a.extension_id'))
+				->from($db->quoteName('#__extensions', 'a'))
+				->where($db->quoteName('a.element').' = '.$db->quote('antispambycleantalk'))
+				->where($db->quoteName('a.folder').' = '.$db->quote('system'));
+			$db->setQuery($query);
+			$db->execute();
+		}
+		if(!($plg=$db->loadObject()))
+			return 0;
+		else
+			return (int)$plg->extension_id;
+		
+	}
 
     private function cleantalk_get_checkjs_code()
     {
@@ -1098,7 +1125,7 @@ class plgSystemAntispambycleantalk extends JPlugin
         // set new time because onJCommentsFormAfterDisplay worked only once
         // and formtime in session need to be renewed between ajax posts
         
-        $post_info['comment_type'] = 'jcomments_comment'; 
+        $post_info['comment_type'] = 'comment'; 
         $post_info['post_url'] = $session->get('cleantalk_current_page'); 
         $post_info = json_encode($post_info);
         if ($post_info === false) {
