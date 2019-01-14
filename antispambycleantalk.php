@@ -690,7 +690,28 @@ class plgSystemAntispambycleantalk extends JPlugin
     	$user = JFactory::getUser();
 		$app = JFactory::getApplication();	
 		$document = JFactory::getDocument();
-		
+
+		// Version comparsion
+		if(!version_compare(JVERSION, '3', 'ge'))
+		{			
+			$buf=$document->getHeadData();
+			$is_jquery=false;
+			foreach($buf['scripts'] as $key=>$value )				
+				if(stripos($key,'jquery')!==false)
+					$is_jquery=true;				
+			if(!$is_jquery)
+				$document->addScript(Juri::root()."plugins/system/antispambycleantalk/jquery-1.11.2.min.js");
+			
+			$document->addScriptDeclaration("jQuery.noConflict();");
+			$document->addScriptDeclaration("var ct_joom25=true;");
+			
+		}
+		else
+		{
+			JHtml::_('jquery.framework');
+			$document->addScriptDeclaration("var ct_joom25=false;");
+		}	
+
 		if ($app->isSite())
 		{			
 	        $this->sfw_check();			
@@ -702,27 +723,6 @@ class plgSystemAntispambycleantalk extends JPlugin
 
     	if($user->get('isRoot'))
     	{			
-			// Version comparsion
-			if(!version_compare(JVERSION, '3', 'ge'))
-			{
-				
-				$buf=$document->getHeadData();
-				$is_jquery=false;
-				foreach($buf['scripts'] as $key=>$value )				
-					if(stripos($key,'jquery')!==false)
-						$is_jquery=true;				
-				if(!$is_jquery)
-					$document->addScript(Juri::root()."plugins/system/antispambycleantalk/jquery-1.11.2.min.js");
-				
-				$document->addScriptDeclaration("jQuery.noConflict();");
-				$document->addScriptDeclaration("var ct_joom25=true;");
-				
-			}
-			else
-			{
-				JHtml::_('jquery.framework');
-				$document->addScriptDeclaration("var ct_joom25=false;");
-			}
 			if($app->isAdmin())
 			{
 				$temp_config = $this->checkIsPaid($config['apikey']);
