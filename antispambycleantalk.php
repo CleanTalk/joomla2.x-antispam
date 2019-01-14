@@ -107,9 +107,10 @@ class plgSystemAntispambycleantalk extends JPlugin
     	$keys = $config['js_keys'];
     	$keys_checksum = md5(json_encode($keys));
 
-        $key = null;
+        $key = rand();
         $latest_key_time = 0;
-        if ($keys && is_array($keys))
+
+        if ($keys && is_array($keys) && !empty($keys))
         {
 	        foreach ($keys as $k => $t) {
 
@@ -124,14 +125,13 @@ class plgSystemAntispambycleantalk extends JPlugin
 	                $key = $k;
 	            }
 	        }
+	        // Get new key if the latest key is too old
+	        if (time() - $latest_key_time > $config['js_key_lifetime']) {
+	            $keys[$key] = time();
+	        }	        
 	    }
-	        
-        // Get new key if the latest key is too old
-        if (time() - $latest_key_time > $config['js_key_lifetime']) {
-            $key = rand();
-            $keys[$key] = time();
-        }
-        
+	    else $keys = array($key => time());
+	                
         if (md5(json_encode($keys)) != $keys_checksum) {
         	$save_params['js_keys'] = $keys;
         	$this->saveCTConfig($save_params);
@@ -939,7 +939,8 @@ class plgSystemAntispambycleantalk extends JPlugin
 	            $post_info['comment_type'] = 'breezing_contact_form';
 	        }
 	        // Genertal test for any forms or form with custom fields
-	        elseif ($config['general_contact_forms_test'] || 
+	        elseif ($config['general_contact_forms_test'] ||
+	        	$config['check_external'] || 
 	        	$option_cmd == 'com_rsform' ||
 	        	$option_cmd == 'com_virtuemart')
 	        {
@@ -954,12 +955,7 @@ class plgSystemAntispambycleantalk extends JPlugin
 					$message = array_merge(array('subject' => $subject), $message);
 				$message = implode("\n", $message);
 	        }
-	        if ($config['check_external'] && isset($_SERVER['REQUEST_METHOD'], $_POST['ct_method'], $_POST['ct_action']))
-	        {
-		    	$action = htmlspecialchars($_POST['ct_action']);
-		    	$method = htmlspecialchars($_POST['ct_method']);
-		    	unset($_POST['ct_action'], $_POST['ct_method']);        	
-	        }
+
 	        if (!$this->exceptionList() && (trim($sender_email) !='' || $config['check_all_post']))
 	        {
 	        	$ctResponse = self::ctSendRequest(
@@ -979,20 +975,6 @@ class plgSystemAntispambycleantalk extends JPlugin
 			                $this->sendAdminEmail("CleanTalk. Can't verify feedback message!", $ctResponse['comment']);
 						else 
 						{
-					        if (empty($_POST['cleantalk_hidden_ajax']) && $config['check_external'] && isset($_SERVER['REQUEST_METHOD'], $_POST['ct_method'], $_POST['ct_action']))
-					        {
-								print "<html><body><form method='$method' action='$action'>";
-								print "</form></body></html>";
-								print "<script>
-									if(document.forms[0].submit != 'undefined'){
-										var objects = document.getElementsByName('submit');
-										if(objects.length > 0)
-											document.forms[0].removeChild(objects[0]);
-									}
-									document.forms[0].submit();
-								</script>";
-								die();       	
-					        }
 			                if ($ctResponse['allow'] == 0)
 			                {
 			            		$error_tpl=file_get_contents(dirname(__FILE__)."/error.html");
