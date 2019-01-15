@@ -936,7 +936,7 @@ class plgSystemAntispambycleantalk extends JPlugin
 	                    }
 	                }
 	            }
-	            $post_info['comment_type'] = 'breezing_contact_form';
+	            $post_info['comment_type'] = 'contact_form_breezing';
 	        }
 	        // Genertal test for any forms or form with custom fields
 	        elseif ($config['general_contact_forms_test'] ||
