@@ -886,7 +886,7 @@ class plgSystemAntispambycleantalk extends JPlugin
 				'post_url'     => isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : ''
 			);     
 			if ($option_cmd == 'com_rsform')
-				$post_info['comment_type'] = 'rsform_contact_form';
+				$post_info['comment_type'] = 'contact_form_rsform';
 	        //Rapid
 	        if (isset($_POST['rp_email'])){ 
 	            $sender_email = $_POST['rp_email'];
@@ -896,7 +896,7 @@ class plgSystemAntispambycleantalk extends JPlugin
 	            
 	            if (isset($_POST['rp_message']))
 	                $message .= ' ' . $_POST['rp_message'];
-	            $post_info['comment_type'] = 'rapid_contact_form';
+	            $post_info['comment_type'] = 'contact_form_rapid';
 	        } //VTEM Contact
 	        elseif (isset($_POST["vcontact_email"])) { 
 	            $sender_email = $_POST['vcontact_email'];
@@ -908,7 +908,7 @@ class plgSystemAntispambycleantalk extends JPlugin
 	            
 	            if (isset($_POST["vcontact_name"]))
 	                $sender_nickname = $_POST["vcontact_name"];
-	            $post_info['comment_type'] = 'vtem_contact_form';
+	            $post_info['comment_type'] = 'contact_form_vtem';
 	        } //BreezingForms
 	        elseif (isset($_POST['ff_task']) && $_POST['ff_task'] == 'submit') {
 
