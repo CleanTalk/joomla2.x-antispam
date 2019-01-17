@@ -1263,7 +1263,7 @@ class plgSystemAntispambycleantalk extends JPlugin
     private function moderateUser() {
         // Call function only for guests
         // Call only for $_POST with variables
-        if (JFactory::getUser()->id || $_SERVER['REQUEST_METHOD'] != 'POST') {
+        if (JFactory::getUser()->id || $_SERVER['REQUEST_METHOD'] != 'POST' || $this->exceptionList()) {
             return false;
         }
         $post = $_POST;
