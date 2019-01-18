@@ -1261,9 +1261,10 @@ class plgSystemAntispambycleantalk extends JPlugin
      * Moderate new user
      */
     private function moderateUser() {
+    	$config = $this->getCTConfig();
         // Call function only for guests
         // Call only for $_POST with variables
-        if (JFactory::getUser()->id || $_SERVER['REQUEST_METHOD'] != 'POST' || $this->exceptionList()) {
+        if (JFactory::getUser()->id || $_SERVER['REQUEST_METHOD'] != 'POST' || !$config['check_register'] || JFactory::getApplication()->input->get('option') == 'com_easysocial') {
             return false;
         }
         $post = $_POST;
@@ -1453,6 +1454,7 @@ class plgSystemAntispambycleantalk extends JPlugin
 		$config['apikey'] = trim($jreg->get('apikey', ''));
 		$config['ct_key_is_ok'] = intval($jreg->get('ct_key_is_ok',0));
 		$config['sfw_enable'] = intval($jreg->get('sfw_enable', 0));
+		$config['check_register'] = intval($jreg->get('check_register', 0));
 		$config['check_external'] = intval($jreg->get('check_external', 0));
 		$config['check_all_post'] = intval($jreg->get('check_all_post', 0));
 		$config['sfw_last_check'] = intval($jreg->get('sfw_last_check', 0));

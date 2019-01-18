@@ -54,7 +54,8 @@
 			<field name="hr_spacer" type="spacer" 
 				label="&lt;hr/&gt;"
 				class="cleantalk_spacer"
-			/>			
+			/>
+			<field name="check_register" type="checkbox" label="COM_PLUGINS_CT_CHECK_REGISTER" value="1" default="0" description="COM_PLUGINS_CT_CHECK_REGISTER_DESCRIPTION" />			
             <field name="general_contact_forms_test" type="checkbox" label="COM_PLUGINS_CT_CUSTOM_FORMS" value="1" default="0" description="COM_PLUGINS_CT_CUSTOM_FORMS_DESCRIPTION" />
 
             <field name="sfw_enable" type="checkbox" label="COM_PLUGINS_CT_SPAM_FIREWALL" value="1" default="0" description="COM_PLUGINS_CT_SPAM_FIREWALL_DESCRIPTION" />
