@@ -1603,30 +1603,34 @@ class plgSystemAntispambycleantalk extends JPlugin
 	 */
 	private function ct_cookie(){
 		
-		$config = $this->getCTConfig();
-		
-		// Cookie names to validate
-		$cookie_test_value = array(
-			'cookies_names' => array(),
-			'check_value' => $config['apikey'],
-		);
+		if (!headers_sent())
+		{
+			$config = $this->getCTConfig();
+			
+			// Cookie names to validate
+			$cookie_test_value = array(
+				'cookies_names' => array(),
+				'check_value' => $config['apikey'],
+			);
 
-		// Submit time
-		$ct_timestamp = time();
-		setcookie('ct_timestamp', $ct_timestamp, 0, '/');
-		$cookie_test_value['cookies_names'][] = 'ct_timestamp';
-		$cookie_test_value['check_value'] .= $ct_timestamp;
+			// Submit time
+			$ct_timestamp = time();
+			setcookie('ct_timestamp', $ct_timestamp, 0, '/');
+			$cookie_test_value['cookies_names'][] = 'ct_timestamp';
+			$cookie_test_value['check_value'] .= $ct_timestamp;
 
-        // Pervious referer
-        if(!empty($_SERVER['HTTP_REFERER'])){
-            setcookie('ct_prev_referer', $_SERVER['HTTP_REFERER'], 0, '/');
-            $cookie_test_value['cookies_names'][] = 'ct_prev_referer';
-            $cookie_test_value['check_value'] .= $_SERVER['HTTP_REFERER'];
-        }			
+	        // Pervious referer
+	        if(!empty($_SERVER['HTTP_REFERER'])){
+	            setcookie('ct_prev_referer', $_SERVER['HTTP_REFERER'], 0, '/');
+	            $cookie_test_value['cookies_names'][] = 'ct_prev_referer';
+	            $cookie_test_value['check_value'] .= $_SERVER['HTTP_REFERER'];
+	        }			
 
-		// Cookies test
-		$cookie_test_value['check_value'] = md5($cookie_test_value['check_value']);
-		setcookie('ct_cookies_test', json_encode($cookie_test_value), 0, '/');
+			// Cookies test
+			$cookie_test_value['check_value'] = md5($cookie_test_value['check_value']);
+			setcookie('ct_cookies_test', json_encode($cookie_test_value), 0, '/');			
+		}
+
 	}
 
 	/**
