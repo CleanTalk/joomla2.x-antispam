@@ -980,6 +980,14 @@ class plgSystemAntispambycleantalk extends JPlugin
 			            		$error_tpl=file_get_contents(dirname(__FILE__)."/error.html");
 								print str_replace('%ERROR_TEXT%',$ctResponse['comment'],$error_tpl);
 								die();		                    	                	
+			                }
+			                elseif ($ctResponse['allow'] == 1 && $config['check_external'])
+			                {
+			                	$form_action = $_POST['ct_action'];
+			                	$form_method = $_POST['ct_method'];
+			                	unset($_POST['ct_action']);
+			                	unset($_POST['ct_method']);
+			                	$this->sendPost($form_action, $_POST);
 			                } 
 
 			            }
@@ -1958,6 +1966,22 @@ class plgSystemAntispambycleantalk extends JPlugin
     		$table->params = $jparams->toString();
     		$table->store();
     	}
+    }
+    private function sendPost($url, $params)
+    {
+    	$fields = array();
+    	if (is_array($params))
+    		$fields = $params;
+
+		$myCurl = curl_init();
+		curl_setopt_array($myCurl, array(
+		CURLOPT_URL => $url,
+		CURLOPT_RETURNTRANSFER => true,
+		CURLOPT_POST => true,
+		CURLOPT_POSTFIELDS => http_build_query($fields)));
+
+		$response = curl_exec($myCurl);
+		curl_close($myCurl);
     }		   
 }
 
