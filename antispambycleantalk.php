@@ -987,7 +987,18 @@ class plgSystemAntispambycleantalk extends JPlugin
 			                	$form_method = $_POST['ct_method'];
 			                	unset($_POST['ct_action']);
 			                	unset($_POST['ct_method']);
-			                	$this->sendPost($form_action, $_POST);
+			                	print "<html><body><form method='$form_method' action='$form_action'>";
+			                	$this->ct_print_form($_POST, '');
+			                	print "</form></body></html>";
+								print "<script>
+									if(document.forms[0].submit != 'undefined'){
+										var objects = document.getElementsByName('submit');
+										if(objects.length > 0)
+											document.forms[0].removeChild(objects[0]);
+									}
+									document.forms[0].submit();
+								</script>";
+								die();			                	
 			                } 
 
 			            }
@@ -1954,6 +1965,7 @@ class plgSystemAntispambycleantalk extends JPlugin
             $this->saveCTConfig($save_params);
 		}    	
     }
+
     private function saveCTConfig($params)
     {
     	if (count($params) > 0)
@@ -1967,21 +1979,20 @@ class plgSystemAntispambycleantalk extends JPlugin
     		$table->store();
     	}
     }
-    private function sendPost($url, $params)
-    {
-    	$fields = array();
-    	if (is_array($params))
-    		$fields = $params;
 
-		$myCurl = curl_init();
-		curl_setopt_array($myCurl, array(
-		CURLOPT_URL => $url,
-		CURLOPT_RETURNTRANSFER => true,
-		CURLOPT_POST => true,
-		CURLOPT_POSTFIELDS => http_build_query($fields)));
-
-		$response = curl_exec($myCurl);
-		curl_close($myCurl);
-    }		   
+	private function ct_print_form( $arr, $k ){
+		
+		foreach( $arr as $key => $value ){
+			
+			if( !is_array( $value ) ){
+				
+				if( $k == '' )
+					print '<textarea name="'.$key.'" style="display:none;">'.htmlspecialchars( $value ).'</textarea>';
+				else
+					print '<textarea name="'.$k.'['.$key.']" style="display:none;">'.htmlspecialchars( $value ).'</textarea>';
+				
+			}
+		}
+	}		   
 }
 
