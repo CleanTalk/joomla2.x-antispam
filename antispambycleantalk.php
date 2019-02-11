@@ -43,6 +43,11 @@ class plgSystemAntispambycleantalk extends JPlugin
      * Plugin id
      */
     private $_id;
+
+    /**
+     * Minimum time between remote calls
+     */
+    const APBCT_REMOTE_CALL_SLEEP = 10;
      
     /**
      * Constructor
@@ -405,6 +410,14 @@ class plgSystemAntispambycleantalk extends JPlugin
 		
 		$config = $this->getCTConfig();
         $app = JFactory::getApplication(); 
+
+        if (!$app->isAdmin())
+        {
+			// Remote calls
+			if(isset($_GET['spbc_remote_call_token'], $_GET['spbc_remote_call_action'], $_GET['plugin_name']) && in_array($_GET['plugin_name'], array('antispam','anti-spam', 'apbct'))){
+				$this->apbct_remote_call__perform();
+			}
+        }
 
 		if($app->isAdmin() && $app->input->get('layout') == 'edit' && $app->input->get('extension_id') == $this->_id)
 		{
@@ -1493,7 +1506,8 @@ class plgSystemAntispambycleantalk extends JPlugin
 		$config['js_keys'] = json_decode(json_encode($jreg->get('js_keys',array())),true);
 		$config['js_keys_store_days'] = intval($jreg->get('js_keys_store_days',14));
 		$config['js_key_lifetime'] = intval($jreg->get('js_key_lifetime',86400));
-		$config['show_review_done'] = intval($jreg->get('show_review_done',0));						
+		$config['show_review_done'] = intval($jreg->get('show_review_done',0));		
+		$config['remote_calls'] = json_decode(json_encode($jreg->get('remote_calls',array('close_renew_banner' => array('last_call' => 0),'sfw_update' => array('last_call' => 0),'sfw_send_logs' => array('last_call' => 0),'update_plugin' =>array('last_call' => 0)))),true);						
 		$config['connection_reports']= json_decode(json_encode($jreg->get('connection_reports',array('success' => 0, 'negative'=> 0,'negative_report' => null))),true);
 		
         return $config;
@@ -1993,6 +2007,53 @@ class plgSystemAntispambycleantalk extends JPlugin
 				
 			}
 		}
+	}
+
+	/**
+	* Function preforms remote call
+	*/	
+	private function apbct_remote_call__perform()
+	{
+		$config = $this->getCTConfig();
+
+		$remote_action = $_GET['spbc_remote_call_action'];
+
+		$save_params = array();
+		if(array_key_exists($remote_action, $config['remote_calls'])){
+					
+			if(time() - $config['remote_calls'][$remote_action]['last_call'] > self::APBCT_REMOTE_CALL_SLEEP){
+				
+				$save_params['remote_calls'][$remote_action]['last_call'] = time();
+				$this->saveCTConfig($save_params);
+
+				if(strtolower($_GET['spbc_remote_call_token']) == strtolower(md5($config['apikey']))){
+
+					// Close renew banner
+					if($_GET['spbc_remote_call_action'] == 'close_renew_banner'){
+						$save_params['show_review_done'] = 1;
+						$this->saveCTConfig($save_params);
+						die('OK');
+					// SFW update
+					}elseif($_GET['spbc_remote_call_action'] == 'sfw_update'){
+						$sfw = new CleantalkSFW();					
+						$result = $sfw->sfw_update($config['apikey']);
+						die(empty($result['error']) ? 'OK' : 'FAIL '.json_encode(array('error' => $result['error_string'])));
+					// SFW send logs
+					}elseif($_GET['spbc_remote_call_action'] == 'sfw_send_logs'){
+						$sfw = new CleantalkSFW();					
+						$result = $sfw->sfw_send_logs($config['apikey']);
+						die(empty($result['error']) ? 'OK' : 'FAIL '.json_encode(array('error' => $result['error_string'])));
+					// Update plugin
+					}elseif($_GET['spbc_remote_call_action'] == 'update_plugin'){
+						//add_action('wp', 'apbct_update', 1);
+					}else
+						die('FAIL '.json_encode(array('error' => 'UNKNOWN_ACTION_2')));
+				}else
+					die('FAIL '.json_encode(array('error' => 'WRONG_TOKEN')));
+			}else
+				die('FAIL '.json_encode(array('error' => 'TOO_MANY_ATTEMPTS')));
+		}else
+			die('FAIL '.json_encode(array('error' => 'UNKNOWN_ACTION')));		
 	}		   
 }
 
