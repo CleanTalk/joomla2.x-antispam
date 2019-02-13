@@ -902,9 +902,9 @@ class plgSystemAntispambycleantalk extends JPlugin
 				'post_url'     => isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : ''
 			);     
 			if ($option_cmd == 'com_rsform')
-				$post_info['comment_type'] = 'contact_form_rsform';
+				$post_info['comment_type'] = 'contact_form_joomla_rsform';
 			if ($option_cmd = 'com_baforms')
-				$post_info['comment_type'] = 'contact_form_balbooa';
+				$post_info['comment_type'] = 'contact_form_joomla_balbooa';
 	        //Rapid
 	        if (isset($_POST['rp_email'])){ 
 	            $sender_email = $_POST['rp_email'];
@@ -914,7 +914,7 @@ class plgSystemAntispambycleantalk extends JPlugin
 	            
 	            if (isset($_POST['rp_message']))
 	                $message .= ' ' . $_POST['rp_message'];
-	            $post_info['comment_type'] = 'contact_form_rapid';
+	            $post_info['comment_type'] = 'contact_form_joomla_rapid';
 	        } //VTEM Contact
 	        elseif (isset($_POST["vcontact_email"])) { 
 	            $sender_email = $_POST['vcontact_email'];
@@ -926,7 +926,7 @@ class plgSystemAntispambycleantalk extends JPlugin
 	            
 	            if (isset($_POST["vcontact_name"]))
 	                $sender_nickname = $_POST["vcontact_name"];
-	            $post_info['comment_type'] = 'contact_form_vtem';
+	            $post_info['comment_type'] = 'contact_form_joomla_vtem';
 	        } //BreezingForms
 	        elseif (isset($_POST['ff_task']) && $_POST['ff_task'] == 'submit') {
 
@@ -954,7 +954,7 @@ class plgSystemAntispambycleantalk extends JPlugin
 	                    }
 	                }
 	            }
-	            $post_info['comment_type'] = 'contact_form_breezing';
+	            $post_info['comment_type'] = 'contact_form_joomla_breezing';
 	        }
 	        // Genertal test for any forms or form with custom fields
 	        elseif ($config['general_contact_forms_test'] ||
