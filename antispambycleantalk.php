@@ -262,6 +262,9 @@ class plgSystemAntispambycleantalk extends JPlugin
 			// Contact Form 7
 			'_wpcf7',
 			'avatar__file_image_data',
+			'task',
+			'page_url',
+			'page_title',
 		);
 		$fields_exclusions = CleantalkCustomConfig::get_fields_exclusions();
 		if ($fields_exclusions)
@@ -900,6 +903,8 @@ class plgSystemAntispambycleantalk extends JPlugin
 			);     
 			if ($option_cmd == 'com_rsform')
 				$post_info['comment_type'] = 'contact_form_rsform';
+			if ($option_cmd = 'com_baforms')
+				$post_info['comment_type'] = 'contact_form_balbooa';
 	        //Rapid
 	        if (isset($_POST['rp_email'])){ 
 	            $sender_email = $_POST['rp_email'];
@@ -955,7 +960,8 @@ class plgSystemAntispambycleantalk extends JPlugin
 	        elseif ($config['general_contact_forms_test'] ||
 	        	$config['check_external'] || 
 	        	$option_cmd == 'com_rsform' ||
-	        	$option_cmd == 'com_virtuemart')
+	        	$option_cmd == 'com_virtuemart' ||
+	        	$option_cmd == 'com_baforms')
 	        {
 				$ct_temp_msg_data = $this->getFieldsAny($_POST);
 				$sender_email    = ($ct_temp_msg_data['email']    ? $ct_temp_msg_data['email']    : '');
@@ -990,8 +996,15 @@ class plgSystemAntispambycleantalk extends JPlugin
 						{
 			                if ($ctResponse['allow'] == 0)
 			                {
-			            		$error_tpl=file_get_contents(dirname(__FILE__)."/error.html");
-								print str_replace('%ERROR_TEXT%',$ctResponse['comment'],$error_tpl);
+			                	if ($option_cmd == 'com_baforms')
+			                	{
+			                		echo '<input id="form-sys-mesage" type="hidden" value="' .htmlspecialchars($ctResponse['comment'], ENT_QUOTES). '">';
+			                		print "<script>var obj = { type : 'baform', msg : document.getElementById('form-sys-mesage').value }; window.parent.postMessage(obj, '*');</script>";
+			                	}
+			                	else {
+				            		$error_tpl=file_get_contents(dirname(__FILE__)."/error.html");
+									print str_replace('%ERROR_TEXT%',$ctResponse['comment'],$error_tpl);			                		
+			                	}
 								die();		                    	                	
 			                }
 			                elseif ($ctResponse['allow'] == 1 && $config['check_external'])
