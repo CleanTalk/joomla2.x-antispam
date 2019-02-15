@@ -265,6 +265,8 @@ class plgSystemAntispambycleantalk extends JPlugin
 			'task',
 			'page_url',
 			'page_title',
+			'Submit',
+			'formId',
 		);
 		$fields_exclusions = CleantalkCustomConfig::get_fields_exclusions();
 		if ($fields_exclusions)
