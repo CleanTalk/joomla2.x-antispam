@@ -1007,7 +1007,7 @@ class plgSystemAntispambycleantalk extends JPlugin
 			                	}
 								die();		                    	                	
 			                }
-			                elseif ($ctResponse['allow'] == 1 && $config['check_external'])
+			                elseif ($ctResponse['allow'] == 1 && $config['check_external'] && isset($_POST['ct_action'], $_POST['ct_method']))
 			                {
 			                	$form_action = $_POST['ct_action'];
 			                	$form_method = $_POST['ct_method'];
