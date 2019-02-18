@@ -903,9 +903,9 @@ class plgSystemAntispambycleantalk extends JPlugin
 				'comment_type' => 'feedback_general_contact_form',
 				'post_url'     => isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : ''
 			);     
-			if ($option_cmd == 'com_rsform')
+			if ($app->input->get('option') == 'com_rsform')
 				$post_info['comment_type'] = 'contact_form_joomla_rsform';
-			if ($option_cmd = 'com_baforms')
+			if ($app->input->get('option') == 'com_baforms')
 				$post_info['comment_type'] = 'contact_form_joomla_balbooa';
 	        //Rapid
 	        if (isset($_POST['rp_email'])){ 
@@ -961,9 +961,9 @@ class plgSystemAntispambycleantalk extends JPlugin
 	        // Genertal test for any forms or form with custom fields
 	        elseif ($config['general_contact_forms_test'] ||
 	        	$config['check_external'] || 
-	        	$option_cmd == 'com_rsform' ||
-	        	$option_cmd == 'com_virtuemart' ||
-	        	$option_cmd == 'com_baforms')
+	        	$app->input->get('option') == 'com_rsform' ||
+	        	$app->input->get('option') == 'com_virtuemart' ||
+	        	$app->input->get('option') == 'com_baforms')
 	        {
 				$ct_temp_msg_data = $this->getFieldsAny($_POST);
 				$sender_email    = ($ct_temp_msg_data['email']    ? $ct_temp_msg_data['email']    : '');
@@ -984,10 +984,9 @@ class plgSystemAntispambycleantalk extends JPlugin
 		                'sender_nickname' => $sender_nickname,
 		                'sender_email' => $sender_email,
 		                'message' => trim(preg_replace("/(^[\r\n]*|[\r\n]+)[\s\t]*[\r\n]+/","\n", $message)),
-		                'post_info' => $post_info,
+		                'post_info' => json_encode($post_info),
 		            )
 	        	);
-
 	            if ($ctResponse) 
 	            {
 			        if (!empty($ctResponse) && is_array($ctResponse)) 
@@ -998,16 +997,18 @@ class plgSystemAntispambycleantalk extends JPlugin
 						{
 			                if ($ctResponse['allow'] == 0)
 			                {
-			                	if ($option_cmd == 'com_baforms')
+			                	if ($app->input->get('option') == 'com_baforms')
 			                	{
 			                		echo '<input id="form-sys-mesage" type="hidden" value="' .htmlspecialchars($ctResponse['comment'], ENT_QUOTES). '">';
 			                		print "<script>var obj = { type : 'baform', msg : document.getElementById('form-sys-mesage').value }; window.parent.postMessage(obj, '*');</script>";
+			                		die();
 			                	}
 			                	else {
 				            		$error_tpl=file_get_contents(dirname(__FILE__)."/error.html");
-									print str_replace('%ERROR_TEXT%',$ctResponse['comment'],$error_tpl);			                		
+									print str_replace('%ERROR_TEXT%',$ctResponse['comment'],$error_tpl);	
+									die();		                		
 			                	}
-								die();		                    	                	
+		                    	                	
 			                }
 			                elseif ($ctResponse['allow'] == 1 && $config['check_external'] && isset($_POST['ct_action'], $_POST['ct_method']))
 			                {
@@ -1078,7 +1079,7 @@ class plgSystemAntispambycleantalk extends JPlugin
                 'sender_nickname' => $data[$user_name_key],
                 'sender_email' => $data[$user_email_key],
                 'message' => $data[$subject_key] . "\n " . $data[$message_key],
-                'post_info' => $post_info,
+                'post_info' => json_encode($post_info),
             )
         );
         if ($ctResponse)
@@ -1221,7 +1222,7 @@ class plgSystemAntispambycleantalk extends JPlugin
                         'message' =>preg_replace('/\s+/', ' ',str_replace("<br />", " ", $comment->comment)),
                         'sender_nickname' => $comment->name,
                         'sender_email' => $comment->email,
-                        'post_info' => $post_info,
+                        'post_info' => json_encode($post_info),
                     )
                 );
                 if ($ctResponse)
