@@ -1079,7 +1079,7 @@ class plgSystemAntispambycleantalk extends JPlugin
                 'sender_nickname' => $data[$user_name_key],
                 'sender_email' => $data[$user_email_key],
                 'message' => $data[$subject_key] . "\n " . $data[$message_key],
-                'post_info' => json_encode($post_info),
+                'post_info' => $post_info,
             )
         );
         if ($ctResponse)
@@ -1222,7 +1222,7 @@ class plgSystemAntispambycleantalk extends JPlugin
                         'message' =>preg_replace('/\s+/', ' ',str_replace("<br />", " ", $comment->comment)),
                         'sender_nickname' => $comment->name,
                         'sender_email' => $comment->email,
-                        'post_info' => json_encode($post_info),
+                        'post_info' => $post_info,
                     )
                 );
                 if ($ctResponse)
