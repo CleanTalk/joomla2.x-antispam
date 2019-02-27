@@ -907,6 +907,8 @@ class plgSystemAntispambycleantalk extends JPlugin
 				$post_info['comment_type'] = 'contact_form_joomla_rsform';
 			if ($app->input->get('option') == 'com_baforms')
 				$post_info['comment_type'] = 'contact_form_joomla_balbooa';
+			if ($app->input->get('option') == 'com_virtuemart' && $app->input->get('task') == 'savecheckoutuser')
+				$post_info['comment_type'] = 'order';
 	        //Rapid
 	        if (isset($_POST['rp_email'])){ 
 	            $sender_email = $_POST['rp_email'];
