@@ -734,7 +734,8 @@ class plgSystemAntispambycleantalk extends JPlugin
 		{			
 	        $this->sfw_check();			
 			$this->ct_cookie();	
-			$document->addScriptDeclaration($this->getJSTest());
+			$document->addScript(JURI::root(true)."/plugins/system/antispambycleantalk/js/ct-functions.js?".time());
+			$document->addScriptDeclaration('ctSetCookie("ct_checkjs", "'.$this->cleantalk_get_checkjs_code().'", "0");');			
 			if ($config['check_external'])
 				$document->addScript(JURI::root(true)."/plugins/system/antispambycleantalk/js/ct-external.js?".time());
 		}
@@ -1574,26 +1575,7 @@ class plgSystemAntispambycleantalk extends JPlugin
         
         return $checkjs;
     }
-
-    /**
-     * Gets HTML code with link to Cleantalk site
-     * @return null 
-     * @since 1.5
-     */
-    private function getJSTest() 
-    {
-        $value = $this->cleantalk_get_checkjs_code();
-        /*
-            JavaScript validation via Cookies
-        */
-        $field_name = 'ct_checkjs';
-        $get_funcs = file_get_contents(dirname(__FILE__) . DS. "js". DS. "ct-functions.js");
-        $html = str_replace("{value}", $value, $get_funcs);
-		$html = sprintf($html, $field_name, $value);
-
-        return $html;
-        
-    } 
+    
     /**
      * Valids email 
      * @return bool 

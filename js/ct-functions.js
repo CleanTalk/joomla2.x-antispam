@@ -5,7 +5,6 @@ function ctSetCookie(c_name, value) {
 ctSetCookie("ct_ps_timestamp", Math.floor(new Date().getTime()/1000));
 ctSetCookie("ct_fkp_timestamp", "0");
 ctSetCookie("ct_pointer_data", "0");
-ctSetCookie("ct_checkjs", "{value}", "0");
 ctSetCookie("ct_timezone", new Date().getTimezoneOffset()/60*(-1));
 
 //Stop observing function
