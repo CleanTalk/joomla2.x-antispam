@@ -1408,7 +1408,10 @@ class plgSystemAntispambycleantalk extends JPlugin
 		}
 
         $config = $this->getCTConfig();
-        		
+        
+        if ($config['skip_registered_users'] && !JFactory::getUser()->guest)	
+        	return;	
+        
         $ct_request = new CleantalkRequest;
 
         foreach ($params as $k => $v) {
@@ -1507,6 +1510,7 @@ class plgSystemAntispambycleantalk extends JPlugin
 		$config['sfw_enable'] = intval($jreg->get('sfw_enable', 0));
 		$config['check_register'] = intval($jreg->get('check_register', 0));
 		$config['check_external'] = intval($jreg->get('check_external', 0));
+		$config['skip_registered_users'] = intval($jreg->get('skip_registered_users', 0));
 		$config['check_all_post'] = intval($jreg->get('check_all_post', 0));
 		$config['sfw_last_check'] = intval($jreg->get('sfw_last_check', 0));
 		$config['sfw_check_interval'] = intval($jreg->get('sfw_check_interval', 86400));
@@ -1528,7 +1532,7 @@ class plgSystemAntispambycleantalk extends JPlugin
 		$config['show_review_done'] = intval($jreg->get('show_review_done',0));		
 		$config['remote_calls'] = json_decode(json_encode($jreg->get('remote_calls',array('close_renew_banner' => array('last_call' => 0),'sfw_update' => array('last_call' => 0),'sfw_send_logs' => array('last_call' => 0),'update_plugin' =>array('last_call' => 0)))),true);						
 		$config['connection_reports']= json_decode(json_encode($jreg->get('connection_reports',array('success' => 0, 'negative'=> 0,'negative_report' => null))),true);
-		
+
         return $config;
     }
 

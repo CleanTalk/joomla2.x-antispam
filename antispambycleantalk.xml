@@ -61,6 +61,7 @@
             <field name="sfw_enable" type="checkbox" label="COM_PLUGINS_CT_SPAM_FIREWALL" value="1" default="0" description="COM_PLUGINS_CT_SPAM_FIREWALL_DESCRIPTION" />
 
             <field name="check_external" type="checkbox" label="COM_PLUGINS_CT_CHECK_EXTERNAL" value="1" default="0" description="COM_PLUGINS_CT_CHECK_EXTERNAL_DESCRIPTION" />
+            <field name="skip_registered_users" type="checkbox" label="COM_PLUGINS_CT_SKIP_REGISTERED_USERS" value="1" default="0" description="COM_PLUGINS_CT_SKIP_REGISTERED_USERS_DESCRIPTION" />
 			<field name="check_all_post" type="checkbox" label="COM_PLUGINS_CT_CHECK_ALL_POST" value="1" default="0" description="COM_PLUGINS_CT_CHECK_ALL_POST_DESCRIPTION" />
             <field name="tell_about_cleantalk" type="checkbox" label="COM_PLUGINS_CT_TELL_ABOUT" value="1" default="0" description="COM_PLUGINS_CT_TELL_ABOUT_DESCRIPTION" />
 			<field name="sfw_last_check" type="hidden" 
