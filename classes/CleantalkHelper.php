@@ -370,7 +370,7 @@ class CleantalkHelper
 		
 		if($date) $request['date'] = $date;
 		
-		$result = self::api_send_request($request, self::URL, false, 6);
+		$result = self::api_send_request($request, self::URL, false, 30);
 		$result = $do_check ? self::api_check_response($result, 'spam_check_cms') : $result;
 		
 		return $result;
