@@ -275,6 +275,7 @@ class plgSystemAntispambycleantalk extends JPlugin
 			'option',
 			'nextstep',
 			'acy_source',
+			'subid',
 		);
 		$fields_exclusions = CleantalkCustomConfig::get_fields_exclusions();
 		if ($fields_exclusions)
@@ -645,7 +646,6 @@ class plgSystemAntispambycleantalk extends JPlugin
     		$option_cmd == 'com_user'     ||
     		$option_cmd == 'com_login'    ||
     		$option_cmd == 'com_akeebasubs' ||
-    		$option_cmd == 'com_acymailing' ||
     		$option_cmd == 'com_easybookreloaded' ||
     		$option_cmd == 'com_easysocial')
     		return true;
@@ -916,8 +916,8 @@ class plgSystemAntispambycleantalk extends JPlugin
 				$post_info['comment_type'] = 'contact_form_joomla_rsform';
 			if ($app->input->get('option') == 'com_baforms')
 				$post_info['comment_type'] = 'contact_form_joomla_balbooa';
-			if ($app->input->get('option') == 'com_acym')
-				$post_info['comment_type'] = 'contact_form_joomla_acymailing';			
+			if ($app->input->get('option') == 'com_acym' || $app->input->get('option') == 'com_acymailing')
+				$post_info['comment_type'] = 'contact_form_joomla_acymailing';				
 			if ($app->input->get('option') == 'com_virtuemart' && $app->input->get('task') == 'savecheckoutuser')
 				$post_info['comment_type'] = 'order';
 
@@ -978,7 +978,8 @@ class plgSystemAntispambycleantalk extends JPlugin
 	        	$app->input->get('option') == 'com_rsform' ||
 	        	$app->input->get('option') == 'com_virtuemart' ||
 	        	$app->input->get('option') == 'com_baforms' || 
-	        	$app->input->get('option') == 'com_acym')
+	        	$app->input->get('option') == 'com_acym' ||
+	        	$app->input->get('option') == 'com_acymailing' )
 	        {
 				$ct_temp_msg_data = $this->getFieldsAny($_POST);
 				$sender_email    = ($ct_temp_msg_data['email']    ? $ct_temp_msg_data['email']    : '');
