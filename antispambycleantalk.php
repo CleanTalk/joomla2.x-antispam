@@ -267,6 +267,14 @@ class plgSystemAntispambycleantalk extends JPlugin
 			'page_title',
 			'Submit',
 			'formId',
+			'key',
+			'id',
+			'hiddenlists',
+			'ctrl',
+			'task',
+			'option',
+			'nextstep',
+			'acy_source',
 		);
 		$fields_exclusions = CleantalkCustomConfig::get_fields_exclusions();
 		if ($fields_exclusions)
@@ -908,8 +916,11 @@ class plgSystemAntispambycleantalk extends JPlugin
 				$post_info['comment_type'] = 'contact_form_joomla_rsform';
 			if ($app->input->get('option') == 'com_baforms')
 				$post_info['comment_type'] = 'contact_form_joomla_balbooa';
+			if ($app->input->get('option') == 'com_acym')
+				$post_info['comment_type'] = 'contact_form_joomla_acymailing';			
 			if ($app->input->get('option') == 'com_virtuemart' && $app->input->get('task') == 'savecheckoutuser')
 				$post_info['comment_type'] = 'order';
+
 	        //Rapid
 	        if (isset($_POST['rp_email'])){ 
 	            $sender_email = $_POST['rp_email'];
@@ -966,7 +977,8 @@ class plgSystemAntispambycleantalk extends JPlugin
 	        	$config['check_external'] || 
 	        	$app->input->get('option') == 'com_rsform' ||
 	        	$app->input->get('option') == 'com_virtuemart' ||
-	        	$app->input->get('option') == 'com_baforms')
+	        	$app->input->get('option') == 'com_baforms' || 
+	        	$app->input->get('option') == 'com_acym')
 	        {
 				$ct_temp_msg_data = $this->getFieldsAny($_POST);
 				$sender_email    = ($ct_temp_msg_data['email']    ? $ct_temp_msg_data['email']    : '');
@@ -1011,6 +1023,12 @@ class plgSystemAntispambycleantalk extends JPlugin
 			                		echo '<input id="form-sys-mesage" type="hidden" value="' .htmlspecialchars($ctResponse['comment'], ENT_QUOTES). '">';
 			                		print "<script>var obj = { type : 'baform', msg : document.getElementById('form-sys-mesage').value }; window.parent.postMessage(obj, '*');</script>";
 			                		die();
+			                	}
+			                	elseif ($app->input->get('option') == 'com_acym' && isset($_POST['ajax']) && $_POST['ajax'] == 1)
+			                	{
+									$result=Array('code'=>1, 'message'=>$ctResponse['comment'],'type'=>'error');
+									print json_encode($result);
+									die();			                		
 			                	}
 			                	else {
 				            		$error_tpl=file_get_contents(dirname(__FILE__)."/error.html");
