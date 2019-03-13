@@ -979,7 +979,13 @@ class plgSystemAntispambycleantalk extends JPlugin
 					$message = array_merge(array('subject' => $subject), $message);
 				$message = implode("\n", $message);
 	        }
-
+	        if (!JFactory::getUser()->guest)
+	        {
+		        if (trim($sender_email) == '' && JFactory::getUser()->email != '')
+		        	$sender_email = JFactory::getUser()->email;
+		        if (trim($sender_nickname) == '' && JFactory::getUser()->username != '')
+		        	$sender_nickname = JFactory::getUser()->username;	        	
+	        }
 	        if (!$this->exceptionList() && (trim($sender_email) !='' || $config['check_all_post']))
 	        {
 	        	$ctResponse = self::ctSendRequest(

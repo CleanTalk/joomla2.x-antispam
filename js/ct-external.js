@@ -11,9 +11,8 @@ function ct_check_internal(){
                     tmp  = action.split('//');
                     tmp  = tmp[1].split('/');
                     host = tmp[0].toLowerCase();
-                    last = tmp[tmp.length-1].toLowerCase();
                 
-                    if( host != location.hostname.toLowerCase() || (last != 'index.php' && last.indexOf('.php') != -1)){
+                    if( host != location.hostname.toLowerCase()){
                         var ct_action = document.createElement("input");
                         ct_action.name='ct_action';
                         ct_action.value=action;
