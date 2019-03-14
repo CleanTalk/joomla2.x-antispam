@@ -1025,12 +1025,6 @@ class plgSystemAntispambycleantalk extends JPlugin
 			                		print "<script>var obj = { type : 'baform', msg : document.getElementById('form-sys-mesage').value }; window.parent.postMessage(obj, '*');</script>";
 			                		die();
 			                	}
-			                	elseif ($app->input->get('option') == 'com_acym' && isset($_POST['ajax']) && $_POST['ajax'] == 1)
-			                	{
-									$result=Array('code'=>1, 'message'=>$ctResponse['comment'],'type'=>'error');
-									print json_encode($result);
-									die();			                		
-			                	}
 			                	else {
 				            		$error_tpl=file_get_contents(dirname(__FILE__)."/error.html");
 									print str_replace('%ERROR_TEXT%',$ctResponse['comment'],$error_tpl);	
