@@ -131,20 +131,23 @@ jQuery(document).ready(function(){
 
 		}
 	}
-	if (ct_connection_reports_negative>0 && ct_connection_reports_negative_report)
+	if (ct_connection_reports_negative > 0 && ct_connection_reports_negative_report)
 	{
 		var html='<center><table id = "connection_reports_table" class="table table-bordered table-hover table-striped" cellspacing=0 cellpadding=3><thead><tr><th>'+ct_connection_reports_table_date+'</th><th>'+ct_connection_reports_table_pageurl+'</th><th>'+ct_connection_reports_table_libreport+'</th></tr></thead><tbody>';
 		var negative_report = JSON.parse(ct_connection_reports_negative_report);
-		negative_report.forEach(function(item,i,arr){
-			html+='<tr>';
-			html+='<td>'+negative_report[i].date+'</td>';
-			html+='<td>'+negative_report[i].page_url+'</td>';
-			html+='<td>'+negative_report[i].lib_report+'</td>';
-			html+='</tr>';
-		});
-		html+='</tbody></table></center>';	
-		html+="<button id='send_connection_report' class='btn btn-success' type='button'>"+ct_connection_reports_send_report+"</button>";
-		jQuery('#connection_reports').append(html);
+		if (negative_report) {
+			negative_report.forEach(function(item,i,arr){
+				html+='<tr>';
+				html+='<td>'+negative_report[i].date+'</td>';
+				html+='<td>'+negative_report[i].page_url+'</td>';
+				html+='<td>'+negative_report[i].lib_report+'</td>';
+				html+='</tr>';
+			});
+			html+='</tbody></table></center>';	
+			html+="<button id='send_connection_report' class='btn btn-success' type='button'>"+ct_connection_reports_send_report+"</button>";
+			jQuery('#connection_reports').append(html);			
+		}
+
 	}
 	else
 		jQuery("#connection_reports").append("<center><h2>"+ct_connection_reports_no_reports+"</h2></center>")	
