@@ -843,8 +843,6 @@ class plgSystemAntispambycleantalk extends JPlugin
     public function onAfterRoute() 
     {
         $app = JFactory::getApplication();
-        if ($app->isAdmin())
-        	return;
 
         $option_cmd = $app->input->get('option');
         $view_cmd = $app->input->get('view');
@@ -1426,8 +1424,13 @@ class plgSystemAntispambycleantalk extends JPlugin
 				    return;
 		}
 
+		//Skip backend or admin checking
+		if (JFactory::getApplication()->isAdmin() || JFactory::getUser()->authorise('core.admin'))
+			return;
+
         $config = $this->getCTConfig();
         
+
         if ($config['skip_registered_users'] && !JFactory::getUser()->guest)	
         	return;	
         
