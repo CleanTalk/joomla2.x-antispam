@@ -1634,7 +1634,8 @@ class plgSystemAntispambycleantalk extends JPlugin
         $page_set_timestamp = (isset($_COOKIE['ct_ps_timestamp']) ? $_COOKIE['ct_ps_timestamp'] : 0);
         $js_timezone = (isset($_COOKIE['ct_timezone']) ? $_COOKIE['ct_timezone'] : '');
         $first_key_timestamp = (isset($_COOKIE['ct_fkp_timestamp']) ? $_COOKIE['ct_fkp_timestamp'] : '');
-        $pointer_data = (isset($_COOKIE['ct_pointer_data']) ? json_decode($_COOKIE['ct_pointer_data']) : '');   
+        $pointer_data = (isset($_COOKIE['ct_pointer_data']) ? json_decode($_COOKIE['ct_pointer_data']) : '');  
+        $cms_lang = strtolower(explode("-", JFactory::getLanguage()->getTag())[0]); 
 
         $config = $this->getCTConfig();
         
@@ -1651,6 +1652,7 @@ class plgSystemAntispambycleantalk extends JPlugin
             'ct_options'=>json_encode($config),
             'REFFERRER_PREVIOUS' => isset($_COOKIE['ct_prev_referer'])?$_COOKIE['ct_prev_referer']:null,
             'fields_number'   => sizeof($_POST),
+            'cms_lang' => $cms_lang,
         );
         return json_encode($sender_info);
     }
