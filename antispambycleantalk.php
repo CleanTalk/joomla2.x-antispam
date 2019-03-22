@@ -1756,11 +1756,17 @@ class plgSystemAntispambycleantalk extends JPlugin
 	            	break;         	
 	            foreach ($comments as $comment)
 	            {
-	            	$curr_date = (substr($comment['date'], 0, 10) ? substr($comment['date'], 0, 10) : '');
-	            	if (!empty($comment['ip']))
-	            		$data[$curr_date][]=$comment['ip'];
-	            	if (!empty($comment['email']))
-	            		$data[$curr_date][]=$comment['email'];
+	            	if ($improved_check)
+	            	{
+		            	$curr_date = (substr($comment['date'], 0, 10) ? substr($comment['date'], 0, 10) : '');
+		            	$data[$curr_date][] = !empty($comment['ip']) ? $comment['ip'] : null;
+		            	$data[$curr_date][] = !empty($comment['email']) ? $comment['email'] : null;            		
+	            	}
+	            	else {
+	            		$data[] = !empty($comment['ip']) ? $comment['ip'] : null;
+	            		$data[] = !empty($comment['email']) ? $comment['email'] : null;     
+	            	}
+
 	            }
 	            if (count($data) == 0)
 	            {
@@ -1769,48 +1775,49 @@ class plgSystemAntispambycleantalk extends JPlugin
 	            }
 	            else
 	            {
-	            	foreach ($data as $date => $values)
+	            	if ($improved_check)
 	            	{
-	            		$values=implode(',',$values);
-	            		$request=Array();
-			        	$request['method_name'] = 'spam_check_cms';
-			        	$request['auth_key'] = $config['apikey'];
-			        	$request['data'] = $values;
-			        	if ($improved_check)
-			        		$request['date'] = $date;
-			        	$url='https://api.cleantalk.org';
-			        	$result=CleantalkHelper::api_send_request($request);
-			       		$result=json_decode($result);
-			       		if (isset($result->error_message))
+	            		foreach ($data as $date => $values)
+	            		{
+	            			$values=implode(',',$values);
+	            			$result=CleantalkHelper::api_method__spam_check_cms($config['apikey'], $values, $date);
+	            		}
+	            	}
+	            	else
+	            	{
+	            		$values=implode(',',$data);
+	            		$result=CleantalkHelper::api_method__spam_check_cms($config['apikey'], $values);
+	            	}
+	            	if ($result)
+	            	{
+			       		if (isset($result['error_message']))
 			       		{
-			       			if ($result->error_message == 'Access key unset.' || $result->error_message == 'Unknown access key.')
+			       			if ($result['error_message'] == 'Access key unset.' || $result['error_message'] == 'Unknown access key.')
 			       				$output['data'] = JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_BADKEY');
-		       				elseif ($result->error_message == 'Service disabled, please go to Dashboard https://cleantalk.org/my?product_id=1')
+		       				elseif ($result['error_message'] == 'Service disabled, please go to Dashboard https://cleantalk.org/my?product_id=1')
 		       					$output['data'] = JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_BADKEY_DISABLED');
-		       				elseif ($result->error_message == 'Calls limit exceeded, method name spam_check_cms().')
+		       				elseif ($result['error_message'] == 'Calls limit exceeded, method name spam_check_cms().')
 		       					$output['data'] = JText::_('PLG_SYSTEM_CLEANTALK_CALLS_LIMIT_EXCEEDED');		       			
-			       			else $output['data'] = $result->error_message;	       			
+			       			else $output['data'] = $result['error_message'];	       			
 			       			$output['result']='error';
 			       		}
 			       		else
 			       		{
-			       			if (isset($result->data))
-			       			{
-			       				foreach($result->data as $mail=>$value)
-			       				{
-			       					if ($value->appears == '1' )
-			       					{
-			       						foreach ($comments as $comment)
-			       						{
-			       							if (($comment['email']==$mail || $comment['ip']==$mail) && substr($comment['date'], 0, 10) == $date && count($spam_comments)<$on_page)
-			       								$spam_comments[]=$comment;
+		       				foreach($result as $mail=>$value)
+		       				{
+		       					if ($value['appears'] == '1' )
+		       					{
+		       						foreach ($comments as $comment)
+		       						{
+		       							if (($comment['email']==$mail || $comment['ip']==$mail) && count($spam_comments)<$on_page)
+		       								$spam_comments[]=$comment;
 
-			       						}
-			       					}
-			       				}
-			       			}    			
-			       		}
-	            	}	            	
+		       						}
+		       					}
+		       				}    			
+			       		}	            		
+	            	}
+	            	
 	            }
 			    $offset+=$amount;
 			    $amount = $on_page-count($spam_comments);
@@ -1854,9 +1861,14 @@ class plgSystemAntispambycleantalk extends JPlugin
 		    	break;
 		    foreach ($users as $user_index => $user)
 		    {
-		    	$curr_date = (substr($user['registerDate'], 0, 10) ? substr($user['registerDate'], 0, 10) : '');
-		    	if (!empty($user['email']))
-			          	$data[$curr_date][] = $user['email'];
+		    	if ($improved_check) 
+		    	{
+			    	$curr_date = (substr($user['registerDate'], 0, 10) ? substr($user['registerDate'], 0, 10) : '');	
+				    $data[$curr_date][] = !empty($user['email']) ? $user['email'] : null;    		
+		    	}
+		    	else 
+		    		$data[] = !empty($user['email']) ? $user['email'] : null;
+
 		    }
 		    if (count($data) == 0)
 		    {
@@ -1865,53 +1877,53 @@ class plgSystemAntispambycleantalk extends JPlugin
 		    }
 		    else 
 		    {
-		    	foreach ($data as $date=>$values)
-		    	{		    		
-		    		$values=implode(',',$values);
-					$request=Array();
-		        	$request['method_name'] = 'spam_check_cms';
-		        	$request['auth_key'] = $config['apikey'];
-		        	$request['data'] = $values;
-		        	if ($improved_check)
-		        		$request['date'] = $date;
-		        	$url='https://api.cleantalk.org';
-		        	$result=CleantalkHelper::api_send_request($request);
-		       		$result=json_decode($result);  
-		       		if (isset($result->error_message))
+
+		    	if ($improved_check)
+		    	{
+		    		foreach ($data as $date=>$values)
+		    		{
+			    		$values=implode(',',$values);
+		        		$result=CleantalkHelper::api_method__spam_check_cms($config['apikey'], $values, $date);
+		    		}
+		    	}
+		    	else
+		    	{
+		    		$values = implode(',', $data);
+		        	$result=CleantalkHelper::api_method__spam_check_cms($config['apikey'], $values);
+		    	}		    		
+		    	if ($result)
+		    	{
+		       		if (isset($result['error_message']))
 		       		{
-		       			if ($result->error_message == 'Access key unset.' || $result->error_message == 'Unknown access key.')
+		       			if ($result['error_message'] == 'Access key unset.' || $result['error_message'] == 'Unknown access key.')
 		       				$output['data'] = JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_BADKEY');
-		       			elseif ($result->error_message == 'Service disabled, please go to Dashboard https://cleantalk.org/my?product_id=1')
+		       			elseif ($result['error_message'] == 'Service disabled, please go to Dashboard https://cleantalk.org/my?product_id=1')
 		       				$output['data'] = JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_BADKEY_DISABLED');
-		       			elseif ($result->error_message == 'Calls limit exceeded, method name spam_check_cms().')
+		       			elseif ($result['error_message'] == 'Calls limit exceeded, method name spam_check_cms().')
 		       				$output['data'] = JText::_('PLG_SYSTEM_CLEANTALK_CALLS_LIMIT_EXCEEDED');
-		       			else $output['data'] = $result->error_message;	       			
+		       			else $output['data'] = $result['error_message'];	       			
 		       			$output['result']='error';
 		       		}
 		       		else
 		       		{
-		       			if (isset($result->data))
-		       			{
-		       				foreach($result->data as $mail=>$value)
-		       				{
-		       					if ($value->appears == '1' )
-		       					{
-		       						foreach ($users as $user)
-		       						{
-		       							if ($user['email']==$mail && substr($user['registerDate'], 0, 10) == $date)
-		       							{
-			       							if ($user['lastvisitDate'] == '0000-00-00 00:00:00')
-			       								$user['lastvisitDate'] = '-';
-		       								if (count($spam_users)<$on_page)			       								
-			       								$spam_users[]=$user;
-
-		       							}
-		       						}
-		       					}
-		       				}
-		       			}
-		       		}	           		
+	       				foreach($result as $mail=>$value)
+	       				{
+	       					if ($value['appears'] == '1' )
+	       					{
+	       						foreach ($users as $user)
+	       						{
+	       							if ($user['email']==$mail && count($spam_users) < $on_page)
+	       							{
+		       							if ($user['lastvisitDate'] == '0000-00-00 00:00:00')
+		       								$user['lastvisitDate'] = '-';			       								
+		       							$spam_users[]=$user;
+	       							}
+	       						}
+	       					}
+	       				}
+		       		}		    		
 		    	}
+	           		
 
 		    }
 		    $offset+=$amount;
