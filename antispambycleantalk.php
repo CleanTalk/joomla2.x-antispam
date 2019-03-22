@@ -636,7 +636,9 @@ class plgSystemAntispambycleantalk extends JPlugin
     public function exceptionList()
     {
         $option_cmd = JFactory::getApplication()->input->get('option');
-        $task_cmd = JFactory::getApplication()->input->get('task');		
+        $task_cmd = JFactory::getApplication()->input->get('task');	
+        $module_cmd = JFactory::getApplication()->input->get('module');	
+        $method_cmd = JFactory::getApplication()->input->get('method');
 
     	if( (@$_GET['option']=='com_mijoshop' && @$_GET['route']=='api/customer') ||
     		($option_cmd == 'com_virtuemart' && $task_cmd == 'add') ||
@@ -647,7 +649,8 @@ class plgSystemAntispambycleantalk extends JPlugin
     		$option_cmd == 'com_login'    ||
     		$option_cmd == 'com_akeebasubs' ||
     		$option_cmd == 'com_easybookreloaded' ||
-    		$option_cmd == 'com_easysocial')
+    		$option_cmd == 'com_easysocial' ||
+    		($module_cmd == 'shoutbox' && $method_cmd == 'getPosts'))
     		return true;
 
     	return false;
@@ -907,8 +910,7 @@ class plgSystemAntispambycleantalk extends JPlugin
 	        $message = '';
 	        $sender_nickname = null;
 			$post_info = array(
-				'comment_type' => 'feedback_general_contact_form',
-				'post_url'     => isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : ''
+				'post_url'     => isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '',
 			);     
 			if ($app->input->get('option') == 'com_rsform')
 				$post_info['comment_type'] = 'contact_form_joomla_rsform';
@@ -989,6 +991,9 @@ class plgSystemAntispambycleantalk extends JPlugin
 				if ($subject != '')
 					$message = array_merge(array('subject' => $subject), $message);
 				$message = implode("\n", $message);
+
+				if (!isset($post_info['comment_type']))
+					$post_info['comment_type'] = 'feedback_general_contact_form';
 	        }
 	        if (!JFactory::getUser()->guest)
 	        {
