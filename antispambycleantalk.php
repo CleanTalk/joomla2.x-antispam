@@ -650,7 +650,8 @@ class plgSystemAntispambycleantalk extends JPlugin
     		$option_cmd == 'com_akeebasubs' ||
     		$option_cmd == 'com_easybookreloaded' ||
     		$option_cmd == 'com_easysocial' ||
-    		($module_cmd == 'shoutbox' && $method_cmd == 'getPosts'))
+    		($module_cmd == 'shoutbox' && $method_cmd == 'getPosts') ||
+    		($option_cmd == 'com_virtuemart' && $task_cmd == 'addJS'))
     		return true;
 
     	return false;
