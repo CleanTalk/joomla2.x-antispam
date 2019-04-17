@@ -1003,7 +1003,7 @@ class plgSystemAntispambycleantalk extends JPlugin
 		        if (trim($sender_nickname) == '' && JFactory::getUser()->username != '')
 		        	$sender_nickname = JFactory::getUser()->username;	        	
 	        }
-	        if (!$this->exceptionList() && (trim($sender_email) !='' || $config['check_all_post']))
+	        if (!$this->exceptionList() && (trim($sender_email) !='' || $config['check_all_post']) && !empty($_POST) && empty($_FILES))
 	        {
 	        	$ctResponse = self::ctSendRequest(
 		            'check_message', array(
