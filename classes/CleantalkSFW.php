@@ -78,7 +78,7 @@ class CleantalkSFW extends CleantalkHelper
 	*	Checks IP via Database
 	*/
 	public function check_ip(){
-		
+
 		foreach($this->ip_array as $current_ip){
 		
 			$query = "SELECT 

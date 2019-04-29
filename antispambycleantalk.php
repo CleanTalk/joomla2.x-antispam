@@ -996,13 +996,7 @@ class plgSystemAntispambycleantalk extends JPlugin
 				if (!isset($post_info['comment_type']))
 					$post_info['comment_type'] = 'feedback_general_contact_form';
 	        }
-	        if (!JFactory::getUser()->guest)
-	        {
-		        if (trim($sender_email) == '' && JFactory::getUser()->email != '')
-		        	$sender_email = JFactory::getUser()->email;
-		        if (trim($sender_nickname) == '' && JFactory::getUser()->username != '')
-		        	$sender_nickname = JFactory::getUser()->username;	        	
-	        }
+
 	        if (!$this->exceptionList() && (trim($sender_email) !='' || $config['check_all_post']) && !empty($_POST) && empty($_FILES))
 	        {
 	        	$ctResponse = self::ctSendRequest(
