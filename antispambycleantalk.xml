@@ -176,19 +176,6 @@
 		</fieldset>	
 	</fields>
     </config>
-	<administration>
-		<!-- Administration Menu Section -->
-		<menu>Antispam by CleanTalk</menu>
-		<submenu>
-			  <menu view="configuration">COM_CLEANTALK_CONFIGURATION</menu>
-			  <menu view="updates">COM_CLEANTALK_UPDATES</menu>
-		</submenu>
-		<files folder="admin">
-			<!-- Admin Main File Copy Section -->
-			<filename>index.html</filename>
-			<filename>cleantalk.php</filename>
-		</files>
-	</administration>
     <install>
         <sql>
             <file driver="mysql" charset="utf8">sql/mysql/install.mysql.utf8.sql</file>
