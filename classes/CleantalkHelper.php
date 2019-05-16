@@ -205,11 +205,12 @@ class CleantalkHelper
 	* 
 	* returns mixed STRING || array('error' => true, 'error_string' => STRING)
 	*/
-	static public function api_method__get_2s_blacklists_db($api_key, $do_check = true){
+	static public function api_method__get_2s_blacklists_db($api_key, $out = null, $do_check = true){
 		
 		$request = array(
 			'method_name' => '2s_blacklists_db',
-			'auth_key' => $api_key,			
+			'auth_key' => $api_key,
+			'out' => $out,			
 		);
 		
 		$result = self::api_send_request($request);

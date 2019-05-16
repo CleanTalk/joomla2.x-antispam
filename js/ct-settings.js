@@ -446,7 +446,7 @@ jQuery(document).ready(function(){
 									html+="<td><input type='checkbox' name=ct_del_user["+item["id"]+"] value='1' /></td>";	
 									html+="<td>"+item["username"]+"</td>";
 									html+="<td>"+item["registerDate"]+"</td>";
-									html+="<td>"+item["email"]+"</td>";	
+									html+="<td><a target='_blank' href = 'https://cleantalk.org/blacklists/"+item["email"]+"'>"+item["email"]+"</a></td>";
 									html+="<td>"+item["lastvisitDate"]+"</td>";						
 									html+="</tr>";
 								});
@@ -461,7 +461,7 @@ jQuery(document).ready(function(){
 									html+="<tr>";
 									html+="<td><input type='checkbox' name=ct_del_comment["+item["id"]+"] value='1' /></td>";	
 									html+="<td>"+item["username"]+"</td>";
-									html+="<td>"+item["email"]+"</td>";
+									html+="<td><a target='_blank' href = 'https://cleantalk.org/blacklists/"+item["email"]+"'>"+item["email"]+"</a></td>";
 									html+="<td>"+item["comment"]+"</td>";	
 									html+="<td>"+item["date"]+"</td>";						
 									html+="</tr>";											
@@ -481,7 +481,7 @@ jQuery(document).ready(function(){
 									html+="<td><input type='checkbox' name=ct_del_user["+item["id"]+"] value='1' /></td>";	
 									html+="<td>"+item["username"]+"</td>";
 									html+="<td>"+item["registerDate"]+"</td>";
-									html+="<td>"+item["email"]+"</td>";	
+									html+="<td><a target='_blank' href = 'https://cleantalk.org/blacklists/"+item["email"]+"'>"+item["email"]+"</a></td>";	
 									html+="<td>"+item["lastvisitDate"]+"</td>";						
 									html+="</tr>";
 								});
@@ -493,7 +493,7 @@ jQuery(document).ready(function(){
 									html+="<tr>";
 									html+="<td><input type='checkbox' name=ct_del_comment["+item["id"]+"] value='1' /></td>";	
 									html+="<td>"+item["username"]+"</td>";
-									html+="<td>"+item["email"]+"</td>";
+									html+="<td><a target='_blank' href = 'https://cleantalk.org/blacklists/"+item["email"]+"'>"+item["email"]+"</a></td>";
 									html+="<td>"+item["comment"]+"</td>";	
 									html+="<td>"+item["date"]+"</td>";						
 									html+="</tr>";					
