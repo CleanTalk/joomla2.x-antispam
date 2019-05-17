@@ -900,6 +900,46 @@ class plgSystemAntispambycleantalk extends JPlugin
 
             }
         }
+        if ($_SERVER['REQUEST_METHOD'] == 'GET')
+        {
+	        if ($config['check_search'])
+	        {
+	        	if (isset($_GET['searchword']) && $_GET['searchword'] != '' && strpos($_SERVER['REQUEST_URI'], '/component/search/') !== false) // Search form
+	        	{
+	        		$post_info['comment_type'] = 'site_search_joomla3';
+	        		$sender_email = JFactory::getUser()->email;
+	        		$sender_nickname = JFactory::getUser()->username;
+	        		$message = trim($_GET['searchword']);
+		        	$ctResponse = self::ctSendRequest(
+			            'check_message', array(
+			                'sender_nickname' => $sender_nickname,
+			                'sender_email' => $sender_email,
+			                'message' => trim(preg_replace("/(^[\r\n]*|[\r\n]+)[\s\t]*[\r\n]+/","\n", $message)),
+			                'post_info' => json_encode($post_info),
+			            )
+	        		);
+		            if ($ctResponse) 
+		            {
+				        if (!empty($ctResponse) && is_array($ctResponse)) 
+				        {
+				            if ($ctResponse['errno'] != 0) 
+				                $this->sendAdminEmail("CleanTalk. Can't verify search form!", $ctResponse['comment']);
+							else 
+							{
+				                if ($ctResponse['allow'] == 0)
+				                {
+				            		$error_tpl=file_get_contents(dirname(__FILE__)."/error.html");
+									print str_replace('%ERROR_TEXT%',$ctResponse['comment'],$error_tpl);	
+									die();		                				
+			                    	                	
+				                }
+			                }
+		                }
+	                }	        		
+	        	}
+	        }        	
+        }
+
         if ($_SERVER['REQUEST_METHOD'] == 'POST')
         {
         	$this->ct_direct_post = 1;
@@ -996,7 +1036,6 @@ class plgSystemAntispambycleantalk extends JPlugin
 				if (!isset($post_info['comment_type']))
 					$post_info['comment_type'] = 'feedback_general_contact_form';
 	        }
-
 	        if (!$this->exceptionList() && (trim($sender_email) !='' || $config['check_all_post']) && !empty($_POST) && empty($_FILES))
 	        {
 	        	$ctResponse = self::ctSendRequest(
@@ -1534,6 +1573,7 @@ class plgSystemAntispambycleantalk extends JPlugin
 		$config['check_external'] = intval($jreg->get('check_external', 0));
 		$config['skip_registered_users'] = intval($jreg->get('skip_registered_users', 0));
 		$config['check_all_post'] = intval($jreg->get('check_all_post', 0));
+		$config['check_search'] = intval($jreg->get('check_search', 0));
 		$config['sfw_last_check'] = intval($jreg->get('sfw_last_check', 0));
 		$config['sfw_check_interval'] = intval($jreg->get('sfw_check_interval', 86400));
 		$config['sfw_last_send_log'] = intval($jreg->get('sfw_last_send_log', 0));
