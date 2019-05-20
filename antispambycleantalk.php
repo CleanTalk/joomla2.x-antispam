@@ -904,7 +904,7 @@ class plgSystemAntispambycleantalk extends JPlugin
         {
 	        if ($config['check_search'])
 	        {
-	        	if (isset($_GET['searchword']) && $_GET['searchword'] != '' && strpos($_SERVER['REQUEST_URI'], '/component/search/') !== false) // Search form
+	        	if (isset($_GET['searchword']) && $_GET['searchword'] != '' && (strpos($_SERVER['REQUEST_URI'], '/component/search/') !== false || strpos($_SERVER['REQUEST_URI'], '/components/search-component/') !== false)) // Search form
 	        	{
 	        		$post_info['comment_type'] = 'site_search_joomla3';
 	        		$sender_email = JFactory::getUser()->email;
