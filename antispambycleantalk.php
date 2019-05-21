@@ -1015,6 +1015,12 @@ class plgSystemAntispambycleantalk extends JPlugin
 	            }
 	            $post_info['comment_type'] = 'contact_form_joomla_breezing';
 	        }
+			elseif ($app->input->get('option') == 'com_virtuemart' && $app->input->get('task') == 'review')
+			{
+				$sender_email = JFactory::getUser()->email;
+				$sender_nickname = JFactory::getUser()->username;
+				$message = isset($_POST['comment']) ? $_POST['comment'] : '';
+			}	        
 	        // Genertal test for any forms or form with custom fields
 	        elseif ($config['general_contact_forms_test'] ||
 	        	$config['check_external'] || 
@@ -1035,11 +1041,11 @@ class plgSystemAntispambycleantalk extends JPlugin
 					$message = array_merge(array('subject' => $subject), $message);
 				$message = implode("\n", $message);
 
-				if (!isset($post_info['comment_type']))
-					$post_info['comment_type'] = 'feedback_general_contact_form';
 	        }
 	        if (!$this->exceptionList() && (trim($sender_email) !='' || $config['check_all_post']) && !empty($_POST) && empty($_FILES))
 	        {
+				if (!isset($post_info['comment_type']))
+					$post_info['comment_type'] = 'feedback_general_contact_form';	        	
 	        	$ctResponse = self::ctSendRequest(
 		            'check_message', array(
 		                'sender_nickname' => $sender_nickname,
