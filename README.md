@@ -1,6 +1,5 @@
 Anti-spam plugin for Joomla 2.X.
 ============
-[![Build Status](https://travis-ci.org/CleanTalk/joomla2.x-antispam.svg)](https://travis-ci.org/CleanTalk/joomla2.x-antispam)
 
 Version 6.2
 
