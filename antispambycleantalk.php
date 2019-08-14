@@ -1683,7 +1683,7 @@ class plgSystemAntispambycleantalk extends JPlugin
         $js_timezone = (isset($_COOKIE['ct_timezone']) ? $_COOKIE['ct_timezone'] : '');
         $first_key_timestamp = (isset($_COOKIE['ct_fkp_timestamp']) ? $_COOKIE['ct_fkp_timestamp'] : '');
         $pointer_data = (isset($_COOKIE['ct_pointer_data']) ? json_decode($_COOKIE['ct_pointer_data']) : '');  
-        $cms_lang = strtolower(explode("-", JFactory::getLanguage()->getTag())[0]); 
+        $cms_lang = strtolower(explode("-", reset(JFactory::getLanguage()->getTag())));
 
         $config = $this->getCTConfig();
         
