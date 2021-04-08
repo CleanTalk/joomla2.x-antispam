@@ -8,6 +8,26 @@
 		<folder>system</folder>
 		<client_id>0</client_id>
 		<client>0</client>
+		<version>6.4</version>
+		<infourl title="Antispam by CleanTalk">https://cleantalk.org/joomla-anti-spam-plugin-without-captcha</infourl>
+		<downloads>
+			<downloadurl type="full" format="zip">https://github.com/CleanTalk/joomla25-3x-antispam/archive/6.4.zip</downloadurl>
+		</downloads>
+		<tags>
+			<tag>stable</tag>
+		</tags>
+		<maintainer>CleanTalk</maintainer>
+		<maintainerurl>https://cleantalk.org</maintainerurl>
+		<targetplatform name="joomla" version="[23].*"/>
+	</update>
+	<update>
+		<name>Antispam by CleanTalk</name>
+		<description>Antispam plugin for Joomla registrations and contacts, for VurtueMart, Rapid Contact, VTEM Contact, JComments 2.3, 3.0.</description>
+		<element>antispambycleantalk</element>
+		<type>plugin</type>
+		<folder>system</folder>
+		<client_id>0</client_id>
+		<client>0</client>
 		<version>6.3</version>
 		<infourl title="Antispam by CleanTalk">https://cleantalk.org/joomla-anti-spam-plugin-without-captcha</infourl>
 		<downloads>
