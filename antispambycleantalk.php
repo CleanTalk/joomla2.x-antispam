@@ -1021,20 +1021,14 @@ class plgSystemAntispambycleantalk extends JPlugin
 				$sender_nickname = JFactory::getUser()->username;
 				$message = isset($_POST['comment']) ? $_POST['comment'] : '';
 			}	        
-	        // Genertal test for any forms or form with custom fields
-	        elseif ($config['general_contact_forms_test'] ||
-	        	$config['check_external'] || 
-	        	$app->input->get('option') == 'com_rsform' ||
-	        	$app->input->get('option') == 'com_virtuemart' ||
-	        	$app->input->get('option') == 'com_baforms' || 
-	        	$app->input->get('option') == 'com_acym' ||
-	        	$app->input->get('option') == 'com_acymailing' )
+	        // General test for any forms or form with custom fields
+	        else
 	        {
 				$ct_temp_msg_data = $this->getFieldsAny($_POST);
 				$sender_email    = ($ct_temp_msg_data['email']    ? $ct_temp_msg_data['email']    : '');
 				$sender_nickname = ($ct_temp_msg_data['nickname'] ? $ct_temp_msg_data['nickname'] : '');
 				$subject         = ($ct_temp_msg_data['subject']  ? $ct_temp_msg_data['subject']  : '');
-				$contact_form    = ($ct_temp_msg_data['contact']  ? $ct_temp_msg_data['contact']  : true);
+				$contact_form    = ($ct_temp_msg_data['contact']  ? $ct_temp_msg_data['contact']  : true); // not used now
 				$message         = ($ct_temp_msg_data['message']  ? $ct_temp_msg_data['message']  : array());
 
 				if ($subject != '')
@@ -1042,6 +1036,7 @@ class plgSystemAntispambycleantalk extends JPlugin
 				$message = implode("\n", $message);
 
 	        }
+
 	        if (!$this->exceptionList() && (trim($sender_email) !='' || $config['check_all_post']) && !empty($_POST) && empty($_FILES))
 	        {
 				if (!isset($post_info['comment_type']))
