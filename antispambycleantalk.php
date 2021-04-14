@@ -1818,7 +1818,7 @@ class plgSystemAntispambycleantalk extends JPlugin
 	            }
 	            else
 	            {
-                    $result = [];
+                    $result = array();
 
 	            	if ($improved_check)
 	            	{
