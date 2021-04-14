@@ -36,13 +36,13 @@ jQuery(document).ready(function(){
 		if (ct_joom25)
 		{
 			jQuery('#checkuserscomments-options').next().append("<div id='attrib-checkuserscomments'></div>");
-			jQuery('#attrib-checkuserscomments').append("<div id='key_buttons_wrapper'></div>").children().append("<center><button style=\"width:90%;\" id=\"check_spam_users\" class=\"key_buttons \" type=\"button\">"+ct_spamcheck_checksusers+"</button><br><button style=\"width:90%;\" id=\"check_spam_comments\" class=\"key_buttons\" type=\"button\">"+ct_spamcheck_checkscomments+"</button><br /><br />"+ct_spamcheck_notice+"<br/><br/><input type='checkbox' name ='ct_impspamcheck_checkbox' value='0'>"+ct_impspamcheck_label+"</center><br/><br/>")
+			jQuery('#attrib-checkuserscomments').append("<div id='key_buttons_wrapper'></div>").children().append("<center><button style=\"width:90%;\" id=\"check_spam_users\" class=\"key_buttons \" type=\"button\">"+ct_spamcheck_checksusers+"</button><br><button style=\"width:90%;\" id=\"check_spam_comments\" class=\"key_buttons\" type=\"button\">"+ct_spamcheck_checkscomments+"</button><br /><br />"+ct_spamcheck_notice+"<br/><br/><input type='checkbox' name ='ct_impspamcheck_checkbox'>"+ct_impspamcheck_label+"</center><br/><br/>")
 			jQuery('#connectionreports-options').next().append("<div id='attrib-connectionreports'></div>");
 			jQuery('#attrib-connectionreports').append("<div id = 'connection_reports'></div>");
 		}
 		else 
 		{
-			jQuery('#attrib-checkuserscomments').append("<center><button style=\"width:20%;\" id=\"check_spam_users\" class=\"btn btn-success \" type=\"button\"><span class=\"icon-users levels\"></span>"+ct_spamcheck_checksusers+"</button>&nbsp;&nbsp;&nbsp;<button style=\"width:20%;\" id=\"check_spam_comments\" class=\"btn btn-success\" type=\"button\"><span class=\"icon-archive\"></span>"+ct_spamcheck_checkscomments+"</button><br /><br />"+ct_spamcheck_notice+"<br/><br/><input type='checkbox' name ='ct_impspamcheck_checkbox' value='0'>"+ct_impspamcheck_label+"</center><br/><br/>")
+			jQuery('#attrib-checkuserscomments').append("<center><button style=\"width:20%;\" id=\"check_spam_users\" class=\"btn btn-success \" type=\"button\"><span class=\"icon-users levels\"></span>"+ct_spamcheck_checksusers+"</button>&nbsp;&nbsp;&nbsp;<button style=\"width:20%;\" id=\"check_spam_comments\" class=\"btn btn-success\" type=\"button\"><span class=\"icon-archive\"></span>"+ct_spamcheck_checkscomments+"</button><br /><br />"+ct_spamcheck_notice+"<br/><br/><input type='checkbox' name ='ct_impspamcheck_checkbox'>"+ct_impspamcheck_label+"</center><br/><br/>")
 			jQuery('#attrib-connectionreports').append("<div id = 'connection_reports'></div>");	
 		}			
 		jQuery('#attrib-checkuserscomments').append("<center><div id ='spam_results'></div>");
@@ -416,7 +416,7 @@ jQuery(document).ready(function(){
 			'check_type': type,
 			'offset':offset,
 			'amount':amount,
-			'improved_check':jQuery("#ct_impspamcheck_checkbox").is(":checked")
+			'improved_check':jQuery("[name=ct_impspamcheck_checkbox]").prop('checked')
 		};
 		if (off==0)
 			jQuery("#spam_results").empty();

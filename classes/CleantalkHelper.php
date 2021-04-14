@@ -363,15 +363,20 @@ class CleantalkHelper
 	 */
 	static public function api_method__spam_check_cms($api_key, $data, $date = null, $do_check = true)
 	{
+        $api_url = self::URL;
+
 		$request=Array(
 			'method_name' => 'spam_check_cms',
 			'auth_key' => $api_key,
 			'data' => is_array($data) ? implode(',',$data) : $data,			
 		);
-		
-		if($date) $request['date'] = $date;
-		
-		$result = self::api_send_request($request, self::URL, false, 30);
+
+        if($date) {
+            $request['date'] = $date;
+            $api_url .= '?date=' . $date;
+        }
+
+		$result = self::api_send_request($request, $api_url, false, 30);
 		$result = $do_check ? self::api_check_response($result, 'spam_check_cms') : $result;
 		
 		return $result;
