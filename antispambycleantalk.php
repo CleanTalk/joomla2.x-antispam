@@ -1818,12 +1818,15 @@ class plgSystemAntispambycleantalk extends JPlugin
 	            }
 	            else
 	            {
+                    $result = [];
+
 	            	if ($improved_check)
 	            	{
 	            		foreach ($data as $date => $values)
 	            		{
 	            			$values=implode(',',$values);
-	            			$result=CleantalkHelper::api_method__spam_check_cms($config['apikey'], $values, $date);
+                            $interim_result=CleantalkHelper::api_method__spam_check_cms($config['apikey'], $values, $date);
+                            $result = array_merge($result, $interim_result);
 	            		}
 	            	}
 	            	else
@@ -1846,18 +1849,19 @@ class plgSystemAntispambycleantalk extends JPlugin
 			       		}
 			       		else
 			       		{
-		       				foreach($result as $mail=>$value)
-		       				{
-		       					if ($value['appears'] == '1' )
-		       					{
-		       						foreach ($comments as $comment)
-		       						{
-		       							if (($comment['email']==$mail || $comment['ip']==$mail) && count($spam_comments)<$on_page)
-		       								$spam_comments[]=$comment;
-
-		       						}
-		       					}
-		       				}    			
+                            if(is_array($result)) {
+                                foreach($result as $mail=>$value)
+                                {
+                                    if ($value['appears'] == '1' )
+                                    {
+                                        foreach ($comments as $comment)
+                                        {
+                                            if (($comment['email']==$mail || $comment['ip']==$mail) && count($spam_comments)<$on_page)
+                                                $spam_comments[]=$comment;
+                                        }
+                                    }
+                                }
+                            }
 			       		}	            		
 	            	}
 	            	
