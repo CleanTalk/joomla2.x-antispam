@@ -3,6 +3,8 @@ Anti-spam plugin for Joomla 2.X.
 
 Version 6.4
 
+If you find this project useful, please consider starring ⭐ it on GitHub — it helps us grow and support development!
+
 ## Simple antispam test
 
 Example how to use plugin to filter spam bots at any Joomla form.
